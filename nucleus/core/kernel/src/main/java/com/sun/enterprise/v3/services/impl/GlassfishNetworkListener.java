@@ -350,19 +350,18 @@ public class GlassfishNetworkListener extends GenericGrizzlyListener {
 
     protected static class HttpAdapterImpl implements HttpAdapter {
         private final VirtualServer virtualServer;
-        private final ContainerMapper conainerMapper;
+        private final ContainerMapper containerMapper;
         private final String webAppRootPath;
 
-        public HttpAdapterImpl(VirtualServer virtualServer, ContainerMapper conainerMapper, String webAppRootPath) {
+        public HttpAdapterImpl(VirtualServer virtualServer, ContainerMapper containerMapper, String webAppRootPath) {
             this.virtualServer = virtualServer;
-            this.conainerMapper = conainerMapper;
+            this.containerMapper = containerMapper;
             this.webAppRootPath = webAppRootPath;
         }
 
-
         @Override
         public ContainerMapper getMapper() {
-            return conainerMapper;
+            return containerMapper;
         }
 
         @Override
@@ -481,14 +480,29 @@ public class GlassfishNetworkListener extends GenericGrizzlyListener {
                 httpHeader.addHeader(xFrameOptionsHeader, xFrameOptions);
             }
 
-            if (this.cookieSameSiteValue != null && httpHeader instanceof HttpResponsePacket) {
+            if (httpHeader instanceof HttpResponsePacket) {
                 final HttpResponsePacket response = (HttpResponsePacket) httpHeader;
-                MimeHeaders headers = response.getHeaders();
-                for (int i = 0; i < headers.size(); i++) {
-                    if (headers.getName(i).toString().equals("Set-Cookie")) {
-                        DataChunk value = headers.getValue(i);
-                        value.setString(value + ";SameSite=" + this.cookieSameSiteValue +
-                                ("None".equals(cookieSameSiteValue) ? ";Secure" : ""));
+                String sameSite = this.cookieSameSiteValue;
+                final HttpRequestPacket request = response.getRequest();
+                String uri = request.getRequestURI();
+                if (uri != null) {
+                    String[] uriArray = uri.split("/");
+                    if (uriArray.length > 1) {
+                        String app = uriArray[1].toLowerCase();
+                        String sameSiteProp = System.getProperty(app + ".sameSite");
+                        if (sameSiteProp != null) {
+                            sameSite = sameSiteProp;
+                        }
+                    }
+                }
+                if (sameSite != null) {
+                    MimeHeaders headers = response.getHeaders();
+                    for (int i = 0; i < headers.size(); i++) {
+                        if (headers.getName(i).toString().equals("Set-Cookie")) {
+                            DataChunk value = headers.getValue(i);
+                            value.setString(value + ";SameSite=" + sameSite +
+                                    ("None".equals(sameSite) ? ";Secure" : ""));
+                        }
                     }
                 }
             }
