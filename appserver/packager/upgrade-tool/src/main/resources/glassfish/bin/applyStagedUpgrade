@@ -81,12 +81,12 @@ do
 
         mv ${AS_INSTALL}/${i}/* ${AS_INSTALL}/${i}.old/
         if [ ! $? -eq 0 ]; then
-            # Check if the warning was an empty MQ or glassfish/h2db directory
+            # Check if the warning was an empty MQ or h2db directory
             if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"glassfish/h2db"* ]]; then
+                if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty glassfish/h2db directory to old, assuming this is a payara 6 distribution"
+                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving empty MQ directory to old, assuming this is a leftover empty directory from a previous payara distribution"
@@ -95,12 +95,12 @@ do
     else
         mv ${AS_INSTALL}/${i} ${AS_INSTALL}/${i}.old
         if [ ! $? -eq 0 ]; then
-            # Check if the warning was a missing MQ or glassfish/h2db directory
+            # Check if the warning was a missing MQ or h2db directory
             if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"glassfish/h2db"* ]]; then
+                if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty glassfish/h2db directory to old, assuming this is a payara 6 distribution"
+                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution"
@@ -112,12 +112,12 @@ do
     if [ -d "${AS_INSTALL}/${i}.new" ]; then
         mv ${AS_INSTALL}/${i}.new/* ${AS_INSTALL}/${i}/
         if [ ! $? -eq 0 ]; then
-            # Check if the warning was an empty MQ directory or glassfish/h2db directory
+            # Check if the warning was an empty MQ directory or h2db directory
             if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"glassfish/h2db"* ]]; then
+                if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty glassfish/h2db directory to old, assuming this is a payara 6 distribution"
+                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving empty staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
@@ -126,12 +126,12 @@ do
     else
         mv ${AS_INSTALL}/${i}.new ${AS_INSTALL}/${i}
         if [ ! $? -eq 0 ]; then
-            # Check if the warning was a missing MQ directory or glassfish/h2db directory
+            # Check if the warning was a missing MQ directory or h2db directory
             if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"glassfish/h2db"* ]]; then
+                if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty glassfish/h2db directory to old, assuming this is a payara 6 distribution"
+                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
