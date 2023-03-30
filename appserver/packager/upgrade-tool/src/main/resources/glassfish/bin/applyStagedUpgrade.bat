@@ -2,7 +2,7 @@
 REM
 REM  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 REM
-REM  Copyright (c) 2021 Payara Foundation and/or its affiliates. All rights reserved.
+REM  Copyright (c) 2021-2023 Payara Foundation and/or its affiliates. All rights reserved.
 REM
 REM  The contents of this file are subject to the terms of either the GNU
 REM  General Public License Version 2 only ("GPL") or the Common Development
@@ -89,7 +89,11 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
             if %%a=="..\mq" (
                 echo Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution
             ) else (
-                set WARN=true
+                if %%a=="glassfish\h2db" (
+                    echo Ignoring error moving missing glassfish\h2db directory to old, assuming you're upgrading a payara 6 distribution
+                ) else (
+                    set WARN=true
+                )
             )
         )
     )
@@ -103,7 +107,11 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
             if %%a=="..\mq" (
                 echo Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution
             ) else (
-                set WARN=true
+                if %%a=="glassfish\h2db" (
+                    echo Ignoring error moving missing staged glassfish\h2db directory to expected location, assuming you're upgrading to a payara 6 distribution
+                ) else (
+                    set WARN=true
+                )
             )
         )
     )
