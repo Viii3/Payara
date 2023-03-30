@@ -89,8 +89,8 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
             if %%a=="..\mq" (
                 echo Ignoring error moving MQ directory to staged location, assuming you're rolling back a payara-web distribution
             ) else (
-                if %%a=="glassfish\h2db" (
-                    echo Ignoring error moving glassfish\h2db directory to staged location, assuming you're rolling back a payara 6 distribution
+                if %%a=="h2db" (
+                    echo Ignoring error moving glassfish\h2db directory to staged location, assuming you're rolling back a distribution without the duplicate directory
                 ) else (
                     set WARN=true
                 )
@@ -107,8 +107,8 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
             if %%a=="..\mq" (
                 echo Ignoring error moving old MQ directory to expected location, assuming you're rolling back to a payara-web distribution
             ) else (
-                if %%a=="glassfish\h2db" (
-                    echo Ignoring error moving old glassfish\h2db directory to expected location, assuming you're rolling back to a payara 6 distribution
+                if %%a=="h2db" (
+                    echo Ignoring error moving old glassfish\h2db directory to expected location, assuming you're rolling back to a distribution without the duplicate directory
                 ) else (
                     set WARN=true
                 )

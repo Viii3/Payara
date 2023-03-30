@@ -100,7 +100,7 @@ do
                 if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
+                    echo "Ignoring error moving missing h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution"
@@ -117,7 +117,7 @@ do
                 if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
+                    echo "Ignoring error moving empty staged h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving empty staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
@@ -131,7 +131,7 @@ do
                 if [[ ! "${i}" == *"h2db"* ]]; then
                     WARN=true
                 else
-                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
+                    echo "Ignoring error moving missing staged h2db directory to old, assuming this is a distribution without the duplicate directory"
                 fi
             else
                 echo "Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
