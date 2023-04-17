@@ -194,7 +194,7 @@ public class OpenAPISupplier implements Supplier<OpenAPI> {
 
     public static Map<String, Type> typesToMap(Types types) {
         return types.getAllTypes().stream()
-                .collect(Collectors.toMap((t) -> t.getName(), Function.identity()));
+                .collect(Collectors.toMap((t) -> t.getName(), Function.identity(), (first, second) -> first));
     }
 
     /**
