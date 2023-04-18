@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018-2022] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2018-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -98,7 +98,6 @@ import org.glassfish.hk2.classmodel.reflect.ClassModel;
 import org.glassfish.hk2.classmodel.reflect.FieldModel;
 import org.glassfish.hk2.classmodel.reflect.MethodModel;
 import org.glassfish.hk2.classmodel.reflect.Type;
-import org.glassfish.hk2.classmodel.reflect.Types;
 
 /**
  * A walker that visits each filtered class type & it's members, scans for
@@ -112,7 +111,7 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
     private Map<Class<? extends Annotation>, VisitorFunction<AnnotationModel, E>> annotationVisitor;
     private Map<Class<? extends Annotation>, Class<? extends Annotation>> annotationAlternatives;
 
-    public OpenApiWalker(OpenAPI api, Types allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader) {
+    public OpenApiWalker(OpenAPI api, Map<String, Type> allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader) {
         this.allowedTypes = new TreeSet<>(Comparator.comparing(Type::getName, String::compareTo));
         this.allowedTypes.addAll(allowedTypes);
         this.context = new OpenApiContext(allTypes, this.allowedTypes, appClassLoader, api);
