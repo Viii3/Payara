@@ -112,9 +112,9 @@
     
     <profiles>
         <profile>
-            <id>jdk4</id>
+            <id>jdkAfter8</id>
             <activation>
-                <jdk>(8,)</jdk>
+                <jdk>(1.8,)</jdk>
             </activation>
             <build>
                 <plugins>
