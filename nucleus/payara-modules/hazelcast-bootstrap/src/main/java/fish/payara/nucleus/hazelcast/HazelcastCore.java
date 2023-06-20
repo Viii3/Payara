@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2022] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,10 +39,21 @@
  */
 package fish.payara.nucleus.hazelcast;
 
-import static java.lang.String.valueOf;
-
 import com.hazelcast.cache.impl.HazelcastServerCachingProvider;
-import com.hazelcast.config.*;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.DiscoveryStrategyConfig;
+import com.hazelcast.config.ExecutorConfig;
+import com.hazelcast.config.GlobalSerializerConfig;
+import com.hazelcast.config.InterfacesConfig;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.KubernetesConfig;
+import com.hazelcast.config.MemberAddressProviderConfig;
+import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.config.PartitionGroupConfig;
+import com.hazelcast.config.ScheduledExecutorConfig;
+import com.hazelcast.config.SerializationConfig;
+import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.internal.config.ConfigLoader;
@@ -50,7 +61,6 @@ import com.hazelcast.kubernetes.KubernetesProperties;
 import com.hazelcast.map.IMap;
 import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.nio.serialization.StreamSerializer;
-import static com.hazelcast.spi.properties.ClusterProperty.WAIT_SECONDS_BEFORE_JOIN;
 import com.sun.enterprise.util.Utility;
 import fish.payara.nucleus.events.HazelcastEvents;
 import org.glassfish.api.StartupRunLevel;
@@ -94,6 +104,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static com.hazelcast.spi.properties.ClusterProperty.WAIT_SECONDS_BEFORE_JOIN;
+import static fish.payara.nucleus.hazelcast.PayaraHazelcastDiscoveryFactory.HOST_AWARE_PARTITIONING;
+import static java.lang.String.valueOf;
 
 /**
  * The core class for using Hazelcast in Payara
@@ -158,7 +172,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
     public void postConstruct() {
         theCore = this;
         events.register(this);
-        enabled = Boolean.valueOf(nodeConfig.getEnabled());
+        enabled = Boolean.parseBoolean(nodeConfig.getEnabled());
         transactions.addListenerForType(HazelcastConfigSpecificConfiguration.class, this);
         transactions.addListenerForType(HazelcastRuntimeConfiguration.class, this);
 
@@ -253,6 +267,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void event(Event event) {
         if (event.is(Deployment.ALL_APPLICATIONS_STOPPED)) {
             shutdownHazelcast();
@@ -386,8 +401,6 @@ public class HazelcastCore implements EventListener, ConfigListener {
                     config.setSerializationConfig(serializationConfig);
                 }
 
-                buildNetworkConfiguration(config);
-
                 config.setLicenseKey(configuration.getLicenseKey());
                 config.setLiteMember(Boolean.parseBoolean(nodeConfig.getLite()));
 
@@ -395,22 +408,26 @@ public class HazelcastCore implements EventListener, ConfigListener {
                 config.setClusterName(configuration.getClusterGroupName());
 
                 // build the configuration
+                boolean hostAwarePartitioning = false;
                 if ("true".equals(configuration.getHostAwarePartitioning())) {
+                    hostAwarePartitioning = true;
                     PartitionGroupConfig partitionGroupConfig = config.getPartitionGroupConfig();
                     partitionGroupConfig.setEnabled(enabled);
                     partitionGroupConfig.setGroupType(PartitionGroupConfig.MemberGroupType.HOST_AWARE);
                 }
 
+                buildNetworkConfiguration(config, hostAwarePartitioning);
+
                 // build the executor config
                 ExecutorConfig executorConfig = config.getExecutorConfig(CLUSTER_EXECUTOR_SERVICE_NAME);
                 executorConfig.setStatisticsEnabled(true);
-                executorConfig.setPoolSize(Integer.valueOf(nodeConfig.getExecutorPoolSize()));
-                executorConfig.setQueueCapacity(Integer.valueOf(nodeConfig.getExecutorQueueCapacity()));
+                executorConfig.setPoolSize(Integer.parseInt(nodeConfig.getExecutorPoolSize()));
+                executorConfig.setQueueCapacity(Integer.parseInt(nodeConfig.getExecutorQueueCapacity()));
 
                 ScheduledExecutorConfig scheduledExecutorConfig = config.getScheduledExecutorConfig(SCHEDULED_CLUSTER_EXECUTOR_SERVICE_NAME);
                 scheduledExecutorConfig.setDurability(1);
-                scheduledExecutorConfig.setCapacity(Integer.valueOf(nodeConfig.getScheduledExecutorQueueCapacity()));
-                scheduledExecutorConfig.setPoolSize(Integer.valueOf(nodeConfig.getScheduledExecutorPoolSize()));
+                scheduledExecutorConfig.setCapacity(Integer.parseInt(nodeConfig.getScheduledExecutorQueueCapacity()));
+                scheduledExecutorConfig.setPoolSize(Integer.parseInt(nodeConfig.getScheduledExecutorPoolSize()));
 
                 config.setProperty("hazelcast.jmx", "true");
             }
@@ -436,7 +453,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
                 .setOverrideJavaSerialization(true));
     }
 
-    private void buildNetworkConfiguration(Config config) throws NumberFormatException {
+    private void buildNetworkConfiguration(Config config, boolean hostAwarePartitioning) throws NumberFormatException {
         NetworkConfig nConfig = config.getNetworkConfig();
         String noClusterProp = nodeConfig.getClusteringEnabled();
         if (noClusterProp != null && Boolean.parseBoolean(noClusterProp)) {
@@ -459,7 +476,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
             memberAddressProviderConfig.setImplementation(new MemberAddressPicker(env, configuration, nodeConfig));
         }
 
-        int port = Integer.valueOf(configuration.getStartPort());
+        int port = Integer.parseInt(configuration.getStartPort());
 
         String configSpecificPort = nodeConfig.getConfigSpecificDataGridStartPort();
         if (configSpecificPort != null && !configSpecificPort.isEmpty()) {
@@ -485,7 +502,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
             MulticastConfig mcConfig = config.getNetworkConfig().getJoin().getMulticastConfig();
             mcConfig.setEnabled(true);
             mcConfig.setMulticastGroup(configuration.getMulticastGroup());
-            mcConfig.setMulticastPort(Integer.valueOf(configuration.getMulticastPort()));
+            mcConfig.setMulticastPort(Integer.parseInt(configuration.getMulticastPort()));
         } else if (discoveryMode.startsWith("kubernetes")) {
             config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
             config.getNetworkConfig().getJoin().getKubernetesConfig().setEnabled(true)
@@ -495,18 +512,24 @@ public class HazelcastCore implements EventListener, ConfigListener {
         } else {
             //build the domain discovery config
             config.setProperty("hazelcast.discovery.enabled", "true");
-            config.getNetworkConfig().getJoin().getDiscoveryConfig().setDiscoveryServiceProvider(DomainDiscoveryService::new);
+            PartitionGroupConfig partitionGroupConfig = config.getPartitionGroupConfig();
+            partitionGroupConfig.setEnabled(true);
+            partitionGroupConfig.setGroupType(PartitionGroupConfig.MemberGroupType.SPI);
+            config.getNetworkConfig().getJoin().getDiscoveryConfig().addDiscoveryStrategyConfig(
+                    new DiscoveryStrategyConfig(DomainDiscoveryStrategy.class.getName())
+                            .addProperty(HOST_AWARE_PARTITIONING.key(), hostAwarePartitioning));
             config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
         }
 
         if (env.isDas() && !env.isMicro()) {
-            port = Integer.valueOf(configuration.getDasPort());
+            port = Integer.parseInt(configuration.getDasPort());
         }
 
         config.getNetworkConfig().setPort(port);
         config.getNetworkConfig().setPortAutoIncrement("true".equalsIgnoreCase(configuration.getAutoIncrementPort()));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void shutdownHazelcast() {
         if (theInstance != null) {
             enabled = false;
@@ -524,6 +547,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
     /**
      * Starts Hazelcast if not already enabled
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private synchronized void bootstrapHazelcast() {
         if (!booted && isEnabled()) {
             Config config = buildConfiguration();
@@ -532,6 +556,7 @@ public class HazelcastCore implements EventListener, ConfigListener {
             try {
                 // remove "CP Subsystem Unsafe" warning on startup
                 cpSubsystemLogger.setLevel(Level.SEVERE);
+                config.getMemberAttributeConfig().setAttribute(INSTANCE_GROUP_ATTRIBUTE, memberGroup);
                 theInstance = Hazelcast.newHazelcastInstance(config);
             } finally {
                 cpSubsystemLogger.setLevel(cpSubsystemLevel);
