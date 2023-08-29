@@ -4,3 +4,7 @@
 [submodule "appserver/extras/upgrade-tool"]
 	path = appserver/extras/upgrade-tool
 	url = https://github.com/payara/upgrade-tool
+[submodule "appserver/extras/certificate-management"]
+	path = appserver/extras/certificate-management
+	url = https://github.com/payara/Certificate-Management
+	branch = master
