@@ -41,6 +41,8 @@
 
 package com.sun.ejb.containers;
 
+import com.hazelcast.cp.exception.CPSubsystemException;
+import com.hazelcast.cp.lock.exception.LockOwnershipLostException;
 import com.sun.ejb.ComponentContext;
 import com.sun.ejb.EjbInvocation;
 import com.sun.ejb.InvocationInfo;
@@ -48,6 +50,7 @@ import com.sun.ejb.MethodLockInfo;
 import com.sun.enterprise.security.SecurityManager;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
 import javax.ejb.ConcurrentAccessException;
 import javax.ejb.ConcurrentAccessTimeoutException;
 import javax.ejb.IllegalLoopbackException;
@@ -209,7 +212,11 @@ public class CMCSingletonContainer
 
         Lock theLock = inv.getCMCLock();
         if (theLock != null) {
-            theLock.unlock();
+            try {
+                theLock.unlock();
+            } catch (CPSubsystemException | LockOwnershipLostException e) {
+                _logger.log(Level.WARNING, "Distributed unlock failed", e);
+            }
         }
     }
 
