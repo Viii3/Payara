@@ -118,7 +118,6 @@
             <activation>
                 <property>
                     <name>BuildCertificateManagement</name>
-                    <value>!false</value>
                 </property>
             </activation>
             <modules>
