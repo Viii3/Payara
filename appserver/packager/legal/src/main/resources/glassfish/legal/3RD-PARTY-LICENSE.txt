@@ -23,7 +23,7 @@ party licensors listed.
 ****************************************
 
 ---------------------------------------------------
-Accessors Smart 1.2
+Accessors Smart 2.4.11
 Apache Ant 1.10.9
 Apache BCEL 6.6.1
 Apache Felix OSGI 7.x
@@ -39,10 +39,10 @@ Jackson 2.13.4
 JBoss Class File Writer 1.2.5.Final
 JBoss Logging 3.4.3.Final
 JCIP Annotations 1.0-1
-JSON Smart 2.4.8
+JSON Smart 2.4.11
 JXMPP 0.6.4
 Mini DNS 0.3.4
-Nimbus Jose JWT 9.25
+Nimbus Jose JWT 9.35
 OpenTracing 0.33.0
 OSGi Core API 4.1.0, 5.0.0, 7.0.0
 OSGi Compendium API 4.0.0, 7.0.0
