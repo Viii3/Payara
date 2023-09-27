@@ -40,7 +40,6 @@
 package fish.payara.samples.usebundledjsf.primefaces;
 
 import fish.payara.samples.Libraries;
-import fish.payara.samples.NotMicroCompatible;
 import fish.payara.samples.PayaraArquillianTestRunner;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
