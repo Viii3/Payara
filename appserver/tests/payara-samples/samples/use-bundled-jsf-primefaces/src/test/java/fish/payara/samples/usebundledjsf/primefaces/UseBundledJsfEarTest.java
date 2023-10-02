@@ -45,6 +45,7 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,8 +57,12 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.net.URI;
 
+/**
+ * Test that checks that a WAR embedded within an EAR can still use its bundled JSF implementation.
+ * Bundling the JSF implementation within the EAR and expecting the WAR to be able to access it is out of scope.
+ */
 @RunWith(PayaraArquillianTestRunner.class)
-public class DontUseBundledJsfPrimeFacesTest {
+public class UseBundledJsfEarTest {
 
     private static String JSF_VERSION = "2.2.20";
 
@@ -65,16 +70,16 @@ public class DontUseBundledJsfPrimeFacesTest {
     private URI uri;
 
     @Deployment
-    public static WebArchive createDeployment() {
-        return ShrinkWrap.create(WebArchive.class, "dontusebundledjsfprimefaces.war")
-                .addClasses(Resources.class, JSFVersion.class)
-                .addAsWebInfResource(new File("src/main/webapp", "beans.xml"))
-                .addAsWebInfResource(new File("src/main/webapp", "faces-config.xml"))
-                .addAsWebInfResource(new File("src/main/webapp", "web.xml"))
-                // Don't add payara-web.xml so that useBundledJsf and class loader delegation are not configured
-                // .addAsWebInfResource(new File("src/main/webapp", "payara-web.xml"))
-                .addAsLibraries(Libraries.resolveMavenCoordinatesToFiles("org.glassfish:javax.faces:" + JSF_VERSION))
-                .addAsLibraries(Libraries.resolveMavenCoordinatesToFiles("org.primefaces:primefaces:11.0.0"));
+    public static EnterpriseArchive createDeployment() {
+        return ShrinkWrap.create(EnterpriseArchive.class, "usebundledjsfprimefacesear.ear")
+                .addAsModule(ShrinkWrap.create(WebArchive.class, "usebundledjsfprimefaces.war")
+                        .addClasses(Resources.class, JSFVersion.class)
+                        .addAsWebInfResource(new File("src/main/webapp", "beans.xml"))
+                        .addAsWebInfResource(new File("src/main/webapp", "faces-config.xml"))
+                        .addAsWebInfResource(new File("src/main/webapp", "web.xml"))
+                        .addAsWebInfResource(new File("src/main/webapp", "payara-web.xml"))
+                        .addAsLibraries(Libraries.resolveMavenCoordinatesToFiles("org.glassfish:javax.faces:" + JSF_VERSION))
+                        .addAsLibraries(Libraries.resolveMavenCoordinatesToFiles("org.primefaces:primefaces:11.0.0")));
     }
 
     @Test
@@ -85,7 +90,9 @@ public class DontUseBundledJsfPrimeFacesTest {
 
         String message = response.readEntity(String.class);
 
+        System.out.println("FacesContext implementation version is: " + message);
+
         Assert.assertEquals(200, response.getStatus());
-        Assert.assertNotEquals(JSF_VERSION, message);
+        Assert.assertEquals(JSF_VERSION, message);
     }
 }
