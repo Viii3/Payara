@@ -40,6 +40,7 @@
 package fish.payara.samples.usebundledjsf.primefaces;
 
 import fish.payara.samples.Libraries;
+import fish.payara.samples.NotMicroCompatible;
 import fish.payara.samples.PayaraArquillianTestRunner;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -62,6 +63,7 @@ import java.net.URI;
  * Bundling the JSF implementation within the EAR and expecting the WAR to be able to access it is out of scope.
  */
 @RunWith(PayaraArquillianTestRunner.class)
+@NotMicroCompatible
 public class UseBundledJsfEarTest {
 
     private static String JSF_VERSION = "2.2.20";
