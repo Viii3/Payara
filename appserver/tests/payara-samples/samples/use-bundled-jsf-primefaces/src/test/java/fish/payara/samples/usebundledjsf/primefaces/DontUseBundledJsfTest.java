@@ -63,7 +63,7 @@ import java.net.URI;
 @RunWith(PayaraArquillianTestRunner.class)
 public class DontUseBundledJsfTest {
 
-    private static String JSF_VERSION = "2.2.20";
+    private final static String JSF_VERSION = "2.2.20";
 
     @ArquillianResource
     private URI uri;

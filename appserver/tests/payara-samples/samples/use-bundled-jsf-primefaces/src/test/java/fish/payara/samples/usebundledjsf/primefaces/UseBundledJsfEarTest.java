@@ -66,7 +66,7 @@ import java.net.URI;
 @NotMicroCompatible
 public class UseBundledJsfEarTest {
 
-    private static String JSF_VERSION = "2.2.20";
+    private final static String JSF_VERSION = "2.2.20";
 
     @ArquillianResource
     private URI uri;
