@@ -50,6 +50,7 @@
 
     <artifactId>use-bundled-jsf-primefaces</artifactId>
     <name>Payara Samples - Payara - Use Bundled JSF with PrimeFaces</name>
+    <packaging>war</packaging>
 
     <dependencies>
         <dependency>
