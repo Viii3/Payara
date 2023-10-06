@@ -228,8 +228,8 @@ public class ListJMSDestinations extends JMSDestination implements AdminCommand 
 
         return null;
     }
-    private String toStringLabel(String type)  {
 
+    private String toStringLabel(String type)  {
 	    if (type.equals(DESTINATION_TYPE_QUEUE))  {
 	        return("queue");
 	    } else if (type.equals(DESTINATION_TYPE_TOPIC))  {
@@ -238,5 +238,4 @@ public class ListJMSDestinations extends JMSDestination implements AdminCommand 
 	        return("unknown");
 	    }
     }
-
-    }
+}

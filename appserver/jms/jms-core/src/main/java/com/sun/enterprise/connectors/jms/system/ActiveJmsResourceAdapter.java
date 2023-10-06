@@ -1369,64 +1369,59 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
     //private
 
 
-
     /**
      * Sets the SE/EE specific MQ-RA bean properties
+     *
      * @throws ConnectorRuntimeException
      */
     private void setClusterRABeanProperties() throws ConnectorRuntimeException {
         ConnectorDescriptor cd = super.getDescriptor();
         try {
             if (isClustered()) {
-                JmsService jmsService = (JmsService)Globals.get(JmsService.class);
-               /* ConfigContext ctx = ApplicationServer.getServerContext().
-                    getConfigContext();
-            JmsService jmsService = ServerBeansFactory.
-                getConfigBean(ctx).getJmsService();    */
+                JmsService jmsService = (JmsService) Globals.get(JmsService.class);
                 String val = getGroupName();
-                ConnectorConfigProperty  envProp = new ConnectorConfigProperty
-                    (GROUPNAME, val, "Group Name", "java.lang.String");
+                ConnectorConfigProperty envProp = new ConnectorConfigProperty
+                        (GROUPNAME, val, "Group Name", "java.lang.String");
                 setProperty(cd, envProp);
-                if (_logger.isLoggable(Level.FINE))
+                if (_logger.isLoggable(Level.INFO))
                     logFine("CLUSTERED instance - setting groupname as" + val);
 
-            boolean inClusteredContainer = false;
-            if(jmsService.getType().equals(EMBEDDED) || jmsService.getType().equals(LOCAL))
-                inClusteredContainer = true;
+                boolean inClusteredContainer = false;
+                if (jmsService.getType().equals(EMBEDDED) || jmsService.getType().equals(LOCAL))
+                    inClusteredContainer = true;
 
-            ConnectorConfigProperty  envProp1 = new ConnectorConfigProperty
-              (CLUSTERCONTAINER, Boolean.toString(inClusteredContainer), "Cluster container flag",
-                "java.lang.Boolean");
-            setProperty(cd, envProp1);
-            if (_logger.isLoggable(Level.FINE))
-                logFine("CLUSTERED instance - setting inclusteredcontainer as" + inClusteredContainer);
-           if (jmsService.getType().equals(REMOTE)) {
+                ConnectorConfigProperty envProp1 = new ConnectorConfigProperty
+                        (CLUSTERCONTAINER, Boolean.toString(inClusteredContainer), "Cluster container flag",
+                                "java.lang.Boolean");
+                setProperty(cd, envProp1);
+                if (_logger.isLoggable(Level.INFO))
+                    _logger.log(Level.INFO, "CLUSTERED instance - setting inclusteredcontainer as" + inClusteredContainer);
+                if (jmsService.getType().equals(REMOTE)) {
+                    /*
+                     * Do not set master broker for remote broker.
+                     * The RA might ignore it if we set, but we have to
+                     * be certain from our end.
+                     */
+                    return;
+                } else {
+                    if (!isDBEnabled()) {
 
-            /*
-                * Do not set master broker for remote broker.
-                * The RA might ignore it if we set, but we have to
-                        * be certain from our end.
-                */
-                     return;
-            } else {
-               if (! isDBEnabled()){
-
-                String masterbrkr = getMasterBroker();
-                    ConnectorConfigProperty  envProp2 = new ConnectorConfigProperty
-                        (MASTERBROKER,masterbrkr , "Master  Broker",
-                    "java.lang.String");
-                    setProperty(cd, envProp2);
-                    if (_logger.isLoggable(Level.FINE))
-                        logFine("MASTERBROKER - setting master broker val" + masterbrkr);
-               }
-        }
+                        String masterbrkr = getMasterBroker();
+                        ConnectorConfigProperty envProp2 = new ConnectorConfigProperty
+                                (MASTERBROKER, masterbrkr, "Master  Broker",
+                                        "java.lang.String");
+                        setProperty(cd, envProp2);
+                        if (_logger.isLoggable(Level.FINE))
+                            logFine("MASTERBROKER - setting master broker val" + masterbrkr);
+                    }
+                }
             } else {
                 if (_logger.isLoggable(Level.FINE))
                     logFine("Instance not Clustered and hence not setting " + "groupname");
             }
         } catch (Exception e) {
             ConnectorRuntimeException crex = new ConnectorRuntimeException(e.getMessage());
-            throw (ConnectorRuntimeException)crex.initCause(e);
+            throw (ConnectorRuntimeException) crex.initCause(e);
         }
     }
 
@@ -1544,7 +1539,7 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
      * be maintained in all the instances.
      */
      private String getMasterBroker() throws Exception {
-    return urlList.getMasterBroker(getClusterName());
+        return urlList.getMasterBroker(getClusterName());
      }
 
     //All Names passed into MQ needs to be valid Java Identifiers
@@ -2371,8 +2366,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                         EnvironmentProperty(MDBIDENTIFIER,""+
                         getMDBIdentifier(descriptor_),"MDB Identifier",
                         "java.lang.String"));
-        if (_logger.isLoggable(Level.FINE))
-            logFine("CLUSTERED instance - setting MDB identifier as" +
+        if (_logger.isLoggable(Level.INFO))
+            _logger.log(Level.INFO, "CLUSTERED instance - setting MDB identifier as" +
                             getMDBIdentifier(descriptor_));
 
     }
@@ -2745,8 +2740,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
             }
         }catch (Exception ex){
             //throw new RuntimeException ("Error invoking PortMapperClientHandler.handleRequest. Cause - " + ex.getMessage(), ex);
-            if (_logger.isLoggable(Level.WARNING)) {
-                _logger.log(Level.WARNING, JMSLoggerInfo.CLUSTER_BROKER_FAILURE,
+            if (_logger.isLoggable(Level.INFO)) {
+                _logger.log(Level.INFO, JMSLoggerInfo.CLUSTER_BROKER_FAILURE,
                         new Object[]{brokerList, ex.getMessage()});
             }
         }
