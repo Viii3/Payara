@@ -50,8 +50,11 @@ public class Constants {
     static final String SERVER = "server";
     static final String CLUSTERS = "clusters";
     static final String CLUSTER = "cluster";
+    static final String DEPLOYMENT_GROUPS = "deployment-groups";
+    static final String DEPLOYMENT_GROUP = "deployment-group";
     static final String REF = "ref";
     static final String SERVER_REF = "server-ref";
+    static final String DG_SERVER_REF = "dg-server-ref";
     static final String CONFIG = "config";
     static final String CONFIGS = "configs";
     static final String CONFIG_REF = "config-ref";
