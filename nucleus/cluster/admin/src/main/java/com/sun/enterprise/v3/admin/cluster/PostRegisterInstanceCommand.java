@@ -86,16 +86,20 @@ public class PostRegisterInstanceCommand extends RegisterInstanceCommandParamete
         ActionReport report = context.getActionReport();
         final Logger logger = context.getLogger();
 
-        final  InstanceRegisterInstanceCommandParameters suppInfo =
+        final InstanceRegisterInstanceCommandParameters suppInfo =
                 context.getActionReport().getResultType(InstanceRegisterInstanceCommandParameters.class);
 
-        if (suppInfo != null && clusterName != null) {
+        logger.info("suppInfo=" + suppInfo);
+
+        if (suppInfo != null && (clusterName != null || deploymentGroup != null)) {
             try {
+                logger.info("clusterName=" + clusterName);
+                logger.info("deploymentGroup=" + deploymentGroup);
                 ParameterMapExtractor pme = new ParameterMapExtractor(suppInfo, this);
                 final ParameterMap paramMap = pme.extract();
 
-                List<String> targets = new ArrayList<String>();
-                List<Server> instances = target.getInstances(this.clusterName);
+                List<String> targets = new ArrayList<>();
+                List<Server> instances = target.getInstances(this.clusterName != null ? clusterName : deploymentGroup);
                 for (Server s : instances) {
                     targets.add(s.getName());
                 }

@@ -796,7 +796,7 @@ public interface Server extends ConfigBeanProxy, PropertyBag, Named, SystemPrope
         }
 
         private void setupSupplemental(AdminCommandContext context, final Server instance) {
-            if (clusterName != null) {
+            if (clusterName != null || deploymentGroup != null) {
                 InstanceRegisterInstanceCommandParameters cp = new InstanceRegisterInstanceCommandParameters();
                 context.getActionReport().
                         setResultType(InstanceRegisterInstanceCommandParameters.class, cp);
