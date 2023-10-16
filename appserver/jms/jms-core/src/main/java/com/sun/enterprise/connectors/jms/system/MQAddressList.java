@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2023 [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.connectors.jms.system;
 
@@ -46,27 +47,21 @@ import java.util.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileInputStream;
-import java.beans.PropertyVetoException;
 
 import com.sun.enterprise.connectors.jms.config.JmsHost;
 import com.sun.enterprise.connectors.jms.config.JmsService;
 import com.sun.enterprise.util.SystemPropertyConstants;
 import com.sun.enterprise.config.serverbeans.*;
 import com.sun.enterprise.connectors.jms.util.JmsRaUtil;
-import com.sun.enterprise.admin.util.AdminConstants;
 import com.sun.appserv.connectors.internal.api.ConnectorRuntimeException;
 import com.sun.enterprise.connectors.jms.JMSLoggerInfo;
 import fish.payara.enterprise.config.serverbeans.DeploymentGroup;
 import fish.payara.enterprise.config.serverbeans.DeploymentGroups;
 import org.glassfish.internal.api.ServerContext;
 import org.glassfish.internal.api.Globals;
-import org.glassfish.api.ActionReport;
 import com.sun.enterprise.util.StringUtils;
 import com.sun.enterprise.universal.glassfish.ASenvPropertyReader;
 import org.glassfish.api.logging.LogHelper;
-import org.jvnet.hk2.config.ConfigSupport;
-import org.jvnet.hk2.config.SingleConfigCode;
-import org.jvnet.hk2.config.TransactionFailure;
 
 /**
  * Defines an MQ addressList.
@@ -381,17 +376,6 @@ public class MQAddressList {
         final Config config = getConfigByName(targetName);
         return (config != null ? true : false);
     }
-
-
-    /**
-     * Gets the admin config context associated with this server instance
-     * Usage Notice: Use this only for operations that are performed in DAS
-     * and requires the admin config context
-     */
-   /* private ConfigContext getAdminConfigContext() {
-        return com.sun.enterprise.admin.server.core.AdminService.
-                   getAdminService().getAdminContext().getAdminConfigContext();
-    } */
 
     /**
      * Setup addresslist for Standalone server instance in EE

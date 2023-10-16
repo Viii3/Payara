@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2023 [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.connectors.jms.util;
 
@@ -60,7 +61,6 @@ import com.sun.enterprise.deployment.ConnectorConfigProperty;
 import com.sun.enterprise.util.SystemPropertyConstants;
 import com.sun.enterprise.util.zip.ZipFile;
 import com.sun.enterprise.util.zip.ZipFileException;
-import com.sun.logging.LogDomains;
 
 import fish.payara.enterprise.config.serverbeans.DeploymentGroup;
 import org.glassfish.ejb.config.MdbContainer;

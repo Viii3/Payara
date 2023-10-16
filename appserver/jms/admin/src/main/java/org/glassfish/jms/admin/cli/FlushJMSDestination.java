@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2018-2023] [Payara Foundation and/or its affiliates]
 package org.glassfish.jms.admin.cli;
 
 import org.glassfish.api.I18n;
@@ -67,7 +67,6 @@ import org.glassfish.hk2.api.PerLookup;
 
 import org.glassfish.api.admin.*;
 
-//import org.glassfish.api.admin.ExecuteOn;
 import org.glassfish.config.support.CommandTarget;
 import org.glassfish.config.support.TargetType;
 
