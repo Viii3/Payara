@@ -350,6 +350,10 @@ public class ListInstancesCommand implements AdminCommand {
             Cluster cluster = (Cluster) rc;
             return cluster.getInstances();
         }
+        else if (rc.isDeploymentGroup()) {
+            DeploymentGroup deploymentGroup = (DeploymentGroup) rc;
+            return deploymentGroup.getInstances();
+        }
         else {
             return null;
         }
