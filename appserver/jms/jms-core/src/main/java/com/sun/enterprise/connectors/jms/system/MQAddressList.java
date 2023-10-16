@@ -463,7 +463,7 @@ public class MQAddressList {
                 try {
                     copy = getResolvedJmsHost(as);
                 } catch (Exception e) {
-                    //e.printStackTrace();
+                    logger.log(Level.FINE, e.getMessage());
                 }
                 map.put(as.getName(), copy);
             }
@@ -476,6 +476,7 @@ public class MQAddressList {
         DeploymentGroup deploymentGroup = getDeploymentGroupForServer(myName);
         if (deploymentGroup != null) {
             List<Server> instances = deploymentGroup.getInstances();
+            logger.fine("instances.size()=" + instances.size());
             for (Server as : instances) {
                 if (!includeMe && myName.equals(as.getName())) {
                     continue;
@@ -483,12 +484,11 @@ public class MQAddressList {
                 JmsHost copy = null;
                 try {
                     copy = getResolvedJmsHost(as);
-                    logger.info(copy.getHost() + ":" + copy.getPort() + " added in");
+                    logger.fine(copy.getHost() + ":" + copy.getPort() + " added in");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.fine(e.getMessage());
                 }
                 map.put(as.getName(), copy);
-                logger.info(map.values().toString());
             }
         }
         return (map);
@@ -520,7 +520,7 @@ public class MQAddressList {
         Domain domain = Globals.get(Domain.class);
         DeploymentGroups deploymentGroups = domain.getDeploymentGroups();
         List<DeploymentGroup> deploymentGroupList = deploymentGroups.getDeploymentGroup();
-
+        logger.fine("deploymentGroupList.size()=" + deploymentGroupList.size());
         for (DeploymentGroup deploymentGroup : deploymentGroupList) {
             if (isServerInDeploymentGroup(deploymentGroup, instanceName)) {
                 return deploymentGroup;
@@ -656,38 +656,37 @@ public class MQAddressList {
         return jmsHost;
     }
 
-    private Server getServerByName(String serverName){
+    private Server getServerByName(String serverName) {
         Domain domain = Globals.get(Domain.class);
         Servers servers = domain.getServers();
         List serverList = servers.getServer();
 
-        for (int i=0; i < serverList.size(); i++){
+        for (int i = 0; i < serverList.size(); i++) {
             Server server = (Server) serverList.get(i);
-            if(serverName.equals(server.getName()))
+            if (serverName.equals(server.getName()))
                 return server;
         }
-           return null;
+        return null;
     }
 
-
-    private JmsHost getResolvedJmsHost(Server as) throws Exception{
+    private JmsHost getResolvedJmsHost(Server as) throws Exception {
         if (as == null) {
             return null;
-    }
-        if (logger.isLoggable(Level.INFO)) {
-        logFine("getResolvedJmsHost " + as);
-    }
+        }
+        if (logger.isLoggable(Level.FINE)) {
+            logFine("getResolvedJmsHost " + as);
+        }
 
-    JmsHost jmsHost   = getResolvedLocalJmsHostInServer(as);
-    JmsHost copy      = createJmsHostCopy(jmsHost, as);
+        JmsHost jmsHost = getResolvedLocalJmsHostInServer(as);
+        JmsHost copy = createJmsHostCopy(jmsHost, as);
 
-    String hostName = getNodeHostName(as);
-    String port = JmsRaUtil.getJMSPropertyValue(as) ;
+        String hostName = getNodeHostName(as);
+        String port = JmsRaUtil.getJMSPropertyValue(as);
         copy.setHost(hostName);
         copy.setPort(port);
 
         return copy;
-}
+    }
 
     private JmsHost createJmsHostCopy(final JmsHost jmsHost, final Server server) {
         JmsHost jmsHostCopy = new JmsHostWrapper();

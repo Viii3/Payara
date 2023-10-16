@@ -112,8 +112,8 @@ public class StartInstanceCommand implements AdminCommand {
     @Param(name = "instance_name", primary = true)
     private String instanceName;
 
-    @Param(optional = true, defaultValue = "normal", acceptableValues="none, normal, full")
-    private String sync="normal";
+    @Param(optional = true, defaultValue = "normal", acceptableValues = "none, normal, full")
+    private String sync = "normal";
 
     @Param(optional = true, defaultValue = "false")
     private boolean debug;
@@ -127,7 +127,7 @@ public class StartInstanceCommand implements AdminCommand {
     @Min(message = "Timeout must be at least 1 second long.", value = 1)
     @Param(optional = true, defaultValue = "120")
     private int timeout;
-    
+
     @Inject
     private ServiceLocator serviceLocator;
 
@@ -139,29 +139,30 @@ public class StartInstanceCommand implements AdminCommand {
 
     @Inject
     private Servers servers;
-    
+
     @Inject
     private PayaraExecutorService executor;
 
     private Logger logger;
 
-    private Node   node;
+    private Node node;
     private String noderef;
     private String nodedir;
     private String nodeHost;
     private Server instance;
 
     private static final String NL = System.getProperty("line.separator");
-    
+
 
     /**
      * restart-instance needs to try to start the instance from scratch if it is not
      * running.  We need to do some housekeeping first.
-     * 
+     *
      * <p>
      * There is no clean way to do this through CommandRunner -- it is twisted together
      * with Grizzly parameters and so on.  So we short-circuit this way!
      * Do NOT make this public!!
+     *
      * @author Byron Nevins
      */
     StartInstanceCommand(ServiceLocator serviceLocator, String instanceName, boolean debug, ServerEnvironment env) {
@@ -196,7 +197,7 @@ public class StartInstanceCommand implements AdminCommand {
             report.setMessage(msg);
             return;
         }
-        
+
         instance = servers.getServer(instanceName);
         if (instance == null) {
             msg = Strings.get("start.instance.noSuchInstance", instanceName);
@@ -273,10 +274,10 @@ public class StartInstanceCommand implements AdminCommand {
 
         command.add("--sync");
         command.add(sync);
-        
+
         command.add("--timeout");
         command.add(timeout + "");
-      
+
         if (debug) {
             command.add("--debug");
         }
@@ -288,7 +289,7 @@ public class StartInstanceCommand implements AdminCommand {
         humanCommand = makeCommandHuman(command);
 
         // First error message displayed if we fail
-        String firstErrorMessage = Strings.get("start.instance.failed", instanceName, noderef, nodeHost );
+        String firstErrorMessage = Strings.get("start.instance.failed", instanceName, noderef, nodeHost);
 
         StringBuilder output = new StringBuilder();
 
