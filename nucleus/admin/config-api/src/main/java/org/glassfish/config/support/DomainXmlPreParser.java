@@ -144,7 +144,7 @@ class DomainXmlPreParser {
 
     final List<String> getDGServerNames() {
         if(!validDG) {
-            return null;
+            return Collections.EMPTY_LIST;
         }
         return deploymentGroup.dgServerRefs;
     }
