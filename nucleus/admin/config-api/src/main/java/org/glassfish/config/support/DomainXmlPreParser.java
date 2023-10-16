@@ -94,6 +94,7 @@ class DomainXmlPreParser {
     private String instanceName;
     private String serverConfigRef;
     private boolean valid = false;
+    private boolean validDG = false;
     
     private static final boolean DEBUG = Boolean.parseBoolean(Utility.getEnvOrProp("AS_DEBUG"));
     private static final Logger LOGGER = Logger.getLogger("org.glassfish.config.support");
@@ -128,7 +129,7 @@ class DomainXmlPreParser {
     }
 
     final String getDeploymentGroupName() {
-        if(!valid) {
+        if(!validDG) {
             return null;
         }
         return deploymentGroup.name;
@@ -142,7 +143,7 @@ class DomainXmlPreParser {
     }
 
     final List<String> getDGServerNames() {
-        if(!valid) {
+        if(!validDG) {
             return null;
         }
         return deploymentGroup.dgServerRefs;
@@ -229,6 +230,10 @@ class DomainXmlPreParser {
         }
 
         valid = true;
+
+        if (deploymentGroup != null) {
+            validDG = true;
+        }
     }
 
     private void handleElement() throws XMLStreamException {
