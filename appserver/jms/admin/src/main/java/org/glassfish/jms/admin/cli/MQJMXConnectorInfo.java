@@ -78,8 +78,8 @@ public class MQJMXConnectorInfo {
         this.jmxServiceURL = jmxServiceURL;
         this.brokerType = brokerType;
         this.jmxConnectorEnv = jmxConnectorEnv;
-        if (_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO, "MQJMXConnectorInfo : brokerInstanceName " +
+        if (_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE, "MQJMXConnectorInfo : brokerInstanceName " +
                             brokerInstanceName + " ASInstanceName " + asInstanceName +
                             " jmxServiceURL "  + jmxServiceURL +  " BrokerType " + brokerType
                             + " jmxConnectorEnv " + jmxConnectorEnv);
@@ -99,8 +99,8 @@ public class MQJMXConnectorInfo {
     }
 
     public String getJMXServiceURL(){
-        if (_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO,"MQJMXConnectorInfo :: JMXServiceURL is " + this.jmxServiceURL);
+        if (_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE,"MQJMXConnectorInfo :: JMXServiceURL is " + this.jmxServiceURL);
         }
         return this.jmxServiceURL;
     }
@@ -125,8 +125,8 @@ public class MQJMXConnectorInfo {
                                 "Failed to get MQ JMXServiceURL of {0}.", getASInstanceName());
                 throw new ConnectorRuntimeException(msg);
             }
-            if (_logger.isLoggable(Level.INFO)) {
-                _logger.log(Level.INFO,
+            if (_logger.isLoggable(Level.FINE)) {
+                _logger.log(Level.FINE,
                 "creating MBeanServerConnection to MQ JMXServer with "+getJMXServiceURL());
             }
             JMXServiceURL jmxServiceURL = new JMXServiceURL(getJMXServiceURL());

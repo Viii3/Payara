@@ -1383,7 +1383,7 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                 ConnectorConfigProperty envProp = new ConnectorConfigProperty
                         (GROUPNAME, val, "Group Name", "java.lang.String");
                 setProperty(cd, envProp);
-                if (_logger.isLoggable(Level.INFO))
+                if (_logger.isLoggable(Level.FINE))
                     logFine("CLUSTERED instance - setting groupname as" + val);
 
                 boolean inClusteredContainer = false;
@@ -1394,8 +1394,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                         (CLUSTERCONTAINER, Boolean.toString(inClusteredContainer), "Cluster container flag",
                                 "java.lang.Boolean");
                 setProperty(cd, envProp1);
-                if (_logger.isLoggable(Level.INFO))
-                    _logger.log(Level.INFO, "CLUSTERED instance - setting inclusteredcontainer as" + inClusteredContainer);
+                if (_logger.isLoggable(Level.FINE))
+                    _logger.log(Level.FINE, "CLUSTERED instance - setting inclusteredcontainer as" + inClusteredContainer);
                 if (jmsService.getType().equals(REMOTE)) {
                     /*
                      * Do not set master broker for remote broker.
@@ -1710,8 +1710,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
         ConnectorDescriptor cd = super.getDescriptor();
         String val = urlList.toString();
 
-        if(_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO, JMSLoggerInfo.JMS_CONNECTION_URL,
+        if(_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE, JMSLoggerInfo.JMS_CONNECTION_URL,
                     new Object[]{val});
         }
 
@@ -1728,8 +1728,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
         addressList = urlList.toString();
         //todo: debug info need to remove log statement in production
 
-        if(_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO, JMSLoggerInfo.ADDRESSLIST_JMSPROVIDER,
+        if(_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE, JMSLoggerInfo.ADDRESSLIST_JMSPROVIDER,
                     new Object[]{addressList});
         }
 
@@ -2050,8 +2050,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                 ConnectorConfigProperty  addressProp3 = new ConnectorConfigProperty  (ADDRESSLIST, brokerurl,"Address List",
                             "java.lang.String");
                 //todo: need to remove log statement
-                if (_logger.isLoggable(Level.INFO)) {
-                    _logger.log(Level.INFO, JMSLoggerInfo.ADDRESSLIST,
+                if (_logger.isLoggable(Level.FINE)) {
+                    _logger.log(Level.FINE, JMSLoggerInfo.ADDRESSLIST,
                             new Object[]{brokerurl});
                 }
 
@@ -2243,8 +2243,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                 descriptor_.putRuntimeActivationConfigProperty(
                         new EnvironmentProperty(DESTINATION_TYPE,
                                 descriptor_.getDestinationType(), null));
-                if (_logger.isLoggable(Level.INFO)) {
-                    _logger.log(Level.INFO, JMSLoggerInfo.ENDPOINT_DEST_NAME,
+                if (_logger.isLoggable(Level.FINE)) {
+                    _logger.log(Level.FINE, JMSLoggerInfo.ENDPOINT_DEST_NAME,
                             new Object[]{descriptor_.getDestinationType(), jndiName, descriptor_.getName()});
                 }
             } else if (isValidDestination(destination) &&
@@ -2252,8 +2252,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                 descriptor_.putRuntimeActivationConfigProperty(
                         new EnvironmentProperty(DESTINATION_TYPE,
                                 destination.getInterfaceName(), null));
-                if (_logger.isLoggable(Level.INFO)) {
-                    _logger.log(Level.INFO, JMSLoggerInfo.ENDPOINT_DEST_NAME,
+                if (_logger.isLoggable(Level.FINE)) {
+                    _logger.log(Level.FINE, JMSLoggerInfo.ENDPOINT_DEST_NAME,
                             new Object[]{destination.getInterfaceName(), destination.getName(), descriptor_.getName()});
                 }
             } else {
@@ -2274,8 +2274,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                         descriptor_.putRuntimeActivationConfigProperty(
                                 new EnvironmentProperty(DESTINATION_TYPE,
                                         aor.getResType(), null));
-                        if (_logger.isLoggable(Level.INFO)) {
-                            _logger.log(Level.INFO, JMSLoggerInfo.ENDPOINT_DEST_NAME,
+                        if (_logger.isLoggable(Level.FINE)) {
+                            _logger.log(Level.FINE, JMSLoggerInfo.ENDPOINT_DEST_NAME,
                                     new Object[]{aor.getResType(), aor.getJndiName(), descriptor_.getName()});
                         }
                     }
@@ -2366,8 +2366,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                         EnvironmentProperty(MDBIDENTIFIER,""+
                         getMDBIdentifier(descriptor_),"MDB Identifier",
                         "java.lang.String"));
-        if (_logger.isLoggable(Level.INFO))
-            _logger.log(Level.INFO, "CLUSTERED instance - setting MDB identifier as" +
+        if (_logger.isLoggable(Level.FINE))
+            _logger.log(Level.FINE, "CLUSTERED instance - setting MDB identifier as" +
                             getMDBIdentifier(descriptor_));
 
     }
@@ -2717,14 +2717,14 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
                 Class c = resourceadapter_.getClass();
                 Method m = c.getMethod("setMasterBroker", String.class);
                 m.invoke(resourceadapter_, newMasterBroker);
-                if (_logger.isLoggable(Level.INFO)) {
-                    _logger.log(Level.INFO, JMSLoggerInfo.MASTER_BROKER_SUCCESS,
+                if (_logger.isLoggable(Level.FINE)) {
+                    _logger.log(Level.FINE, JMSLoggerInfo.MASTER_BROKER_SUCCESS,
                             new Object[]{newMasterBroker});
                 }
             }catch (Exception ex){
                 //throw new RuntimeException ("Error invoking PortMapperClientHandler.handleRequest. Cause - " + ex.getMessage(), ex);
-                if (_logger.isLoggable(Level.INFO)) {
-                    _logger.log(Level.INFO, JMSLoggerInfo.MASTER_BROKER_FAILURE,
+                if (_logger.isLoggable(Level.FINE)) {
+                    _logger.log(Level.FINE, JMSLoggerInfo.MASTER_BROKER_FAILURE,
                             new Object[]{newMasterBroker, ex.getMessage()});
                 }
         }
@@ -2734,14 +2734,14 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
             Class c = resourceadapter_.getClass();
             Method m = c.getMethod("setClusterBrokerList", String.class);
             m.invoke(resourceadapter_, brokerList);
-            if (_logger.isLoggable(Level.INFO)) {
-                _logger.log(Level.INFO, JMSLoggerInfo.CLUSTER_BROKER_SUCCESS,
+            if (_logger.isLoggable(Level.FINE)) {
+                _logger.log(Level.FINE, JMSLoggerInfo.CLUSTER_BROKER_SUCCESS,
                         new Object[]{brokerList});
             }
         }catch (Exception ex){
             //throw new RuntimeException ("Error invoking PortMapperClientHandler.handleRequest. Cause - " + ex.getMessage(), ex);
-            if (_logger.isLoggable(Level.INFO)) {
-                _logger.log(Level.INFO, JMSLoggerInfo.CLUSTER_BROKER_FAILURE,
+            if (_logger.isLoggable(Level.FINE)) {
+                _logger.log(Level.FINE, JMSLoggerInfo.CLUSTER_BROKER_FAILURE,
                         new Object[]{brokerList, ex.getMessage()});
             }
         }

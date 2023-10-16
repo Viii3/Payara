@@ -109,7 +109,7 @@ public class MQAddressList {
      * @param service <code>JmsService</code> instance.
      */
     public MQAddressList(JmsService service, String targetName) {
-        if (logger.isLoggable(Level.INFO))
+        if (logger.isLoggable(Level.FINE))
             logFine(" init" + service + "target " + targetName);
         this.jmsService = service;
         this.targetName = targetName;
@@ -127,10 +127,10 @@ public class MQAddressList {
     public void setup()throws Exception
     {
        if (isClustered() && (!this.jmsService.getType().equals(ActiveJmsResourceAdapter.REMOTE))) {
-           logger.log(Level.INFO, "MQAddressList L128 CLUSTERED | " + this.jmsService.getType() + " | " + isClustered());
+           logger.log(Level.FINE, "MQAddressList L128 CLUSTERED | " + this.jmsService.getType() + " | " + isClustered());
            setup(true);
        } else {
-           logger.log(Level.INFO, "MQAddressList L131 NOT CLUSTERED | " + this.jmsService.getType() + " | " + isClustered());
+           logger.log(Level.FINE, "MQAddressList L131 NOT CLUSTERED | " + this.jmsService.getType() + " | " + isClustered());
            setup(false);
        }
     }
@@ -142,15 +142,15 @@ public class MQAddressList {
         try {
             if (isClustered) {
                 //setup for LOCAL/EMBEDDED clusters.
-                if (logger.isLoggable(Level.INFO))
+                if (logger.isLoggable(Level.FINE))
                     logFine("setting up for cluster " +  this.targetName);
                 setupClusterViewFromRepository();
                 setupForCluster();
             } else {
-                if (logger.isLoggable(Level.INFO))
+                if (logger.isLoggable(Level.FINE))
                     logFine("setting up for SI/DAS " + this.targetName);
                 if (isAConfig(targetName) || isDAS(targetName)) {
-                    if (logger.isLoggable(Level.INFO))
+                    if (logger.isLoggable(Level.FINE))
                         logFine("performing default setup for DAS/remote clusters/PE instance " + targetName);
                     defaultSetup();
                 } else {
@@ -176,10 +176,10 @@ public class MQAddressList {
             nodeHost = getNodeHostName(server);
             logFine("na host" + nodeHost);
         } catch (Exception e) {
-            if (logger.isLoggable(Level.INFO))
-                logger.log(Level.INFO, "Exception while attempting to get nodeagentHost : " + e.getMessage());
-            if (logger.isLoggable(Level.INFO))
-                logger.log(Level.INFO, e.getMessage(), e);
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, "Exception while attempting to get nodeagentHost : " + e.getMessage());
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, e.getMessage(), e);
         }
     }
 
@@ -270,8 +270,8 @@ public class MQAddressList {
             JmsService js = getJmsServiceForMasterBroker(clustername);
             MQUrl url = createUrl(mb, js);
             masterbrk = url.toString();
-            if (logger.isLoggable(Level.INFO))
-                logger.log(Level.INFO, "Master broker obtained is " + masterbrk);
+            if (logger.isLoggable(Level.FINE))
+                logger.log(Level.FINE, "Master broker obtained is " + masterbrk);
         } catch (Exception e) {
             LogHelper.log(logger, Level.SEVERE, JMSLoggerInfo.GET_MASTER_FAILED, e);
         }
@@ -560,7 +560,7 @@ public class MQAddressList {
         }
 
         String s = builder.toString();
-        if (logger.isLoggable(Level.INFO))
+        if (logger.isLoggable(Level.FINE))
             logFine("toString returns :: " + s);
         return s;
     }
@@ -646,11 +646,11 @@ public class MQAddressList {
     //Used to get resolved local JmsHost for a standalone server instance
     private JmsHost getResolvedJmsHostForStandaloneServerInstance(
             String serverName) throws Exception {
-        if (logger.isLoggable(Level.INFO))
+        if (logger.isLoggable(Level.FINE))
             logFine(" getresolved " + serverName);
         //ConfigContext con =  getAdminConfigContext();
         Server serverInstance = getServerByName(serverName);
-        if (logger.isLoggable(Level.INFO))
+        if (logger.isLoggable(Level.FINE))
             logFine("serverinstace " + serverInstance);
         JmsHost jmsHost = getResolvedJmsHost(serverInstance);
         return jmsHost;
@@ -740,7 +740,7 @@ public class MQAddressList {
         if (clusters != null) {
             List<Cluster> clusterList = clusters.getCluster();
             if (clusterList.size() > 0) {
-                logger.log(Level.INFO, "clusters IDENTIFIED");
+                logger.log(Level.FINE, "clusters IDENTIFIED");
                 return JmsRaUtil.isClustered(clusterList, myName);
             }
         }
@@ -748,11 +748,11 @@ public class MQAddressList {
         if (deploymentGroups != null) {
             List<DeploymentGroup> deploymentGroupList = deploymentGroups.getDeploymentGroup();
             if (deploymentGroupList.size() > 0) {
-                logger.log(Level.INFO, "deploymentGroups IDENTIFIED");
+                logger.log(Level.FINE, "deploymentGroups IDENTIFIED");
                 return JmsRaUtil.isServerInDeploymentGroup(deploymentGroupList, myName);
             }
         }
-        logger.log(Level.INFO, "neither deploymentGroups nor clusters");
+        logger.log(Level.FINE, "neither deploymentGroups nor clusters");
         return false;
     }
 
@@ -761,8 +761,8 @@ public class MQAddressList {
     }
 
     private void logFine(String s) {
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "MQAddressList :: " + s);
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "MQAddressList :: " + s);
         }
     }
 

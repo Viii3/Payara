@@ -99,8 +99,8 @@ public class JMSConfigListener implements ConfigListener{
         //Events that we can't process now because they require server restart.
         jmsService = serverConfig.getExtensionByType(JmsService.class);
         List<UnprocessedChangeEvent> unprocessedEvents = new ArrayList<UnprocessedChangeEvent>();
-        if (_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO, "In JMSConfigListener - received config event");
+        if (_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE, "In JMSConfigListener - received config event");
         }
         Domain domain = Globals.get(Domain.class);
         String jmsProviderPort = null;
@@ -118,8 +118,8 @@ public class JMSConfigListener implements ConfigListener{
             Object oldValue = event.getOldValue();
             Object newValue = event.getNewValue();
 
-        if (_logger.isLoggable(Level.INFO)) {
-            _logger.log(Level.INFO, "In JMSConfigListener " + eventName + oldValue + newValue);
+        if (_logger.isLoggable(Level.FINE)) {
+            _logger.log(Level.FINE, "In JMSConfigListener " + eventName + oldValue + newValue);
         }
         if (oldValue != null && oldValue.equals(newValue)) {
             if (_logger.isLoggable(Level.FINE)) {
@@ -237,8 +237,8 @@ public class JMSConfigListener implements ConfigListener{
                    }//
              } // else skip
             if (event.getSource() instanceof Server) {
-               if (_logger.isLoggable(Level.INFO)) {
-                   _logger.log(Level.INFO, "In JMSConfigListener - recieved cluster event " + event.getSource());
+               if (_logger.isLoggable(Level.FINE)) {
+                   _logger.log(Level.FINE, "In JMSConfigListener - recieved cluster event " + event.getSource());
                }
                Server changedServer = (Server) event.getSource();
                if (thisServer.isDas())return null;
@@ -264,7 +264,7 @@ public class JMSConfigListener implements ConfigListener{
     private String getBrokerList(){
         MQAddressList addressList = new MQAddressList();
         try{
-            _logger.log(Level.INFO, "JMSConfigList L267 CLUSTERED");
+            _logger.log(Level.FINE, "JMSConfigList L267 CLUSTERED");
             addressList.setup(true);
         }catch(Exception ex){
             _logger.log(Level.WARNING, JMSLoggerInfo.ADDRESSLIST_SETUP_FAIL, 

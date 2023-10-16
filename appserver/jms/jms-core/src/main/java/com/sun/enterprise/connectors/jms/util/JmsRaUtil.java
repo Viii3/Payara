@@ -165,13 +165,13 @@ public class JmsRaUtil {
     }
 
     public static Cluster getClusterForServer(List<Cluster> clusters, String instanceName){
-        _logger.log(Level.INFO, "instanceName: " + instanceName);
+        _logger.log(Level.FINE, "instanceName: " + instanceName);
         //Return the server only if it is part of a cluster (i.e. only if a cluster
         //has a reference to it).
         for (Cluster cluster : clusters) {
             final List<Server> servers = ((Cluster) cluster).getInstances();
             for (Server server : servers) {
-                _logger.log(Level.INFO, "server.getName(): " + server.getName());
+                _logger.log(Level.FINE, "server.getName(): " + server.getName());
                 if (((Server) server).getName().equals(instanceName)) {
                     // check to see if the server exists as a sanity check.
                     // NOTE: we are not checking for duplicate server instances here.
@@ -191,11 +191,11 @@ public class JmsRaUtil {
     }
 
     public static DeploymentGroup getDeploymentGroupForServer(List<DeploymentGroup> deploymentGroupList, String instanceName){
-        _logger.log(Level.INFO, "DG instanceName: " + instanceName);
+        _logger.log(Level.FINE, "DG instanceName: " + instanceName);
         for (DeploymentGroup deploymentGroup : deploymentGroupList) {
             final List<Server> servers = deploymentGroup.getInstances();
             for (Server server : servers) {
-                _logger.log(Level.INFO, "server.getName(): " + server.getName());
+                _logger.log(Level.FINE, "server.getName(): " + server.getName());
                 if (server.getName().equals(instanceName)) {
                     return deploymentGroup;
                 }
@@ -211,15 +211,15 @@ public class JmsRaUtil {
                * this flag is set to false. Default is true.
                */
             String enablecluster = System.getProperty(ENABLE_AUTO_CLUSTERING);
-            _logger.log(Level.INFO, "Sun MQ Auto cluster system property " + enablecluster);
+            _logger.log(Level.FINE, "Sun MQ Auto cluster system property " + enablecluster);
             if ((enablecluster != null) && (enablecluster.trim().equals("false"))){
-                _logger.log(Level.INFO, "Disabling Sun MQ Auto Clustering");
+                _logger.log(Level.FINE, "Disabling Sun MQ Auto Clustering");
                 return false;
             }
         } catch (Exception e) {
             _logger.log(Level.FINE, e.getMessage());
         }
-        _logger.log(Level.INFO, "Enabling Sun MQ Auto Clustering");
+        _logger.log(Level.FINE, "Enabling Sun MQ Auto Clustering");
         return true;
     }
 
@@ -389,12 +389,12 @@ public class JmsRaUtil {
         // explode the MQ resource adapter.
         if (!installedMqVersion.equals(deployedMqVersion)) {
            try {
-               _logger.log(Level.INFO, JMSLoggerInfo.JMSRA_UPGRADE_STARTED);
+               _logger.log(Level.FINE, JMSLoggerInfo.JMSRA_UPGRADE_STARTED);
            ZipFile rarFile = new ZipFile(System.getProperty
                                  (SystemPropertyConstants.IMQ_LIB_PROPERTY) +
                                  File.separator + MQ_RAR, deployed_dir);
                rarFile.explode();
-               _logger.log(Level.INFO, JMSLoggerInfo.JMSRA_UPGRADE_COMPLETED);
+               _logger.log(Level.FINE, JMSLoggerInfo.JMSRA_UPGRADE_COMPLETED);
        } catch(ZipFileException ze) {
                _logger.log(Level.SEVERE, JMSLoggerInfo.JMSRA_UPGRADE_FAILED, 
                        new Object[]{ze.getMessage()});
