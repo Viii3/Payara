@@ -914,7 +914,7 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
             // only add non-clustered servers as the cluster 
             // targets will be separately added
             for (Server server : d.getServers().getServer()) {
-                if (server.getCluster() == null && server.getDeploymentGroup() == null) {
+                if (server.getCluster() == null) {
                     targets.add(server.getName());
                 }
             }
