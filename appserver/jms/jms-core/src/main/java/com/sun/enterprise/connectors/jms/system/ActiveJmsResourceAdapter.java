@@ -1710,8 +1710,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
         ConnectorDescriptor cd = super.getDescriptor();
         String val = urlList.toString();
 
-        if(_logger.isLoggable(Level.FINE)) {
-            _logger.log(Level.FINE, JMSLoggerInfo.JMS_CONNECTION_URL,
+        if(_logger.isLoggable(Level.INFO)) {
+            _logger.log(Level.INFO, JMSLoggerInfo.JMS_CONNECTION_URL,
                     new Object[]{val});
         }
 
@@ -1728,8 +1728,8 @@ public class ActiveJmsResourceAdapter extends ActiveInboundResourceAdapterImpl i
         addressList = urlList.toString();
         //todo: debug info need to remove log statement in production
 
-        if(_logger.isLoggable(Level.FINE)) {
-            _logger.log(Level.FINE, JMSLoggerInfo.ADDRESSLIST_JMSPROVIDER,
+        if(_logger.isLoggable(Level.INFO)) {
+            _logger.log(Level.INFO, JMSLoggerInfo.ADDRESSLIST_JMSPROVIDER,
                     new Object[]{addressList});
         }
 
