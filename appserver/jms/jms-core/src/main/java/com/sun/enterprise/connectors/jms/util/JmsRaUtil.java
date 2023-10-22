@@ -165,17 +165,15 @@ public class JmsRaUtil {
     }
 
     public static Cluster getClusterForServer(List<Cluster> clusters, String instanceName){
-        _logger.log(Level.FINE, "instanceName: " + instanceName);
         //Return the server only if it is part of a cluster (i.e. only if a cluster
         //has a reference to it).
         for (Cluster cluster : clusters) {
-            final List<Server> servers = ((Cluster) cluster).getInstances();
+            final List<Server> servers = cluster.getInstances();
             for (Server server : servers) {
-                _logger.log(Level.FINE, "server.getName(): " + server.getName());
-                if (((Server) server).getName().equals(instanceName)) {
+                if (server.getName().equals(instanceName)) {
                     // check to see if the server exists as a sanity check.
                     // NOTE: we are not checking for duplicate server instances here.
-                    return (Cluster) cluster;
+                    return cluster;
                 }
             }
         }
