@@ -158,7 +158,7 @@
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
         <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
-        <maven.bundle.plugin.version>4.1.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
         <dynamic.build.properties.version>0.0.1.a2</dynamic.build.properties.version>
@@ -516,13 +516,13 @@
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>${maven.bundle.plugin.version}</version>
                     <configuration>
-                        <!-- By default, we don't export anything. -->
-                        <Export-Package />
                         <instructions>
                             <!--
                                 Read all the configuration from osgi.bundle file, if it exists.
                             -->
                             <_include>-osgi.bundle</_include>
+                            <!-- Don't import JDK packages -->
+                            <_noimportjava>true</_noimportjava>
                         </instructions>
                         <excludeDependencies>tools-jar</excludeDependencies>
                         <supportedProjectTypes>
