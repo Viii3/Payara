@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+//Portions Copyright 2023 Payara Foundation and/or affiliates
 
 package org.glassfish.jms.admin.cli;
 
@@ -228,8 +229,8 @@ public class ListJMSDestinations extends JMSDestination implements AdminCommand 
 
         return null;
     }
-    private String toStringLabel(String type)  {
 
+    private String toStringLabel(String type)  {
 	    if (type.equals(DESTINATION_TYPE_QUEUE))  {
 	        return("queue");
 	    } else if (type.equals(DESTINATION_TYPE_TOPIC))  {
@@ -238,5 +239,4 @@ public class ListJMSDestinations extends JMSDestination implements AdminCommand 
 	        return("unknown");
 	    }
     }
-
-    }
+}
