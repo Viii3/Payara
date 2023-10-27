@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
- // Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates]
+ // Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.loader;
 
@@ -620,10 +620,9 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
                         res.setProtectionDomain(ASURLClassLoader.this, entry.getCertificates());
                         return classData;
                     }
-                    
-                    if (zip.isMultiRelease()) {
+                    if (isMultiRelease(zip)) {
                         String javaVersion = System.getProperty("java.version");
-                        JarEntry multiVersionEntry = zip.getJarEntry("META-INF/versions/"+javaVersion+"/"+entryName);
+                        JarEntry multiVersionEntry = zip.getJarEntry("META-INF/versions/" + javaVersion + "/" + entryName);
                         if (multiVersionEntry != null) {
                             InputStream classStream = zip.getInputStream(multiVersionEntry);
                             byte[] classData = getClassData(classStream);
@@ -659,6 +658,16 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
             }
             return null;
         });
+    }
+
+    public boolean isMultiRelease(JarFile jarFile) throws IOException {
+        Manifest manifest = jarFile.getManifest();
+        Attributes attributes = manifest.getMainAttributes();
+        if (attributes.containsKey("Multi-Release")) {
+            String value = attributes.getValue("Multi-Release");
+            return Boolean.getBoolean(value);
+        }
+        return false;
     }
 
     @Override
