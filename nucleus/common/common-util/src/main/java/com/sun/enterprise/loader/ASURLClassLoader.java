@@ -662,10 +662,12 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
 
     public boolean isMultiRelease(JarFile jarFile) throws IOException {
         Manifest manifest = jarFile.getManifest();
-        Attributes attributes = manifest.getMainAttributes();
-        if (attributes.containsKey("Multi-Release")) {
-            String value = attributes.getValue("Multi-Release");
-            return Boolean.getBoolean(value);
+        if (manifest != null) {
+            Attributes attributes = manifest.getMainAttributes();
+            if (attributes != null && attributes.containsKey("Multi-Release")) {
+                String value = attributes.getValue("Multi-Release");
+                return Boolean.getBoolean(value);
+            }
         }
         return false;
     }
