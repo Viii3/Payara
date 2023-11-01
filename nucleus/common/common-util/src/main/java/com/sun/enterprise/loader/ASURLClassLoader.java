@@ -664,9 +664,8 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
         Manifest manifest = jarFile.getManifest();
         if (manifest != null) {
             Attributes attributes = manifest.getMainAttributes();
-            if (attributes != null && attributes.containsKey("Multi-Release")) {
-                String value = attributes.getValue("Multi-Release");
-                return Boolean.getBoolean(value);
+            if (attributes != null && attributes.getValue("Multi-Release") != null) {
+                return Boolean.getBoolean(attributes.getValue("Multi-Release"));
             }
         }
         return false;
