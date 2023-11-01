@@ -665,7 +665,7 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
         if (manifest != null) {
             Attributes attributes = manifest.getMainAttributes();
             if (attributes != null && attributes.getValue("Multi-Release") != null) {
-                return Boolean.getBoolean(attributes.getValue("Multi-Release"));
+                return Boolean.valueOf(attributes.getValue("Multi-Release"));
             }
         }
         return false;
