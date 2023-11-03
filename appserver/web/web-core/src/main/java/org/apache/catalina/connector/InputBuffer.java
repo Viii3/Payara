@@ -432,11 +432,12 @@ public class InputBuffer extends Reader implements ByteInputChannel, CharChunk.C
 
         private void processCallbacks() {
             ClassLoader oldCL;
+            Thread thread = Thread.currentThread();
             if (Globals.IS_SECURITY_ENABLED) {
                 PrivilegedAction<ClassLoader> pa = new PrivilegedGetTccl();
                 oldCL = AccessController.doPrivileged(pa);
             } else {
-                oldCL = Thread.currentThread().getContextClassLoader();
+                oldCL = thread.getContextClassLoader();
             }
 
             try {
@@ -446,7 +447,7 @@ public class InputBuffer extends Reader implements ByteInputChannel, CharChunk.C
                     PrivilegedAction<Void> pa = new PrivilegedSetTccl(newCL);
                     AccessController.doPrivileged(pa);
                 } else {
-                    Thread.currentThread().setContextClassLoader(newCL);
+                    thread.setContextClassLoader(newCL);
                 }
 
                 synchronized (this) {
@@ -458,7 +459,7 @@ public class InputBuffer extends Reader implements ByteInputChannel, CharChunk.C
                             // if it's a Tyrus websocket conn.
                             if (isWebSocketRequest()) {
                                 requestTracing.startTrace("processWebsocketRequest");
-                                stuckThreadsStore.registerThread(Thread.currentThread().getId());
+                                stuckThreadsStore.registerThread(thread.getId(), thread.isDaemon());
                             }
                             readListener.onDataAvailable();
                         } catch (Throwable t) {
@@ -467,7 +468,7 @@ public class InputBuffer extends Reader implements ByteInputChannel, CharChunk.C
                         } finally {
                             if (isWebSocketRequest()) {
                                 requestTracing.endTrace();
-                                stuckThreadsStore.deregisterThread(Thread.currentThread().getId());
+                                stuckThreadsStore.deregisterThread(thread.getId());
                             }
                             context.fireContainerEvent(ContainerEvent.AFTER_READ_LISTENER_ON_DATA_AVAILABLE, readListener);
                         }
@@ -511,7 +512,7 @@ public class InputBuffer extends Reader implements ByteInputChannel, CharChunk.C
                     PrivilegedAction<Void> pa = new PrivilegedSetTccl(oldCL);
                     AccessController.doPrivileged(pa);
                 } else {
-                    Thread.currentThread().setContextClassLoader(oldCL);
+                    thread.setContextClassLoader(oldCL);
                 }
             }
         }
