@@ -133,7 +133,7 @@ class InstanceReaderFilter extends ServerReaderFilter {
     private boolean handleConfig(XMLStreamReader reader) {
         String name = reader.getAttributeValue(null, NAME);
 
-        return !dxpp.getConfigName().equals(name);
+        return !(dxpp.getConfigName().equals(name) || (StringUtils.ok(name) && dxpp.getDGConfigNames().contains(name)));
     }
 
     /**

@@ -41,6 +41,7 @@
 
 package org.glassfish.config.support;
 
+import com.sun.enterprise.config.serverbeans.JvmOptionBag;
 import com.sun.enterprise.util.StringUtils;
 import com.sun.enterprise.util.Utility;
 import java.io.InputStream;
@@ -91,7 +92,7 @@ class DomainXmlPreParser {
     private List<String> configNames = new LinkedList<>();
     private ClusterData cluster;
     private DeploymentGroupData deploymentGroup;
-    private String instanceName;
+    private final String instanceName;
     private String serverConfigRef;
     private boolean valid = false;
     private boolean validDG = false;
@@ -147,6 +148,13 @@ class DomainXmlPreParser {
             return Collections.EMPTY_LIST;
         }
         return deploymentGroup.dgServerRefs;
+    }
+
+    public List<String> getDGConfigNames() {
+        if(!validDG) {
+            return Collections.EMPTY_LIST;
+        }
+        return deploymentGroup.dgConfigRefs;
     }
 
     final String getConfigName() {
@@ -385,10 +393,11 @@ class DomainXmlPreParser {
     private static class DeploymentGroupData {
         String name;
         List<String> dgServerRefs = new ArrayList<>();
+        List<String> dgConfigRefs = new ArrayList<>();
 
         @Override
         public String toString() {
-            return "DeploymentGroup:name=" + name + ", dg-server-refs = " + dgServerRefs;
+            return "DeploymentGroup:name=" + name + ", dg-server-refs = " + dgServerRefs + ", dgConfigRefs = " + dgConfigRefs;
         }
     }
 }
