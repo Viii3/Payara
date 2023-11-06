@@ -37,7 +37,6 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-//Portions Copyright 2023 Payara Foundation and/or affiliates
 
 package org.glassfish.jms.admin.cli;
 
@@ -107,12 +106,12 @@ public class ListJMSResources implements AdminCommand {
 
     /**
         * Executes the command with the command parameters passed as Properties
-        * where the keys are the parameter names and the values the parameter values
+        * where the keys are the paramter names and the values the parameter values
         *
         * @param context information
         */
     @Override
-    public void execute(AdminCommandContext context) {
+       public void execute(AdminCommandContext context) {
         final ActionReport report = context.getActionReport();
         ArrayList<Map<String,String>> list = new ArrayList<>();
         Properties extraProperties = new Properties();

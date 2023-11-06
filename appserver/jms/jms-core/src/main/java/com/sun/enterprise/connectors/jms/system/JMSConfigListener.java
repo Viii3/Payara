@@ -37,7 +37,6 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright 2023 [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.connectors.jms.system;
 
@@ -265,7 +264,6 @@ public class JMSConfigListener implements ConfigListener{
     private String getBrokerList(){
         MQAddressList addressList = new MQAddressList();
         try{
-            _logger.log(Level.FINE, "JMSConfigList L267 CLUSTERED");
             addressList.setup(true);
         }catch(Exception ex){
             _logger.log(Level.WARNING, JMSLoggerInfo.ADDRESSLIST_SETUP_FAIL, 
