@@ -90,6 +90,7 @@ class DomainXmlPreParser {
     private List<ClusterData> clusters = new LinkedList<>();
     private List<DeploymentGroupData> deploymentGroups = new LinkedList<>();
     private List<String> configNames = new LinkedList<>();
+    private Map<String, String> mapServerConfig = new HashMap<>();
     private ClusterData cluster;
     private DeploymentGroupData deploymentGroup;
     private final String instanceName;
@@ -150,11 +151,8 @@ class DomainXmlPreParser {
         return deploymentGroup.dgServerRefs;
     }
 
-    public List<String> getDGConfigNames() {
-        if(!validDG) {
-            return Collections.EMPTY_LIST;
-        }
-        return deploymentGroup.dgConfigRefs;
+    public Map<String, String> getMapServerConfig() {
+        return this.mapServerConfig;
     }
 
     final String getConfigName() {
@@ -282,9 +280,11 @@ class DomainXmlPreParser {
         String configRef = getConfigRef();
 
         printf("SERVER: " + name + ", ref= " + configRef);
+        mapServerConfig.put(name, configRef);
 
-        if (instanceName.equals(name))
+        if (instanceName.equals(name)) {
             serverConfigRef = configRef;
+        }
     }
 
     private void handleClusters() throws XMLStreamException {
@@ -393,11 +393,10 @@ class DomainXmlPreParser {
     private static class DeploymentGroupData {
         String name;
         List<String> dgServerRefs = new ArrayList<>();
-        List<String> dgConfigRefs = new ArrayList<>();
 
         @Override
         public String toString() {
-            return "DeploymentGroup:name=" + name + ", dg-server-refs = " + dgServerRefs + ", dgConfigRefs = " + dgConfigRefs;
+            return "DeploymentGroup:name=" + name + ", dg-server-refs = " + dgServerRefs;
         }
     }
 }
