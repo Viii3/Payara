@@ -38,7 +38,7 @@
  * holder.
  */
 
-// Portions Copyright [2017-2020] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2017-2023] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.config.serverbeans;
 
@@ -768,10 +768,9 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
             return false;
         }
 
-
         public static List<Server> getServersInTarget(
             Domain me, String target) {
-            List<Server> servers = new ArrayList<Server>();
+            List<Server> servers = new ArrayList<>();
             Server server = me.getServerNamed(target);
             if (server != null) {
                 servers.add(server);
@@ -795,7 +794,7 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
         }
 
         public static List<String> getTargets(final Domain me, final String tgt) {
-            List<String> targets = new ArrayList<String>();
+            List<String> targets = new ArrayList<>();
             if (!tgt.equals("domain")) {
                 targets.add(tgt);
             } else {
@@ -874,7 +873,6 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
                     }
                 }
             }
-            
 
             for (ApplicationRef ref :
                 getApplicationRefsInTarget(me, target, true)) {
@@ -920,13 +918,12 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
                     targets.add(server.getName());
                 }
             }
-                for (Cluster cluster : d.getClusters().getCluster()) {
-                    targets.add(cluster.getName());
-                }
-            
-                for (DeploymentGroup dg : d.getDeploymentGroups().getDeploymentGroup()) {
-                    targets.add(dg.getName());
-                }
+            for (Cluster cluster : d.getClusters().getCluster()) {
+                targets.add(cluster.getName());
+            }
+            for (DeploymentGroup dg : d.getDeploymentGroups().getDeploymentGroup()) {
+                targets.add(dg.getName());
+            }
             return targets;
         }
 
@@ -1005,25 +1002,27 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
              }
          }
 
-         public static String getEnabledForApplication(Domain d,
-             String target, String appName) {
-             ApplicationRef appRef = d.getApplicationRefInTarget(
-                 appName, target);
-             if (appRef != null) {
+        public static String getEnabledForApplication(Domain d,
+                                                      String target, String appName) {
+            ApplicationRef appRef = d.getApplicationRefInTarget(
+                    appName, target);
+            if (appRef != null) {
                 return appRef.getEnabled();
-             } else {
+            } else {
                 return null;
-             }
-         }
+            }
+        }
 
-         public static ReferenceContainer getReferenceContainerNamed(Domain d, String name) {
-            // Clusters and Servers are ReferenceContainers
-            Cluster c = getClusterNamed(d, name);
-
-            if(c != null)
-                return c;
-            
-            return getServerNamed(d, name);
+        public static ReferenceContainer getReferenceContainerNamed(Domain domain, String name) {
+            Cluster cluster = getClusterNamed(domain, name);
+            if (cluster != null) {
+                return cluster;
+            }
+            DeploymentGroup deploymentGroup = getDeploymentGroupNamed(domain, name);
+            if (deploymentGroup != null) {
+                return deploymentGroup;
+            }
+            return getServerNamed(domain, name);
         }
 
         public static List<ReferenceContainer> getReferenceContainersOf(Domain d, Config config) {
@@ -1052,6 +1051,7 @@ public interface Domain extends ConfigBeanProxy, PropertyBag, SystemPropertyBag,
             List<ReferenceContainer> referenceContainers = new LinkedList<ReferenceContainer>();
             referenceContainers.addAll(d.getServers().getServer());
             referenceContainers.addAll(d.getClusters().getCluster());
+            referenceContainers.addAll(d.getDeploymentGroups().getDeploymentGroup());
             return referenceContainers;
         }
 

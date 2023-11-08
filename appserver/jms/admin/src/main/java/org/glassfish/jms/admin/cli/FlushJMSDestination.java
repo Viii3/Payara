@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2018-2023] [Payara Foundation and/or its affiliates]
 package org.glassfish.jms.admin.cli;
 
 import org.glassfish.api.I18n;
@@ -67,7 +67,6 @@ import org.glassfish.hk2.api.PerLookup;
 
 import org.glassfish.api.admin.*;
 
-//import org.glassfish.api.admin.ExecuteOn;
 import org.glassfish.config.support.CommandTarget;
 import org.glassfish.config.support.TargetType;
 
@@ -213,42 +212,37 @@ public class FlushJMSDestination extends JMSDestination implements AdminCommand 
         }
      }
 
-       public void purgeJMSDestination(String destName, String destType, String tgtName)
-               throws Exception {
+    public void purgeJMSDestination(String destName, String destType, String tgtName)
+            throws Exception {
+        logger.log(Level.FINE, "purgeJMSDestination ...");
+        MQJMXConnectorInfo[] mqInfos = getMQJMXConnectorInfos(target, config, serverContext, domain, connectorRuntime);
 
-             logger.log(Level.FINE, "purgeJMSDestination ...");
-              MQJMXConnectorInfo[] mqInfos = getMQJMXConnectorInfos(target, config, serverContext, domain, connectorRuntime);
-
-               if (mqInfos != null && mqInfos.length > 0)
-               {
-                 for (MQJMXConnectorInfo mqInfo : mqInfos){
+        if (mqInfos != null && mqInfos.length > 0) {
+            for (MQJMXConnectorInfo mqInfo : mqInfos) {
                 try {
-
-                   MBeanServerConnection mbsc = mqInfo.getMQMBeanServerConnection();
-
+                    MBeanServerConnection mbsc = mqInfo.getMQMBeanServerConnection();
                     if (destType.equalsIgnoreCase("topic")) {
                         destType = DESTINATION_TYPE_TOPIC;
                     } else if (destType.equalsIgnoreCase("queue")) {
                         destType = DESTINATION_TYPE_QUEUE;
                     }
-                   ObjectName on = createDestinationConfig(destType, destName);
-
+                    ObjectName on = createDestinationConfig(destType, destName);
                     mbsc.invoke(on, "purge", null, null);
-               } catch (Exception e) {
-                           //log JMX Exception trace as WARNING
-                           logAndHandleException(e, "admin.mbeans.rmb.error_purging_jms_dest");
-                       } finally {
-                           try {
-                               if(mqInfo != null) {
-                                   mqInfo.closeMQMBeanServerConnection();
-                               }
-                           } catch (Exception e) {
-                             handleException(e);
-                           }
-                       }
-           }
-          }
-       }
+                } catch (Exception e) {
+                    //log JMX Exception trace as WARNING
+                    logAndHandleException(e, "admin.mbeans.rmb.error_purging_jms_dest");
+                } finally {
+                    try {
+                        if (mqInfo != null) {
+                            mqInfo.closeMQMBeanServerConnection();
+                        }
+                    } catch (Exception e) {
+                        handleException(e);
+                    }
+                }
+            }
+        }
+    }
 
     private ObjectName createDestinationConfig(String destinationType,
 					String destinationName)
