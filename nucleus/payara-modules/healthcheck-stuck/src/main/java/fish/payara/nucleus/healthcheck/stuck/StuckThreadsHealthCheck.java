@@ -227,7 +227,7 @@ public class StuckThreadsHealthCheck
     public HealthCheckStuckThreadExecutionOptions constructOptions(StuckThreadsChecker checker) {
         return new HealthCheckStuckThreadExecutionOptions(Boolean.valueOf(checker.getEnabled()),
                 Long.parseLong(checker.getTime()), asTimeUnit(checker.getUnit()), Boolean.valueOf(checker.getAddToMicroProfileHealth()),
-                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()));
+                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()), checker.getFilteredOutPatterns());
     }
 
     @Override

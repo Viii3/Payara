@@ -105,7 +105,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             "Retry Count"};
     final static String thresholdDiagnosticsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Critical Threshold",
             "Warning Threshold", "Good Threshold"};
-    final static String stuckThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit"};
+    final static String stuckThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit", "Filter Patterns"};
     final static String MPHealthCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Timeout"};
     final static String microProfileMetricsCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
     final static String monitoredMicroProfileMetricHeaders[] = {"Monitored Metric Name", "Description" };
@@ -267,7 +267,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             } else if (checker instanceof StuckThreadsChecker) {
                 StuckThreadsChecker stuckThreadsChecker = (StuckThreadsChecker) checker;
                 
-                Object values[] = new Object[7];
+                Object values[] = new Object[8];
                 values[0] = stuckThreadsChecker.getName();
                 values[1] = stuckThreadsChecker.getEnabled();
                 values[2] = stuckThreadsChecker.getTime();
@@ -275,6 +275,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
                 values[4] = stuckThreadsChecker.getAddToMicroProfileHealth();
                 values[5] = stuckThreadsChecker.getThreshold();
                 values[6] = stuckThreadsChecker.getThresholdTimeUnit();
+                values[7] = stuckThreadsChecker.getFilteredOutPatterns();
                 stuckThreadsColumnFormatter.addRow(values);
                 
                 addStuckThreadsCheckerExtrasProps(stuckThreadsExtrasProps, stuckThreadsChecker);
@@ -421,6 +422,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             extraPropsMap.put("threshold", stuckThreadsChecker.getThreshold());
             extraPropsMap.put("thresholdUnit", stuckThreadsChecker.getThresholdTimeUnit());
         }
+        extraPropsMap.put("filteredOutPatterns", stuckThreadsChecker.getFilteredOutPatterns());
         stuckThreadsExtrasProps.put(stuckThreadsPropertyName, extraPropsMap);
     }
 

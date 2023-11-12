@@ -188,6 +188,9 @@ public class SetHealthCheckServiceConfiguration implements AdminCommand {
             acceptableValues = "DAYS,HOURS,MILLISECONDS,MINUTES,SECONDS")
     private String stuckThreadsThresholdUnit;
 
+    @Param(name = "stuck-threads-filtered-out-patterns", alias = "filteredOutPatterns", optional = true)
+    private String stuckThreadsFilteredOutPatterns;
+
     // threshold properties params:
 
     @Param(name = "threshold-critical", alias = "thresholdCritical", optional = true, 
@@ -383,6 +386,8 @@ public class SetHealthCheckServiceConfiguration implements AdminCommand {
                     stuckThreadsThreshold, StuckThreadsChecker::setThreshold);
             updateProperty(stuckThreadsConfig, "stuck-threads-threshold-unit", stuckThreadsConfig.getThresholdTimeUnit(), 
                     stuckThreadsThresholdUnit, StuckThreadsChecker::setThresholdTimeUnit);
+            updateProperty(stuckThreadsConfig, "stuck-threads-filtered-out-patterns",
+                    stuckThreadsConfig.getFilteredOutPatterns(), stuckThreadsFilteredOutPatterns, StuckThreadsChecker::setFilteredOutPatterns);
         }
         if (MicroProfileMetricsChecker.class.isAssignableFrom(type)) {
             MicroProfileMetricsChecker microProfileMetricsConfig = (MicroProfileMetricsChecker) config;           
