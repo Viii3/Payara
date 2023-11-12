@@ -73,10 +73,12 @@ public class StuckThreadsStore {
     /**
      * Registers a thread with the store
      *
-     * @param threadid the id of the thread to register
+     * @param threadId the id of the thread to register
      */    
-    public void registerThread(Long threadid){
-        threads.put(threadid, System.currentTimeMillis());
+    public void registerThread(Long threadId, boolean isDaemon){
+        if (!isDaemon) {
+            threads.put(threadId, System.currentTimeMillis());
+        }
     }
 
     /**

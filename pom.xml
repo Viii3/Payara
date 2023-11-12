@@ -46,7 +46,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fish.payara.server</groupId>
     <artifactId>payara-aggregator</artifactId>
-    <version>5.57.0-SNAPSHOT</version>
+    <version>5.58.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Payara Project</name>
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:payara/payara-enterprise.git</connection>
         <url>scm:git:git@github.com:payara/payara-enterprise.git</url>
         <developerConnection>scm:git:git@github.com:payara/payara-enterprise.git</developerConnection>
-        <tag>payara-enterprise-5.57.0-SNAPSHOT</tag>
+        <tag>payara-enterprise-5.58.0-SNAPSHOT</tag>
     </scm>
 
     <issueManagement>
@@ -158,7 +158,7 @@
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
         <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
-        <maven.bundle.plugin.version>4.1.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
         <dynamic.build.properties.version>0.0.1.a2</dynamic.build.properties.version>
@@ -202,7 +202,7 @@
         <json.bind-api.version>1.0.2</json.bind-api.version>
         <yasson.version>1.0.11</yasson.version>
         <jakarta-persistence-api.version>2.2.3</jakarta-persistence-api.version>
-        <eclipselink.version>2.7.11.payara-p2</eclipselink.version>
+        <eclipselink.version>2.7.11.payara-p3</eclipselink.version>
         <eclipselink.asm.version>9.5.0</eclipselink.asm.version>
         <jakarta.transaction-api.version>1.3.3</jakarta.transaction-api.version>
         <jakarta.interceptor-api.version>1.2.5</jakarta.interceptor-api.version>
@@ -221,8 +221,8 @@
         <com.ibm.jbatch.spi.version>1.0.3</com.ibm.jbatch.spi.version>
         <jaxws-api.version>2.3.3</jaxws-api.version>
         <jakarta.jws-api.version>1.1.1</jakarta.jws-api.version>
-        <webservices.version>2.4.8.payara-p3</webservices.version>
-        <woodstox.version>6.4.0</woodstox.version>
+        <webservices.version>2.4.8.payara-p4</webservices.version>
+        <woodstox.version>6.5.1</woodstox.version>
         <stax2-api.version>4.2.1</stax2-api.version>
         <jakarta.xml.registry-api.version>1.0.10</jakarta.xml.registry-api.version>
         <jakarta.xml.rpc-api.version>1.1.4</jakarta.xml.rpc-api.version>
@@ -516,13 +516,13 @@
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>${maven.bundle.plugin.version}</version>
                     <configuration>
-                        <!-- By default, we don't export anything. -->
-                        <Export-Package />
                         <instructions>
                             <!--
                                 Read all the configuration from osgi.bundle file, if it exists.
                             -->
                             <_include>-osgi.bundle</_include>
+                            <!-- Don't import JDK packages -->
+                            <_noimportjava>true</_noimportjava>
                         </instructions>
                         <excludeDependencies>tools-jar</excludeDependencies>
                         <supportedProjectTypes>

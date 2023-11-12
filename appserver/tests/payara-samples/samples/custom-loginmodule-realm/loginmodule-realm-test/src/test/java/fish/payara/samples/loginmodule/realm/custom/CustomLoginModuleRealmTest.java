@@ -111,7 +111,7 @@ public class CustomLoginModuleRealmTest {
         cmd.add("--classname");
         cmd.add("fish.payara.samples.loginmodule.realm.custom.CustomRealm");
         cmd.add("--property");
-        cmd.add("jaas-context=customRealm:realmJarPath=" + serverPathToRealm.toAbsolutePath().normalize());
+        cmd.add("jaas-context=customRealm:realmJarPath='" + serverPathToRealm.toAbsolutePath().normalize() + "'");
         cmd.add("custom");
         CliCommands.payaraGlassFish(cmd);
     }
