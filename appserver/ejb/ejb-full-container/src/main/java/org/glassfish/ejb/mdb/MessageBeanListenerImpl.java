@@ -100,9 +100,8 @@ public class MessageBeanListenerImpl implements MessageBeanListener {
     
     @Override
     public Object deliverMessage(Object[] params) throws Throwable {
-        Thread thread = Thread.currentThread();
         if (stuckThreadsStore != null){
-            stuckThreadsStore.registerThread(thread.getId(), thread.isDaemon());
+            stuckThreadsStore.registerThread(Thread.currentThread().getId());
         }
         
         RequestTraceSpan span = null;
@@ -135,7 +134,7 @@ public class MessageBeanListenerImpl implements MessageBeanListener {
                 requestTracing.endTrace();
             }
             if (stuckThreadsStore != null){
-                stuckThreadsStore.deregisterThread(thread.getId());
+                stuckThreadsStore.deregisterThread(Thread.currentThread().getId());
             }
         }
     }

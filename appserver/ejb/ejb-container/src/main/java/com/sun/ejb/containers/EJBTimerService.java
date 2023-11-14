@@ -1923,9 +1923,8 @@ public abstract class EJBTimerService {
 
         @Override
         public void run() {
-            Thread thread = Thread.currentThread();
             if (stuckThreads != null){
-                stuckThreads.registerThread(thread.getId(), thread.isDaemon());
+                stuckThreads.registerThread(Thread.currentThread().getId());
             }
             // Delegate to Timer Service.
             if (requestTracing != null && requestTracing.isRequestTracingEnabled()){
@@ -1941,7 +1940,7 @@ public abstract class EJBTimerService {
                     requestTracing.endTrace();
                 }
                 if (stuckThreads != null){
-                    stuckThreads.deregisterThread(thread.getId());
+                    stuckThreads.deregisterThread(Thread.currentThread().getId());
                 }
             }
         } 
