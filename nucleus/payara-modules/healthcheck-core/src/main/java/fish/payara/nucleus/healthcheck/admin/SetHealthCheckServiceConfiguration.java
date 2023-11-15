@@ -386,7 +386,7 @@ public class SetHealthCheckServiceConfiguration implements AdminCommand {
                     stuckThreadsThreshold, StuckThreadsChecker::setThreshold);
             updateProperty(stuckThreadsConfig, "stuck-threads-threshold-unit", stuckThreadsConfig.getThresholdTimeUnit(), 
                     stuckThreadsThresholdUnit, StuckThreadsChecker::setThresholdTimeUnit);
-            updateProperty(stuckThreadsConfig, "stuck-threads-filtered-out-patterns",
+            updateProperty(stuckThreadsConfig, "stuck-threads-blacklist-patterns",
                     stuckThreadsConfig.getFilteredOutPatterns(), stuckThreadsFilteredOutPatterns, StuckThreadsChecker::setFilteredOutPatterns);
         }
         if (MicroProfileMetricsChecker.class.isAssignableFrom(type)) {
