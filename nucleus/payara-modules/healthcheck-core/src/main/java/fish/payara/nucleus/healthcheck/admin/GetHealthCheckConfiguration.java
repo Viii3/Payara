@@ -275,7 +275,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
                 values[4] = stuckThreadsChecker.getAddToMicroProfileHealth();
                 values[5] = stuckThreadsChecker.getThreshold();
                 values[6] = stuckThreadsChecker.getThresholdTimeUnit();
-                values[7] = stuckThreadsChecker.getFilteredOutPatterns();
+                values[7] = stuckThreadsChecker.getBlacklistPatterns();
                 stuckThreadsColumnFormatter.addRow(values);
                 
                 addStuckThreadsCheckerExtrasProps(stuckThreadsExtrasProps, stuckThreadsChecker);
@@ -422,7 +422,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             extraPropsMap.put("threshold", stuckThreadsChecker.getThreshold());
             extraPropsMap.put("thresholdUnit", stuckThreadsChecker.getThresholdTimeUnit());
         }
-        extraPropsMap.put("filteredOutPatterns", stuckThreadsChecker.getFilteredOutPatterns());
+        extraPropsMap.put("blacklistPatterns", stuckThreadsChecker.getBlacklistPatterns());
         stuckThreadsExtrasProps.put(stuckThreadsPropertyName, extraPropsMap);
     }
 

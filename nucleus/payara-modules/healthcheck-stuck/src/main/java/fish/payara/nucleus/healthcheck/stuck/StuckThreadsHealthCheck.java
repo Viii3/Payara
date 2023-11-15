@@ -207,7 +207,7 @@ public class StuckThreadsHealthCheck
         long thresholdInMillis = getThresholdInMillis();
         long now = System.currentTimeMillis();
         ConcurrentHashMap<Long, Long> threads = stuckThreadsStore.getThreads();
-        String[] filteredList = checker.getFilteredOutPatterns().split(",");
+        String[] filteredList = checker.getBlacklistPatterns().split(",");
         for (Entry<Long, Long> thread : threads.entrySet()){
             Long threadId = thread.getKey();
             long workStartedTime = thread.getValue();
@@ -234,7 +234,7 @@ public class StuckThreadsHealthCheck
     public HealthCheckStuckThreadExecutionOptions constructOptions(StuckThreadsChecker checker) {
         return new HealthCheckStuckThreadExecutionOptions(Boolean.valueOf(checker.getEnabled()),
                 Long.parseLong(checker.getTime()), asTimeUnit(checker.getUnit()), Boolean.valueOf(checker.getAddToMicroProfileHealth()),
-                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()), checker.getFilteredOutPatterns());
+                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()), checker.getBlacklistPatterns());
     }
 
     @Override

@@ -65,7 +65,7 @@ public interface StuckThreadsChecker extends Checker {
     void setThresholdTimeUnit(String value) throws PropertyVetoException;
 
     @Attribute(defaultValue = "")
-    String getFilteredOutPatterns();
-    void setFilteredOutPatterns(String filteredOutPatterns);
+    String getBlacklistPatterns();
+    void setBlacklistPatterns(String blacklistPatterns);
 
 }

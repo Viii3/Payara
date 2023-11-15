@@ -52,11 +52,11 @@ public class HealthCheckStuckThreadExecutionOptions extends HealthCheckExecution
     private String blacklistPatterns;
     
     public HealthCheckStuckThreadExecutionOptions(boolean enabled, long time, TimeUnit unit, boolean addToMicroProfileHealth,
-                                                  long timeStuck, TimeUnit unitStuck, String filteredOutPatterns) {
+                                                  long timeStuck, TimeUnit unitStuck, String blacklistPatterns) {
         super(enabled, time, unit, addToMicroProfileHealth);
         this.timeStuck = timeStuck;
         this.unitStuck = unitStuck;
-        this.filteredOutPatterns = filteredOutPatterns;
+        this.blacklistPatterns = blacklistPatterns;
     }
     
     /**
@@ -79,7 +79,7 @@ public class HealthCheckStuckThreadExecutionOptions extends HealthCheckExecution
      *
      * @return Comma separated patterns to filter out threads by name
      */
-    public String getFilteredOutPatterns() {
-        return filteredOutPatterns;
+    public String getBlacklistPatterns() {
+        return blacklistPatterns;
     }
 }

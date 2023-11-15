@@ -189,7 +189,7 @@ public class SetHealthCheckServiceConfiguration implements AdminCommand {
     private String stuckThreadsThresholdUnit;
 
     @Param(name = "stuck-threads-blacklist-patterns", alias = "blacklistPatterns", optional = true)
-    private String[] stuckThreadsBlacklistPatterns;
+    private String stuckThreadsBlacklistPatterns;
 
     // threshold properties params:
 
