@@ -167,13 +167,12 @@ public class ContainerMapper extends ADBAwareHttpHandler {
      */
     @Override
     public void service(final Request request, final Response response) throws Exception {
-        Thread thread = Thread.currentThread();
         try {
             request.addAfterServiceListener(afterServiceListener);
             
             final Callable handler = lookupHandler(request, response);
             if (stuckThreadsStore != null){
-                stuckThreadsStore.registerThread(thread.getId(), thread.isDaemon());
+                stuckThreadsStore.registerThread(Thread.currentThread().getId());
             }
             if (requestTracing != null) {
                 try {
@@ -213,7 +212,7 @@ public class ContainerMapper extends ADBAwareHttpHandler {
                 }
             }
             if (stuckThreadsStore != null){
-                stuckThreadsStore.registerThread(thread.getId(), thread.isDaemon());
+                stuckThreadsStore.registerThread(Thread.currentThread().getId());
             }
             handler.call();
         } catch (Exception ex) {
@@ -238,7 +237,7 @@ public class ContainerMapper extends ADBAwareHttpHandler {
                 requestTracing.endTrace();
             }
             if (stuckThreadsStore != null){
-                stuckThreadsStore.deregisterThread(thread.getId());
+                stuckThreadsStore.deregisterThread(Thread.currentThread().getId());
             }
         }
     }
