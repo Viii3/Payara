@@ -49,7 +49,7 @@ public class HealthCheckStuckThreadExecutionOptions extends HealthCheckExecution
     
     private long timeStuck;
     private TimeUnit unitStuck;
-    private String filteredOutPatterns;
+    private String blacklistPatterns;
     
     public HealthCheckStuckThreadExecutionOptions(boolean enabled, long time, TimeUnit unit, boolean addToMicroProfileHealth,
                                                   long timeStuck, TimeUnit unitStuck, String filteredOutPatterns) {
