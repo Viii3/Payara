@@ -56,6 +56,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import static java.util.Arrays.asList;
+
+import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -205,17 +207,22 @@ public class StuckThreadsHealthCheck
         long thresholdInMillis = getThresholdInMillis();
         long now = System.currentTimeMillis();
         ConcurrentHashMap<Long, Long> threads = stuckThreadsStore.getThreads();
+        String[] filteredList = checker.getFilteredOutPatterns().split(",");
         for (Entry<Long, Long> thread : threads.entrySet()){
             Long threadId = thread.getKey();
             long workStartedTime = thread.getValue();
             long timeWorkingInMillis = now - workStartedTime;
             if (timeWorkingInMillis > thresholdInMillis){
                 ThreadInfo info = bean.getThreadInfo(threadId, Integer.MAX_VALUE);
-                if (info != null){ //check thread hasn't died already
+                if (info != null && !isFilteredOut(info.getThreadName(), filteredList)){ //check thread hasn't died already
                     consumer.accept(workStartedTime, timeWorkingInMillis, thresholdInMillis, info);
                 }
             }
         }
+    }
+
+    private boolean isFilteredOut(String threadName, String[] filteredList) {
+        return Arrays.stream(filteredList).anyMatch(threadName::matches);
     }
 
     private long getThresholdInMillis() {
