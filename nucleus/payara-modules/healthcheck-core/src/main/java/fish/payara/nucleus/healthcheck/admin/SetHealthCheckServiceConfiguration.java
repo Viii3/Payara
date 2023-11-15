@@ -188,8 +188,8 @@ public class SetHealthCheckServiceConfiguration implements AdminCommand {
             acceptableValues = "DAYS,HOURS,MILLISECONDS,MINUTES,SECONDS")
     private String stuckThreadsThresholdUnit;
 
-    @Param(name = "stuck-threads-filtered-out-patterns", alias = "filteredOutPatterns", optional = true)
-    private String stuckThreadsFilteredOutPatterns;
+    @Param(name = "stuck-threads-blacklist-patterns", alias = "blacklistPatterns", optional = true)
+    private String[] stuckThreadsBlacklistPatterns;
 
     // threshold properties params:
 
