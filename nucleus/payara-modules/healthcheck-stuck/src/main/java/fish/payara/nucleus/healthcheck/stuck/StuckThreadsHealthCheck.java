@@ -221,8 +221,8 @@ public class StuckThreadsHealthCheck
         }
     }
 
-    private boolean isInBlacklist(String threadName, String[] filteredList) {
-        return Arrays.stream(filteredList).anyMatch(threadName::matches);
+    private boolean isInBlacklist(String threadName, String[] blacklistPatterns) {
+        return Arrays.stream(blacklistPatterns).anyMatch(threadName::matches);
     }
 
     private long getThresholdInMillis() {
