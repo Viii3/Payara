@@ -207,21 +207,21 @@ public class StuckThreadsHealthCheck
         long thresholdInMillis = getThresholdInMillis();
         long now = System.currentTimeMillis();
         ConcurrentHashMap<Long, Long> threads = stuckThreadsStore.getThreads();
-        String[] filteredList = checker.getBlacklistPatterns().split(",");
+        String[] blacklist = checker.getBlacklistPatterns().split(",");
         for (Entry<Long, Long> thread : threads.entrySet()){
             Long threadId = thread.getKey();
             long workStartedTime = thread.getValue();
             long timeWorkingInMillis = now - workStartedTime;
             if (timeWorkingInMillis > thresholdInMillis){
                 ThreadInfo info = bean.getThreadInfo(threadId, Integer.MAX_VALUE);
-                if (info != null && !isFilteredOut(info.getThreadName(), filteredList)){ //check thread hasn't died already
+                if (info != null && !isInBlacklist(info.getThreadName(), blacklist)){ //check thread hasn't died already
                     consumer.accept(workStartedTime, timeWorkingInMillis, thresholdInMillis, info);
                 }
             }
         }
     }
 
-    private boolean isFilteredOut(String threadName, String[] filteredList) {
+    private boolean isInBlacklist(String threadName, String[] filteredList) {
         return Arrays.stream(filteredList).anyMatch(threadName::matches);
     }
 
