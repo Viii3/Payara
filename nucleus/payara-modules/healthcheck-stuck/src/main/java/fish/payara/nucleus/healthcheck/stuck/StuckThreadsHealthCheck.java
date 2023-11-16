@@ -221,7 +221,7 @@ public class StuckThreadsHealthCheck
         }
     }
 
-    private boolean isFilteredOut(String threadName, String[] filteredList) {
+    private boolean isFilteredOut(String threadName, String[] blacklistPatterns) {
         return Arrays.stream(filteredList).anyMatch(threadName::matches);
     }
 
