@@ -105,7 +105,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             "Retry Count"};
     final static String thresholdDiagnosticsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Critical Threshold",
             "Warning Threshold", "Good Threshold"};
-    final static String stuckThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit", "Filter Patterns"};
+    final static String stuckThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit", "Blacklist Patterns"};
     final static String MPHealthCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Timeout"};
     final static String microProfileMetricsCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
     final static String monitoredMicroProfileMetricHeaders[] = {"Monitored Metric Name", "Description" };
