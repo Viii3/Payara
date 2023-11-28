@@ -193,8 +193,6 @@
         <findbugs.glassfish.logging.validLoggerPrefixes>javax.enterprise</findbugs.glassfish.logging.validLoggerPrefixes>
         <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
 
-        <awaitility.version>4.2.0</awaitility.version>
-
     </properties>
 
     <modules>
