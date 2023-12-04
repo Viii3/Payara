@@ -41,6 +41,7 @@
 
 package org.glassfish.config.support;
 
+import com.sun.enterprise.config.serverbeans.JvmOptionBag;
 import com.sun.enterprise.util.StringUtils;
 import com.sun.enterprise.util.Utility;
 import java.io.InputStream;
@@ -89,9 +90,10 @@ class DomainXmlPreParser {
     private List<ClusterData> clusters = new LinkedList<>();
     private List<DeploymentGroupData> deploymentGroups = new LinkedList<>();
     private List<String> configNames = new LinkedList<>();
+    private Map<String, String> mapServerConfig = new HashMap<>();
     private ClusterData cluster;
     private DeploymentGroupData deploymentGroup;
-    private String instanceName;
+    private final String instanceName;
     private String serverConfigRef;
     private boolean valid = false;
     private boolean validDG = false;
@@ -147,6 +149,10 @@ class DomainXmlPreParser {
             return Collections.EMPTY_LIST;
         }
         return deploymentGroup.dgServerRefs;
+    }
+
+    public Map<String, String> getMapServerConfig() {
+        return this.mapServerConfig;
     }
 
     final String getConfigName() {
@@ -274,9 +280,11 @@ class DomainXmlPreParser {
         String configRef = getConfigRef();
 
         printf("SERVER: " + name + ", ref= " + configRef);
+        mapServerConfig.put(name, configRef);
 
-        if (instanceName.equals(name))
+        if (instanceName.equals(name)) {
             serverConfigRef = configRef;
+        }
     }
 
     private void handleClusters() throws XMLStreamException {
