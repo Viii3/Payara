@@ -91,7 +91,7 @@
     <repositories>
         <repository>
             <id>payara-nexus-artifacts</id>
-            <url>https://nexus.payara.fish/repository/payara-artifacts</url>
+            <url>https://nexus.dev.payara.fish/repository/payara-artifacts</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -101,7 +101,7 @@
         </repository>
         <repository>
             <id>payara-nexus-enterprise-distributions</id>
-            <url>https://nexus.payara.fish/repository/payara-enterprise</url>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -111,7 +111,7 @@
         </repository>
         <repository>
             <id>payara-nexus-enterprise-artifacts</id>
-            <url>https://nexus.payara.fish/repository/payara-enterprise-artifacts-private</url>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise-artifacts-private</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -121,7 +121,7 @@
         </repository>
         <repository>
             <id>payara-nexus-enterprise-snapshots</id>
-            <url>https://nexus.payara.fish/repository/payara-enterprise-snapshots-private</url>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise-snapshots-private</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -134,7 +134,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>payara-nexus-artifacts</id>
-            <url>https://nexus.payara.fish/repository/payara-artifacts</url>
+            <url>https://nexus.dev.payara.fish/repository/payara-artifacts</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -173,7 +173,7 @@
         <servlet-api.version>4.0.4</servlet-api.version>
         <grizzly.version>2.4.4.payara-p8</grizzly.version>
         <jax-rs-api.impl.version>2.1.6</jax-rs-api.impl.version>
-        <jersey.version>2.37.payara-p1</jersey.version>
+        <jersey.version>2.41.payara-p1</jersey.version>
         <jakarta.validation.version>2.0.2</jakarta.validation.version>
         <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
         <hibernate.validator-cdi.version>6.2.5.Final</hibernate.validator-cdi.version>
@@ -187,7 +187,7 @@
         <stax-api.version>1.0-2</stax-api.version>
         <jackson.version>2.15.0</jackson.version>
         <snakeyaml.version>2.0</snakeyaml.version>
-        <hazelcast.version>5.3.1</hazelcast.version>
+        <hazelcast.version>5.3.6</hazelcast.version>
         <jaxb-api.version>2.3.3</jaxb-api.version>
         <jaxb-impl.version>2.3.7</jaxb-impl.version>
         <jakarta.ejb-api.version>3.2.6</jakarta.ejb-api.version>
@@ -413,11 +413,11 @@
             <distributionManagement>
                 <repository>
                     <id>payara-nexus-enterprise-artifacts</id>
-                    <url>https://nexus.payara.fish/repository/payara-enterprise-artifacts-private/</url>
+                    <url>https://nexus.dev.payara.fish/repository/payara-enterprise-artifacts-private/</url>
                 </repository>
                 <snapshotRepository>
                     <id>payara-nexus-enterprise-snapshots</id>
-                    <url>https://nexus.payara.fish/repository/payara-enterprise-snapshots-private/</url>
+                    <url>https://nexus.dev.payara.fish/repository/payara-enterprise-snapshots-private/</url>
                 </snapshotRepository>
             </distributionManagement>
         </profile>

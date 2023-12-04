@@ -40,7 +40,7 @@
     holder.
 
 -->
-<!--"Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]" -->
+<!-- Portions Copyright 2016-2023 Payara Foundation and/or its affiliates -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -96,7 +96,7 @@
         <maven.makepkgs.plugin.version>0.6.2</maven.makepkgs.plugin.version>
         <maven.jaxb2.plugin.version>0.15.1</maven.jaxb2.plugin.version>
         <maven.antlr.plugin.version>2.2</maven.antlr.plugin.version>
-        <maven.enforcer.plugin.version>3.1.0</maven.enforcer.plugin.version>
+        <maven.enforcer.plugin.version>3.4.1</maven.enforcer.plugin.version>
         <maven.jaxws.plugin.version>2.6</maven.jaxws.plugin.version>
         <maven.apt.plugin.version>1.0-alpha-5</maven.apt.plugin.version>
         <maven.build.helper.plugin.version>3.3.0</maven.build.helper.plugin.version>
@@ -462,7 +462,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>[${jdk.version},18.9)</version>
+                                    <version>[${jdk.version},)</version>
                                     <message>You need JDK8 (${jdk.version}) or JDK11</message>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
@@ -1159,7 +1159,7 @@ Parent is ${project.parent}</echo>
             <distributionManagement>
                 <snapshotRepository>
                     <id>payara-nexus-snapshots</id>
-                    <url>https://nexus.payara.fish/content/repositories/payara-snapshots</url>
+                    <url>https://nexus.dev.payara.fish/content/repositories/payara-snapshots</url>
                 </snapshotRepository>
             </distributionManagement>
 
@@ -1172,7 +1172,7 @@ Parent is ${project.parent}</echo>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>payara-nexus-snapshots</serverId>
-                            <nexusUrl>https://nexus.payara.fish/</nexusUrl>
+                            <nexusUrl>https://nexus.dev.payara.fish/</nexusUrl>
                             <autoReleaseAfterClose>true</autoReleaseAfterClose>
                         </configuration>
                     </plugin>
