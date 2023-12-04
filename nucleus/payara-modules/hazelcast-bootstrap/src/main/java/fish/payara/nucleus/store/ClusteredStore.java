@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2016-2022 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2023 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -217,6 +217,7 @@ public class ClusteredStore implements EventListener, MonitoringDataSource {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void event(Event event) {
         if (event.is(HazelcastEvents.HAZELCAST_BOOTSTRAP_COMPLETE)){
             if (hzCore.isEnabled()) {
@@ -236,7 +237,7 @@ public class ClusteredStore implements EventListener, MonitoringDataSource {
         HashMap<Serializable,Serializable> result = new HashMap<>();
         if (hzCore.isEnabled()) {
             try (Context ctx = ctxUtil.empty().pushContext()) {
-                IMap map = hzCore.getInstance().getMap(storeName);
+                IMap<Serializable, ?> map = hzCore.getInstance().getMap(storeName);
                 if (map != null) {
                     Set<Serializable> keys = map.keySet();
                     for (Serializable key : keys) {
