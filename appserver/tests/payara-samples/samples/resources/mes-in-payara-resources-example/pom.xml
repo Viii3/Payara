@@ -48,7 +48,7 @@
     <parent>
         <groupId>fish.payara.samples</groupId>
         <artifactId>payara-samples-resources-tests</artifactId>
-        <version>5.58.0</version>
+        <version>5.59.0-SNAPSHOT</version>
     </parent>
 
     <properties>
