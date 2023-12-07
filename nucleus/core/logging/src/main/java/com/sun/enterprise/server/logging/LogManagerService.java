@@ -37,10 +37,11 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.server.logging;
 
+import com.sun.common.util.logging.GFLogRecord;
 import com.sun.common.util.logging.LoggingConfig;
 import com.sun.common.util.logging.LoggingConfigFactory;
 import com.sun.common.util.logging.LoggingXMLNames;
@@ -160,6 +161,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
     String logFormatDateFormatDetail = "";
     String compressOnRotationDetail = "";
     String logStandardStreamsDetail = "";
+    String fastLoggingDetail = "";
     
     //Payara Notification Logging   
     String payaraNotificationLogFileDetail = "";
@@ -195,6 +197,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
     private static final String LOGFORMAT_DATEFORMAT_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.logFormatDateFormat";
     private static final String COMPRESS_ON_ROTATION_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.compressOnRotation";
     private static final String LOG_STANDARD_STREAMS_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.logStandardStreams";
+    private static final String FAST_LOGGER_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.fastLogging";
     
     //Payara Notification Logging
     private static final String PAYARA_NOTIFICATION_LOG_FILE_PROPERTY = "fish.payara.enterprise.server.logging.PayaraNotificationFileHandler.file";
@@ -231,12 +234,12 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
     private String excludeFields;
 
     private boolean multiLineMode = false;
-    
+
     private  GFFileHandler gfFileHandler = null;
     
     private  PayaraNotificationFileHandler pyFileHandler = null;
     
-    private String payaraNotificationLogger = "fish.payara.nucleus.notification.log.LogNotifierService";
+    private String payaraNotificationLogger = "fish.payara.nucleus.notification.log.LogNotifier";
     
     /**
      * Returns properties based on the DAS/Cluster/Instance
@@ -396,7 +399,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
                 FileUtils.copy(src, dest);
                 loggingPropertiesFile = new File(env.getConfigDirPath(), ServerEnvironmentImpl.kLoggingPropertiesFileName);
             }
-            
+
             logMgr.readConfiguration();
 
         } catch (IOException e) {
@@ -489,7 +492,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
             }
         }
     }
-  
+
     public void listenToChangesOnloggingPropsFile(File loggingPropertiesFile, LogManager logMgr){
              if (loggingPropertiesFile != null) {
             fileMonitoring.monitors(loggingPropertiesFile, new FileMonitoring.FileChangeListener() {
@@ -725,6 +728,11 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
                                             }
                                         }
                                     }
+                                } else if (a.equals(FAST_LOGGER_PROPERTY)) {
+                                    if (!val.equals(fastLoggingDetail)) {
+                                        fastLoggingDetail = val;
+                                        GFLogRecord.fastLogging = Boolean.parseBoolean(fastLoggingDetail);
+                                    }
                                 } else if (a.equals(COMPRESS_ON_ROTATION_PROPERTY)) {
                                     if (!val.equals(compressOnRotationDetail)) {
                                         compressOnRotationDetail = val;
@@ -888,7 +896,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
         multiLineMode = Boolean.parseBoolean(props.get(MULTI_LINE_MODE_PROPERTY));
         if (formatterClassName.equals(UniformLogFormatter.class.getName())) {
             // used to support UFL formatter in GF.
-            UniformLogFormatter formatter = new UniformLogFormatter();
+            UniformLogFormatter formatter = new UniformLogFormatter(excludeFields);
             String cname = "com.sun.enterprise.server.logging.GFFileHandler";
             recordBeginMarker = props.get(cname + ".logFormatBeginMarker");
             if (recordBeginMarker == null || ("").equals(recordBeginMarker)) {
@@ -926,7 +934,6 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
             formatter.setRecordEndMarker(recordEndMarker);
             formatter.setRecordDateFormat(recordDateFormat);
             formatter.setRecordFieldSeparator(recordFieldSeparator);
-            formatter.setExcludeFields(excludeFields);
             formatter.setMultiLineMode(multiLineMode);
             for (Handler handler : logMgr.getLogger("").getHandlers()) {
                 // only get the ConsoleHandler
@@ -937,8 +944,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
             }
         } else if (formatterClassName.equals(ODLLogFormatter.class.getName())) {
             // used to support ODL formatter in GF.
-            ODLLogFormatter formatter = new ODLLogFormatter();
-            formatter.setExcludeFields(excludeFields);
+            ODLLogFormatter formatter = new ODLLogFormatter(excludeFields);
             formatter.setMultiLineMode(multiLineMode);
             for (Handler handler : logMgr.getLogger("").getHandlers()) {
                 // only get the ConsoleHandler
@@ -948,8 +954,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
                 }
             }
         } else if (formatterClassName.equals(JSONLogFormatter.class.getName())) {
-            JSONLogFormatter formatter = new JSONLogFormatter();
-            formatter.setExcludeFields(excludeFields);
+            JSONLogFormatter formatter = new JSONLogFormatter(excludeFields);
             for (Handler handler : logMgr.getLogger("").getHandlers()) {
                 // only get the ConsoleHandler
                 if (handler.getClass().equals(ConsoleHandler.class)) {
@@ -986,6 +991,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
         logFormatDateFormatDetail = props.get(LOGFORMAT_DATEFORMAT_PROPERTY);
         compressOnRotationDetail = props.get(COMPRESS_ON_ROTATION_PROPERTY);
         logStandardStreamsDetail = props.get(LOG_STANDARD_STREAMS_PROPERTY);
+        fastLoggingDetail = props.get(FAST_LOGGER_PROPERTY);
 
         //Payara Notification Logging
         payaraNotificationLogFileDetail = props.get(PAYARA_NOTIFICATION_LOG_FILE_PROPERTY);

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2018-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -64,6 +64,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.Path;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.eclipse.microprofile.openapi.annotations.ExternalDocumentation;
 import org.eclipse.microprofile.openapi.annotations.OpenAPIDefinition;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -75,7 +78,9 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameters;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBodySchema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirements;
@@ -93,7 +98,6 @@ import org.glassfish.hk2.classmodel.reflect.ClassModel;
 import org.glassfish.hk2.classmodel.reflect.FieldModel;
 import org.glassfish.hk2.classmodel.reflect.MethodModel;
 import org.glassfish.hk2.classmodel.reflect.Type;
-import org.glassfish.hk2.classmodel.reflect.Types;
 
 /**
  * A walker that visits each filtered class type & it's members, scans for
@@ -107,7 +111,7 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
     private Map<Class<? extends Annotation>, VisitorFunction<AnnotationModel, E>> annotationVisitor;
     private Map<Class<? extends Annotation>, Class<? extends Annotation>> annotationAlternatives;
 
-    public OpenApiWalker(OpenAPI api, Types allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader) {
+    public OpenApiWalker(OpenAPI api, Map<String, Type> allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader) {
         this.allowedTypes = new TreeSet<>(Comparator.comparing(Type::getName, String::compareTo));
         this.allowedTypes.addAll(allowedTypes);
         this.context = new OpenApiContext(allTypes, this.allowedTypes, appClassLoader, api);
@@ -123,6 +127,7 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
         addSchemasToPaths();
     }
 
+    @SuppressWarnings("unchecked")
     public final void processAnnotation(ClassModel annotatedClass, ApiVisitor visitor) {
         AnnotationInfo annotations = context.getAnnotationInfo(annotatedClass);
         processAnnotation((E) annotatedClass, annotations, visitor, new OpenApiContext(context, annotatedClass));
@@ -142,7 +147,6 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void processAnnotation(E element, AnnotationInfo annotations, ApiVisitor visitor, OpenApiContext context) {
 
         for (Class<? extends Annotation> annotationClass : getAnnotationVisitor(visitor).keySet()) {
@@ -192,6 +196,14 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
             annotationVisitor.put(HEAD.class, (annot, element, con) -> visitor.visitHEAD(annot, (MethodModel) element, con));
             annotationVisitor.put(OPTIONS.class, (annot, element, con) -> visitor.visitOPTIONS(annot, (MethodModel) element, con));
             annotationVisitor.put(PATCH.class, (annot, element, con) -> visitor.visitPATCH(annot, (MethodModel) element, con));
+            annotationVisitor.put(Path.class, (annot, element, con) -> {
+                if (element instanceof MethodModel && element.getAnnotations().size() == 1) {
+                    AnnotationModel annotationModel = element.getAnnotations().iterator().next();
+                    if ("Path".equals(annotationModel.getType().getSimpleName())) {
+                        visitor.visitGET(annot, (MethodModel) element, con);
+                    }
+                }
+            });
 
             // JAX-RS parameters
             annotationVisitor.put(QueryParam.class, visitor::visitQueryParam);
@@ -200,8 +212,11 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
             annotationVisitor.put(CookieParam.class, visitor::visitCookieParam);
             annotationVisitor.put(FormParam.class, visitor::visitFormParam);
 
-            // All other OpenAPI annotations
+            // Visit Schema objects
             annotationVisitor.put(Schema.class, visitor::visitSchema);
+            annotationVisitor.put(XmlRootElement.class, visitor::visitSchema);
+
+            // All other OpenAPI annotations
             annotationVisitor.put(Server.class, visitor::visitServer);
             annotationVisitor.put(Servers.class, visitor::visitServers);
             annotationVisitor.put(Extensions.class, visitor::visitExtensions);
@@ -211,6 +226,7 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
             annotationVisitor.put(Callbacks.class, visitor::visitCallbacks);
             annotationVisitor.put(APIResponse.class, visitor::visitAPIResponse);
             annotationVisitor.put(APIResponses.class, visitor::visitAPIResponses);
+            annotationVisitor.put(APIResponseSchema.class, visitor::visitAPIResponseSchema);
             annotationVisitor.put(Parameters.class, visitor::visitParameters);
             annotationVisitor.put(Parameter.class, visitor::visitParameter);
             annotationVisitor.put(ExternalDocumentation.class, visitor::visitExternalDocumentation);
@@ -227,6 +243,7 @@ public class OpenApiWalker<E extends AnnotatedElement> implements ApiWalker {
 
             // OpenAPI response
             annotationVisitor.put(RequestBody.class, visitor::visitRequestBody);
+            annotationVisitor.put(RequestBodySchema.class, visitor::visitRequestBodySchema);
         }
         return annotationVisitor;
     }

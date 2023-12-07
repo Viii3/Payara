@@ -40,7 +40,7 @@
     holder.
 
 -->
-<!-- Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates] -->
+<!-- Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates] -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -49,7 +49,7 @@
     <parent>
         <groupId>fish.payara.server</groupId>
         <artifactId>payara-nucleus-parent</artifactId>
-        <version>5.29.0-SNAPSHOT</version>
+        <version>5.59.0-SNAPSHOT</version>
         <relativePath>../nucleus/pom.xml</relativePath>
     </parent>
 
@@ -61,11 +61,11 @@
     <properties>
         <jakarta.faces-spec.version>2.3.1</jakarta.faces-spec.version>
         <jsftemplating.version>2.1.4</jsftemplating.version>
-        <jboss.classfilewriter.version>1.2.4.Final</jboss.classfilewriter.version>
-        <apache.bcel.version>6.2</apache.bcel.version>
+        <jboss.classfilewriter.version>1.2.5.Final</jboss.classfilewriter.version>
+        <apache.bcel.version>6.7.0</apache.bcel.version>
         <!-- Java EE Security API -->
         <javax.security.enterprise-spec.version>1.0</javax.security.enterprise-spec.version>
-        <jna.version>5.2.0</jna.version>
+        <jna.version>5.12.1</jna.version>
 
         <!-- Application Server / Implementation -->
         <product.name>Payara Server Enterprise</product.name>
@@ -76,27 +76,25 @@
         <production_domain_template>production-domain.jar</production_domain_template>
         <version_prefix />
         <version_suffix>#badassfish</version_suffix>
-        <major_version>5</major_version>
-        <minor_version>29</minor_version>
-        <update_version>0-SNAPSHOT</update_version>
-        <install.dir.name>payara${major_version}</install.dir.name>
+        <install.dir.name>payara5</install.dir.name>
         <uc-pkg-client.version>1.122-57.2889</uc-pkg-client.version>
         <uc-pkg-bootstrap.version>1.122-57.2889</uc-pkg-bootstrap.version>
-        <dbschema.version>3.1.1</dbschema.version>
         <dbschema.osgi.version>6.0</dbschema.osgi.version>
-        <schema2beans.version>3.1.1</schema2beans.version>
-        <schema2beans.osgi.version>5.5</schema2beans.osgi.version>
+        <dbschema.version>6.7</dbschema.version>
+        <schema2beans.version>6.7</schema2beans.version>
         <!-- Java API for XML Registries Resource Adapter -->
         <jaxr.version>JAXR_RA_20091012</jaxr.version>
         <rest.monitoring.version>1.0.0-Beta</rest.monitoring.version>
 
-        <nimbus-jose-jwt.version>8.20</nimbus-jose-jwt.version>
-        <accessors-smart.version>1.2.payara-p2</accessors-smart.version>
-        <json-smart.version>2.3</json-smart.version>
+        <nimbus-jose-jwt.version>9.35</nimbus-jose-jwt.version>
+        <accessors-smart.version>2.4.11</accessors-smart.version>
+        <json-smart.version>2.4.11</json-smart.version>
+        <reactor-core.version>3.4.0</reactor-core.version>
+        <reactive-streams.version>1.0.3</reactive-streams.version>
         <jcip-annotations.version>1.0-1</jcip-annotations.version>
         <!-- Yubico client validation version property -->
         <yubico-validation-client2.version>3.0.2.payara-p1</yubico-validation-client2.version>
-        <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
+        <dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
     </properties>
 
 
@@ -154,6 +152,7 @@
                 <artifactId>spec-version-maven-plugin</artifactId>
                 <version>1.2</version>
                 <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
                     <dir>${stage.dir}/${install.dir.name}/glassfish/modules</dir>
                     <excludes>javax.inject.jar,javax.servlet.jsp.jstl.jar,javax.servlet.jsp.jar,javax.enterprise.concurrent.jar, jakarta.persistence.jar</excludes>
                     <specs>
@@ -644,12 +643,12 @@
             </dependency>
             <dependency>
                 <groupId>org.glassfish.external</groupId>
-                <artifactId>dbschema-repackaged</artifactId>
+                <artifactId>dbschema</artifactId>
                 <version>${dbschema.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.external</groupId>
-                <artifactId>schema2beans-repackaged</artifactId>
+                <artifactId>schema2beans</artifactId>
                 <version>${schema2beans.version}</version>
             </dependency>
             <dependency>
@@ -672,7 +671,7 @@
             <dependency>
                 <groupId>org.netbeans.external</groupId>
                 <artifactId>ddl</artifactId>
-                <version>RELEASE65</version>
+                <version>RELEASE82</version>
             </dependency>
 
             <dependency>
@@ -686,6 +685,17 @@
                 <groupId>fish.payara.monitoring-console</groupId>
                 <artifactId>monitoring-console-api</artifactId>
                 <version>${monitoring-console-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>fish.payara.security.connectors</groupId>
+                <artifactId>security-connector-oidc-client</artifactId>
+                <version>${payara.security-connectors.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>fish.payara.security.connectors</groupId>
+                <artifactId>security-connector-oauth2-client</artifactId>
+                <version>${payara.security-connectors.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

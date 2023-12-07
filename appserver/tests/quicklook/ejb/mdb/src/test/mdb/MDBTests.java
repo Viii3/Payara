@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] Payara Foundation and/or affiliates
+// Portions Copyright [2019-2022] Payara Foundation and/or affiliates
 
 package test.mdb;
 
@@ -86,7 +86,10 @@ public class MDBTests {
     public void runJMSAppTest(String mdbAppDir) throws Exception {
         String clientJar = cwd + File.separator + mdbAppDir + mdbApp + "Client.jar";
         String gfClientJar = GLASSFISH_HOME + File.separator + "lib" + File.separator + "gf-client.jar";
-        cmd = APPCLIENT + " " + GLASSFISH_APPCLIENT_MAIN_CLASS_NAME
+        final String JDK_VERSION = System.getProperty("java.version");
+        cmd = APPCLIENT
+                + (JDK_VERSION.startsWith("1.8") ? " " : " --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.management/javax.management.openmbean=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.management/sun.management=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.jrt=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED --add-opens=java.naming/javax.naming.spi=ALL-UNNAMED --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED --add-opens=java.logging/java.util.logging=ALL-UNNAMED --add-opens=java.base/sun.net.www=ALL-UNNAMED --add-opens=java.base/sun.security.util=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.desktop/java.beans=ALL-UNNAMED --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED --add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-opens=java.base/jdk.internal.misc=ALL-UNNAMED ")
+                + GLASSFISH_APPCLIENT_MAIN_CLASS_NAME
                 + " -client " + clientJar
                 + " -targetserver" + " localhost:3700"
                 + " -name ejb-ejb30-hello-mdb-client"

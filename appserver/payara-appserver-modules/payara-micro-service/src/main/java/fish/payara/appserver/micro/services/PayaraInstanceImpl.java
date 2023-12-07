@@ -93,6 +93,7 @@ import fish.payara.nucleus.eventbus.MessageReceiver;
 import fish.payara.nucleus.events.HazelcastEvents;
 import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import fish.payara.nucleus.hazelcast.HazelcastCore;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.glassfish.grizzly.utils.Holder.LazyHolder;
 import static org.glassfish.grizzly.utils.Holder.lazyHolder;
@@ -115,6 +116,8 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
     public static final String APPLICATIONS_STORE_NAME = "payara.micro.applications.store";
 
+    private static final String APP_UNIQUE_ID_PROP = "org.glassfish.ejb.container.application_unique_id";
+
     private static final Logger logger = Logger.getLogger(PayaraInstanceImpl.class.getName());
 
     @Inject
@@ -136,7 +139,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
     private HashSet<CDIEventListener> myCDIListeners;
 
-    private String myCurrentID;
+    private UUID myCurrentID;
 
     private String instanceName;
     private String instanceGroup;
@@ -168,12 +171,12 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     }
 
     @Override
-    public <T extends Serializable> Map<String, Future<T>> runCallable(Collection<String> memberUUIDS, Callable<T> callable) {
+    public <T extends Serializable> Map<UUID, Future<T>> runCallable(Collection<UUID> memberUUIDS, Callable<T> callable) {
         return cluster.getExecService().runCallable(memberUUIDS, callable);
     }
 
     @Override
-    public <T extends Serializable> Map<String, Future<T>> runCallable(Callable<T> callable) {
+    public <T extends Serializable> Map<UUID, Future<T>> runCallable(Callable<T> callable) {
         return cluster.getExecService().runCallableAllMembers(callable);
     }
 
@@ -183,16 +186,16 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     }
 
     @Override
-    public Map<String, Future<ClusterCommandResult>> executeClusteredASAdmin(String command, String... parameters) {
+    public Map<UUID, Future<ClusterCommandResult>> executeClusteredASAdmin(String command, String... parameters) {
         AsAdminCallable callable = new AsAdminCallable(command, parameters);
-        Map<String, Future<ClusterCommandResult>> result = cluster.getExecService().runCallableAllMembers(callable);
+        Map<UUID, Future<ClusterCommandResult>> result = cluster.getExecService().runCallableAllMembers(callable);
         return result;
     }
 
     @Override
-    public Map<String, Future<ClusterCommandResult>> executeClusteredASAdmin(Collection<String> memberGUIDs, String command, String... parameters) {
+    public Map<UUID, Future<ClusterCommandResult>> executeClusteredASAdmin(Collection<UUID> memberGUIDs, String command, String... parameters) {
         AsAdminCallable callable = new AsAdminCallable(command, parameters);
-        Map<String, Future<ClusterCommandResult>> result = cluster.getExecService().runCallable(memberGUIDs, callable);
+        Map<UUID, Future<ClusterCommandResult>> result = cluster.getExecService().runCallable(memberGUIDs, callable);
         return result;
     }
 
@@ -276,8 +279,10 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
                     Long appID = (Long) cluster.getClusteredStore().get(APPLICATIONS_STORE_NAME, app.getName());
                     if (appID != null) {
                         app.setUniqueId(appID);
+                        deploymentContext.getAppProps().setProperty(APP_UNIQUE_ID_PROP, String.valueOf(appID));
                     } else {
                         cluster.getClusteredStore().set(APPLICATIONS_STORE_NAME, app.getName(), app.getUniqueId());
+                        deploymentContext.getAppProps().setProperty(APP_UNIQUE_ID_PROP, String.valueOf(app.getUniqueId()));
                     }
                 }
             }
@@ -315,9 +320,9 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
     @Override
     public Set<InstanceDescriptor> getClusteredPayaras() {
-        Set<String> members = cluster.getClusterMembers();
+        Set<UUID> members = cluster.getClusterMembers();
         HashSet<InstanceDescriptor> result = new HashSet<>(members.size());
-        for (String member : members) {
+        for (UUID member : members) {
             InstanceDescriptor id = (InstanceDescriptor) cluster.getClusteredStore().get(INSTANCE_STORE_NAME, member);
             if (id != null) {
                 result.add(id);
@@ -361,7 +366,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     }
 
     @Override
-    public InstanceDescriptorImpl getDescriptor(String member) {
+    public InstanceDescriptorImpl getDescriptor(UUID member) {
         InstanceDescriptorImpl result = null;
         if (cluster.isEnabled()) {
             result = (InstanceDescriptorImpl) cluster.getClusteredStore().get(INSTANCE_STORE_NAME, member);

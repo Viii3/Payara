@@ -2,7 +2,7 @@
 
  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
- Copyright (c) 2016 Payara Foundation. All rights reserved.
+ Copyright (c) 2016-2021 Payara Foundation. All rights reserved.
 
  The contents of this file are subject to the terms of the Common Development
  and Distribution License("CDDL") (collectively, the "License").  You
@@ -31,12 +31,18 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.glassfish.api.invocation.ComponentInvocation;
+import org.glassfish.api.invocation.InvocationManager;
+import org.glassfish.embeddable.Deployer;
 import org.glassfish.embeddable.GlassFish;
 import org.glassfish.embeddable.GlassFish.Status;
 import org.glassfish.embeddable.GlassFishException;
@@ -140,10 +146,10 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
         
         // NEEDS TO HANDLE THE CASE FOR LOCAL RUNNING IF NO CLUSTER ENABLED
         
-        Map<String,Future<ClusterCommandResult>> commandResult = instanceService.executeClusteredASAdmin(command, args);
+        Map<UUID,Future<ClusterCommandResult>> commandResult = instanceService.executeClusteredASAdmin(command, args);
         Map<InstanceDescriptor, Future<? extends ClusterCommandResult>> result = new HashMap<>(commandResult.size());
-        for (Entry<String,Future<ClusterCommandResult>> entry : commandResult.entrySet()) {
-            String uuid = entry.getKey();
+        for (Entry<UUID,Future<ClusterCommandResult>> entry : commandResult.entrySet()) {
+            UUID uuid = entry.getKey();
             InstanceDescriptor id = instanceService.getDescriptor(uuid);
             if (id != null) {
                 result.put(id, entry.getValue());
@@ -164,44 +170,15 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
     @Override
     public Map<InstanceDescriptor, Future<? extends ClusterCommandResult>> run (Collection<InstanceDescriptor> members, String command, String... args ) {
         
-        HashSet<String> memberUUIDs = new HashSet<>(members.size());
+        HashSet<UUID> memberUUIDs = new HashSet<>(members.size());
         for (InstanceDescriptor member : members) {
             memberUUIDs.add(member.getMemberUUID());
         }
         
-        Map<String,Future<ClusterCommandResult>> commandResult = instanceService.executeClusteredASAdmin(memberUUIDs,command, args);
+        Map<UUID,Future<ClusterCommandResult>> commandResult = instanceService.executeClusteredASAdmin(memberUUIDs,command, args);
         Map<InstanceDescriptor, Future<? extends ClusterCommandResult>> result = new HashMap<>(commandResult.size());
-        for (Entry<String,Future<ClusterCommandResult>> entry : commandResult.entrySet()) {
-            String uuid = entry.getKey();
-            InstanceDescriptor id = instanceService.getDescriptor(uuid);
-            if (id != null) {
-                result.put(id, entry.getValue());
-            }
-        }
-        return result;
-    }
-   
-        /**
-     * Runs a Callable object on all members of the Payara Micro Cluster
-     * Functionally equivalent to the run method on ClusterCommandRunner passing in
-     * all cluster members obtained from getClusteredPayaras() 
-     * @param <T> The Type of the Callable
-     * @param callable The Callable object to run
-     * @return 
-     * @deprecated This method has an undefined ClassLoader and is unusable by a user, 
-     * as it only operates on server ClassLoader rather than on application ClassLoader <br/>
-     * {It will be removed in the upcoming releases}. 
-     */
-    @Override
-    @Deprecated
-    public <T extends Serializable> Map<InstanceDescriptor, Future<T>> run (Callable<T> callable) {
-        
-        // NEEDS TO HANDLE THE CASE FOR LOCAL RUNNING IF NO CLUSTER ENABLED
-        
-        Map<String, Future<T>> runCallable = instanceService.runCallable(callable);
-        Map<InstanceDescriptor, Future<T>> result = new HashMap<>(runCallable.size());
-        for (Entry<String, Future<T>> entry : runCallable.entrySet()) {
-            String uuid = entry.getKey();
+        for (Entry<UUID,Future<ClusterCommandResult>> entry : commandResult.entrySet()) {
+            UUID uuid = entry.getKey();
             InstanceDescriptor id = instanceService.getDescriptor(uuid);
             if (id != null) {
                 result.put(id, entry.getValue());
@@ -210,33 +187,10 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
         return result;
     }
     
-    /**
-     * Runs a Callable object on specified members of the Payara Micro Cluster
-     * Functionally equivalent to the run method on ClusterCommandRunner passing in
-     * all cluster members obtained from getClusteredPayaras() 
-     * @param <T> The Type of the Callable
-     * @param members The collection of members to run the callable on
-     * @param callable The Callable object to run
-     * @return 
-     * 
-     * @deprecated This method has an undefined ClassLoader and is unusable by a user, 
-     * as it only operates on server ClassLoader rather than on application ClassLoader <br/>
-     * {It will be removed in the upcoming releases}. 
-     * 
-     */
-    @Override
-    @Deprecated
-    public <T extends Serializable> Map<InstanceDescriptor, Future<T>> run (Collection<InstanceDescriptor> members, Callable<T> callable) {
-        
-        HashSet<String> memberUUIDs = new HashSet<>(members.size());
-        for (InstanceDescriptor member : members) {
-            memberUUIDs.add(member.getMemberUUID());
-        }    
-        
-        Map<String, Future<T>> runCallable = instanceService.runCallable(memberUUIDs,callable);
+    private <T extends Serializable> Map<InstanceDescriptor, Future<T>> keysToDescriptors(Map<UUID, Future<T>> runCallable) {
         Map<InstanceDescriptor, Future<T>> result = new HashMap<>(runCallable.size());
-        for (Entry<String, Future<T>> entry : runCallable.entrySet()) {
-            String uuid = entry.getKey();
+        for (Entry<UUID, Future<T>> entry : runCallable.entrySet()) {
+            UUID uuid = entry.getKey();
             InstanceDescriptor id = instanceService.getDescriptor(uuid);
             if (id != null) {
                 result.put(id, entry.getValue());
@@ -244,7 +198,8 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
         }
         return result;
     }
-        /**
+
+    /**
      * Deploy from an InputStream which can load the Java EE archive
      * @param name The name of the deployment
      * @param contextRoot The context root to deploy the application to
@@ -254,14 +209,7 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
     @Override
     public boolean deploy(String name, String contextRoot, InputStream is) {
         checkState();
-        boolean result = false;
-        try{
-            runtime.getDeployer().deploy(is,"--availabilityenabled=true","--name",name, "--contextroot", contextRoot);
-            result = true;
-        }catch (GlassFishException gfe) {
-                logger.log(Level.WARNING, "Failed to deploy archive ", gfe);            
-        }
-        return result;
+        return withDeployer( d -> d.deploy(is,"--availabilityenabled=true","--name",name, "--contextroot", contextRoot));
     }
        
     /**
@@ -273,14 +221,7 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
     @Override
     public boolean deploy(String name, InputStream is) {
         checkState();
-        boolean result = false;
-        try{
-            runtime.getDeployer().deploy(is,"--availabilityenabled=true","--name",name, "--contextroot", name);
-            result = true;
-        }catch (GlassFishException gfe) {
-                logger.log(Level.WARNING, "Failed to deploy archive ", gfe);            
-        }
-        return result;
+        return withDeployer( d -> d.deploy(is,"--availabilityenabled=true","--name",name, "--contextroot", name));
     }
     
     /**
@@ -295,12 +236,7 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
         checkState();
         boolean result = false;
         if (war.exists() && (war.isFile() || war.isDirectory()) && war.canRead()) {
-            try {
-                runtime.getDeployer().deploy(war, "--availabilityenabled=true","--name",name, "--contextroot", contextRoot);
-                result = true;
-            } catch (GlassFishException ex) {
-                logger.log(Level.WARNING, "Failed to deploy archive ", ex);
-            }
+            return withDeployer(d -> d.deploy(war, "--availabilityenabled=true","--name",name, "--contextroot", contextRoot));
         } else {
             logger.log(Level.WARNING, "{0} is not a valid deployment", war.getAbsolutePath());
         }
@@ -318,12 +254,7 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
         checkState();
         boolean result = false;
         if (war.exists() && (war.isFile() || war.isDirectory()) && war.canRead()) {
-            try {
-                runtime.getDeployer().deploy(war, "--availabilityenabled=true");
-                result = true;
-            } catch (GlassFishException ex) {
-                logger.log(Level.WARNING, "Failed to deploy archive ", ex);
-            }
+            return withDeployer(d -> d.deploy(war, "--availabilityenabled=true"));
         } else {
             logger.log(Level.WARNING, "{0} is not a valid deployment", war.getAbsolutePath());
         }
@@ -336,11 +267,7 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
      */
     @Override
     public void undeploy(String name) {
-        try {
-            runtime.getDeployer().undeploy(name);
-        } catch (GlassFishException ex) {
-            logger.log(Level.WARNING, "Failed to undeploy application {0}", name);
-        }
+        withDeployer(d -> d.undeploy(name));
     }
     
     @Override
@@ -372,6 +299,32 @@ public class PayaraMicroRuntimeImpl implements PayaraMicroRuntime  {
     @Override
     public void removeCDIEventListener(CDIEventListener listener) {
         this.instanceService.removeCDIListener(listener);
+    }
+
+    interface DeployAction {
+        void action(Deployer d) throws GlassFishException;
+    }
+    private boolean withDeployer(DeployAction a) {
+        try {
+            InvocationManager invocationManager = runtime.getService(InvocationManager.class);
+            // clear invocation stack, so that deployment is not executed in context of different application
+            // as that doesn't play well with e. g. Microprofile Config
+            List<? extends ComponentInvocation> invocationStack = invocationManager.popAllInvocations();
+            try {
+                a.action(runtime.getDeployer());
+                return true;
+            } catch (GlassFishException e) {
+                logger.log(Level.WARNING, "Failed to deploy archive ", e);
+                return false;
+            } finally {
+                if (!invocationStack.isEmpty()) {
+                    invocationManager.putAllInvocations(invocationStack);
+                }
+            }
+        } catch (GlassFishException e) {
+            logger.log(Level.WARNING, "Failed to deploy archive ", e);
+            return false;
+        }
     }
 
     private void checkState() {

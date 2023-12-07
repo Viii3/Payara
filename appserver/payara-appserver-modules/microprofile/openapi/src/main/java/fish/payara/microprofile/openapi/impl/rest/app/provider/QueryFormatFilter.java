@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2018-2021] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,7 +39,7 @@
  */
 package fish.payara.microprofile.openapi.impl.rest.app.provider;
 
-import static fish.payara.microprofile.openapi.impl.rest.app.OpenApiApplication.APPLICATION_YAML;
+import static fish.payara.microprofile.openapi.rest.app.OpenApiApplication.APPLICATION_YAML;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -79,8 +79,11 @@ public class QueryFormatFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext request) throws IOException {
         String format = request.getUriInfo().getQueryParameters().getFirst("format");
-        if (format != null && mappings.containsKey(format)) {
-            request.getHeaders().putSingle(ACCEPT, mappings.get(format));
+        if (format != null) {
+            format = format.toLowerCase();
+            if (mappings.containsKey(format)) {
+                request.getHeaders().putSingle(ACCEPT, mappings.get(format));
+            }
         }
     }
 

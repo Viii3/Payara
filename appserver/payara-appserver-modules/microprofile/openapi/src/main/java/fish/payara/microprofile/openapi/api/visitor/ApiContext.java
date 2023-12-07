@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2018-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,8 +40,12 @@
 package fish.payara.microprofile.openapi.api.visitor;
 
 import fish.payara.microprofile.openapi.impl.visitor.AnnotationInfo;
+
+import java.util.Map;
+
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.eclipse.microprofile.openapi.models.Operation;
+import org.eclipse.microprofile.openapi.models.responses.APIResponse;
 import org.glassfish.hk2.classmodel.reflect.ExtensibleType;
 import org.glassfish.hk2.classmodel.reflect.Type;
 
@@ -68,6 +72,10 @@ public interface ApiContext {
      */
     Operation getWorkingOperation();
 
+    void addMappedExceptionResponse(String exceptionType, APIResponse exceptionResponse);
+
+    Map<String, APIResponse> getMappedExceptionResponses();
+
     /**
      * @param type any class, not null
      * @return true, if the give type is a known type in this context, else
@@ -77,8 +85,8 @@ public interface ApiContext {
 
     /**
      * @param type any class, not null
-     * @return true, if the give type is a filtered class for OpenAPI metadata processing
-     * otherwise false
+     * @return true, if the given type is a filtered class for OpenAPI metadata
+     * processing, otherwise false
      */
     boolean isAllowedType(Type type);
 

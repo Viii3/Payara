@@ -196,11 +196,6 @@ public class PayaraMicro implements PayaraMicroBoot {
     }
 
     @Override
-    public String getHzClusterPassword() {
-        return wrappee.getHzClusterPassword();
-    }
-
-    @Override
     public String getInstanceName() {
         return wrappee.getInstanceName();
     }
@@ -253,6 +248,17 @@ public class PayaraMicro implements PayaraMicroBoot {
     @Override
     public boolean isNoCluster() {
         return wrappee.isNoCluster();
+    }
+
+    @Override
+    public boolean isNoHazelcast() {
+        return wrappee.isNoHazelcast();
+    }
+
+    @Override
+    public PayaraMicroBoot setNoHazelcast(boolean noHazelcast) {
+        wrappee.setNoHazelcast(noHazelcast);
+        return this;
     }
 
     @Override
@@ -339,12 +345,6 @@ public class PayaraMicro implements PayaraMicroBoot {
         return this;
     }
 
-    @Override
-    public PayaraMicro setHzClusterPassword(String hzClusterPassword) {
-        wrappee.setHzClusterPassword(hzClusterPassword);
-        return this;
-    }
-    
     /**
      * Gets the name of the instance group
      *

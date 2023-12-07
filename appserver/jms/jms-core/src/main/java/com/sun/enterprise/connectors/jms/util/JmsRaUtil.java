@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2023 [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.connectors.jms.util;
 
@@ -60,8 +61,8 @@ import com.sun.enterprise.deployment.ConnectorConfigProperty;
 import com.sun.enterprise.util.SystemPropertyConstants;
 import com.sun.enterprise.util.zip.ZipFile;
 import com.sun.enterprise.util.zip.ZipFileException;
-import com.sun.logging.LogDomains;
 
+import fish.payara.enterprise.config.serverbeans.DeploymentGroup;
 import org.glassfish.ejb.config.MdbContainer;
 import org.glassfish.internal.api.Globals;
 import org.glassfish.internal.api.RelativePathResolver;
@@ -153,24 +154,48 @@ public class JmsRaUtil {
     public static boolean isClustered(List clusters, String instanceName) {
               return (enableClustering() && isServerClustered(clusters,
                 instanceName));
-     }
-      /**
+    }
+
+    /**
      * Return true if the given server instance is part of a cluster.
      */
     public static boolean isServerClustered(List clusters, String instanceName)
     {
         return (getClusterForServer(clusters, instanceName) != null);
     }
-    public static Cluster getClusterForServer(List clusters, String instanceName){
+
+    public static Cluster getClusterForServer(List<Cluster> clusters, String instanceName){
         //Return the server only if it is part of a cluster (i.e. only if a cluster
         //has a reference to it).
-        for (int i = 0; i < clusters.size(); i++) {
-            final List servers = ((Cluster)clusters.get(i)).getInstances();
-            for (int j = 0; j < servers.size(); j++) {
-                if (((Server)servers.get(j)).getName().equals(instanceName)) {
+        for (Cluster cluster : clusters) {
+            final List<Server> servers = cluster.getInstances();
+            for (Server server : servers) {
+                if (server.getName().equals(instanceName)) {
                     // check to see if the server exists as a sanity check.
                     // NOTE: we are not checking for duplicate server instances here.
-                    return (Cluster) clusters.get(i);
+                    return cluster;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return true if the given server instance is part of a deployment group.
+     */
+    public static boolean isServerInDeploymentGroup(List<DeploymentGroup> deploymentGroupList, String instanceName)
+    {
+        return (getDeploymentGroupForServer(deploymentGroupList, instanceName) != null);
+    }
+
+    public static DeploymentGroup getDeploymentGroupForServer(List<DeploymentGroup> deploymentGroupList, String instanceName){
+        _logger.log(Level.FINE, "DG instanceName: " + instanceName);
+        for (DeploymentGroup deploymentGroup : deploymentGroupList) {
+            final List<Server> servers = deploymentGroup.getInstances();
+            for (Server server : servers) {
+                _logger.log(Level.FINE, "server.getName(): " + server.getName());
+                if (server.getName().equals(instanceName)) {
+                    return deploymentGroup;
                 }
             }
         }
@@ -190,7 +215,7 @@ public class JmsRaUtil {
                 return false;
             }
         } catch (Exception e) {
-            ;
+            _logger.log(Level.FINE, e.getMessage());
         }
         _logger.log(Level.FINE, "Enabling Sun MQ Auto Clustering");
         return true;
@@ -362,12 +387,12 @@ public class JmsRaUtil {
         // explode the MQ resource adapter.
         if (!installedMqVersion.equals(deployedMqVersion)) {
            try {
-               _logger.log(Level.INFO, JMSLoggerInfo.JMSRA_UPGRADE_STARTED);
+               _logger.log(Level.FINE, JMSLoggerInfo.JMSRA_UPGRADE_STARTED);
            ZipFile rarFile = new ZipFile(System.getProperty
                                  (SystemPropertyConstants.IMQ_LIB_PROPERTY) +
                                  File.separator + MQ_RAR, deployed_dir);
                rarFile.explode();
-               _logger.log(Level.INFO, JMSLoggerInfo.JMSRA_UPGRADE_COMPLETED);
+               _logger.log(Level.FINE, JMSLoggerInfo.JMSRA_UPGRADE_COMPLETED);
        } catch(ZipFileException ze) {
                _logger.log(Level.SEVERE, JMSLoggerInfo.JMSRA_UPGRADE_FAILED, 
                        new Object[]{ze.getMessage()});

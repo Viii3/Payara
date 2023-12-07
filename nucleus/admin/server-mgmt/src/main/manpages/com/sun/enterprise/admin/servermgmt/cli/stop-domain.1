@@ -7,7 +7,7 @@ NAME
 SYNOPSIS
            stop-domain [--help] [--domaindir domaindir]
            [--force={true|false}] [--kill={false|true}]
-           [domain-name]
+           [--timeout timeout][domain-name]
 
 DESCRIPTION
        The stop-domain subcommand stops the Domain Administration Server (DAS)
@@ -17,11 +17,13 @@ DESCRIPTION
        specified.
 
        This subcommand is supported in local or remote mode. If you specify a
-       host name, the subcommand assumes you are operating in remote mode,
-       which means you must correctly authenticate to the remote server. In
-       local mode, you normally do not need to authenticate to the server as
-       long as you are running the subcommand as the same user who started the
-       server.
+       host name and it references a remote host, the subcommand assumes you
+       are operating in remote mode, which means you must correctly authenticate
+       to the remote server. If the host name points to localhost, then the
+       subcommand assumes you are operating in local mode as if the host name
+       wasn't specified at all. In local mode, you normally do not need to
+       authenticate to the server as long as you are running the subcommand as
+       the same user who started the server.
 
 OPTIONS
        --help, -?
@@ -58,6 +60,10 @@ OPTIONS
            true
                The domain is killed. The subcommand uses functionality of the
                operating system to terminate the domain process.
+
+       --timeout
+           Specifies the amount of time in seconds the command will run for
+           before timing out. Default is 60 seconds.
 
 OPERANDS
        domain-name

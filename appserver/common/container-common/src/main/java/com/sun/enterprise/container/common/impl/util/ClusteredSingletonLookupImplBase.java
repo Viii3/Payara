@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2019] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,15 +41,19 @@
 package com.sun.enterprise.container.common.impl.util;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IAtomicLong;
-import com.hazelcast.core.ILock;
-import com.hazelcast.core.IMap;
+import com.hazelcast.cp.IAtomicLong;
+import com.hazelcast.cp.exception.CPSubsystemException;
+import com.hazelcast.cp.lock.FencedLock;
+import com.hazelcast.map.IMap;
 import com.sun.enterprise.container.common.spi.ClusteredSingletonLookup;
 import fish.payara.nucleus.hazelcast.HazelcastCore;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import org.glassfish.internal.api.Globals;
+import org.glassfish.internal.api.JavaEEContextUtil;
+import org.glassfish.internal.api.JavaEEContextUtil.Context;
 
 /**
  * Base class for implementing Clustered Singleton Lookups
@@ -57,14 +61,16 @@ import org.glassfish.internal.api.Globals;
  * @author lprimak
  */
 public abstract class ClusteredSingletonLookupImplBase implements ClusteredSingletonLookup {
-
     private final HazelcastCore hzCore = Globals.getDefaultHabitat().getService(HazelcastCore.class);
+    private final JavaEEContextUtil ctxUtil = Globals.getDefaultHabitat().getService(JavaEEContextUtil.class);
     private final String componentId;
     private final SingletonType singletonType;
     private final String keyPrefix;
     private final String mapKey;
     private final AtomicReference<String> sessionHzKey = new AtomicReference<>();
-    private final AtomicReference<String> lockKey = new AtomicReference<>();
+    private final AtomicReference<FencedLock> lock = new AtomicReference<>();
+    private final AtomicReference<IAtomicLong> count = new AtomicReference<>();
+
 
     public ClusteredSingletonLookupImplBase(String componentId, SingletonType singletonType) {
         this.componentId = componentId;
@@ -81,36 +87,27 @@ public abstract class ClusteredSingletonLookupImplBase implements ClusteredSingl
         return mapKey;
     }
 
-    protected final String getLockKey() {
-        return lockKey.updateAndGet(v -> v != null ? v : makeLockKey());
-    }
-
     public final String getSessionHzKey() {
         return sessionHzKey.updateAndGet(v -> v != null ? v : makeSessionHzKey());
     }
 
-    /**
-     * {@link #getSessionHzKey()} and {@link #getLockKey()} are dependent on {@link #getClusteredSessionKey()} so should
-     * its value change cache keys need to be invalidated using this method.
-     */
-    protected final void invalidateKeys() {
-        sessionHzKey.set(null);
-        lockKey.set(null);
-    }
-
     @Override
-    public ILock getDistributedLock() {
-        return getHazelcastInstance().getLock(getLockKey());
+    public FencedLock getDistributedLock() {
+        return retryCpOperation(() -> lock.updateAndGet(v -> v != null ?
+                v : getHazelcastInstance().getCPSubsystem().getLock(makeLockKey())));
     }
 
     @Override
     public IMap<String, Object> getClusteredSingletonMap() {
-        return getHazelcastInstance().getMap(getMapKey());
+        try (Context ctx = ctxUtil.empty().pushContext()) {
+            return getHazelcastInstance().getMap(getMapKey());
+        }
     }
 
     @Override
     public  IAtomicLong getClusteredUsageCount() {
-        return getHazelcastInstance().getAtomicLong(getSessionHzKey()+ "/count");
+        return retryCpOperation(() -> count.updateAndGet(v -> v != null ?
+                v : getHazelcastInstance().getCPSubsystem().getAtomicLong(makeCountKey())));
     }
 
     private HazelcastInstance getHazelcastInstance() {
@@ -131,8 +128,33 @@ public abstract class ClusteredSingletonLookupImplBase implements ClusteredSingl
     }
 
     @Override
+    public void destroy() {
+        getClusteredSingletonMap().delete(getClusteredSessionKey());
+
+        // CP locks and AtomicLong's can't be destroyed, as per https://github.com/hazelcast/hazelcast/issues/17498
+        // so we just release the references to them and reset to zero where we can
+        lock.set(null);
+        IAtomicLong oldCountValue = count.getAndSet(null);
+        if (oldCountValue != null) {
+            oldCountValue.set(0);
+        }
+    }
+
+    @Override
     public HazelcastCore getHazelcastCore() {
         return hzCore;
+    }
+
+    private <TT> TT retryCpOperation(Supplier<TT> operation) {
+        CPSubsystemException exception = null;
+        for (int ii = 0; ii < 3; ++ii) {
+            try {
+                return operation.get();
+            } catch (CPSubsystemException e) {
+                exception = e;
+            }
+        }
+        throw exception;
     }
 
     private String makeKeyPrefix() {
@@ -147,7 +169,18 @@ public abstract class ClusteredSingletonLookupImplBase implements ClusteredSingl
         return getSessionHzKey() + "/lock";
     }
 
+    private String makeCountKey() {
+        return getSessionHzKey() + "/count";
+    }
+
     private String makeSessionHzKey() {
-        return getKeyPrefix() + componentId + "/" + getClusteredSessionKey();
+        String sessionKey = getClusteredSessionKey();
+        if (componentId.startsWith(sessionKey)) {
+            // shorten session key if componentId is similar
+            // workaround for https://github.com/hazelcast/hazelcast/issues/17901
+            return getKeyPrefix() + sessionKey;
+        } else {
+            return getKeyPrefix() + componentId + "/" + sessionKey;
+        }
     }
 }

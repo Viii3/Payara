@@ -105,6 +105,7 @@ import fish.payara.nucleus.requesttracing.sampling.AdaptiveSampleFilter;
 import fish.payara.nucleus.requesttracing.sampling.SampleFilter;
 import fish.payara.nucleus.requesttracing.store.RequestTraceStoreFactory;
 import fish.payara.nucleus.requesttracing.store.RequestTraceStoreInterface;
+import io.opentracing.tag.Tag;
 
 /**
  * Main service class that provides methods used by interceptors for tracing
@@ -126,7 +127,6 @@ public class RequestTracingService implements EventListener, ConfigListener, Mon
     private static final int SECOND = 1;
     private static final int MINUTE = 60 * SECOND;
     private static final int HOUR = 60 * MINUTE;
-    private static final int DAY = 24 * HOUR;
 
     @Inject
     @Named(ServerEnvironment.DEFAULT_INSTANCE_NAME)
@@ -257,7 +257,7 @@ public class RequestTracingService implements EventListener, ConfigListener, Mon
 
             // Set up the historic request trace store if enabled
             if (executionOptions.isHistoricTraceStoreEnabled()) {
-                historicRequestTraceStore = RequestTraceStoreFactory.getStore(events, executionOptions.getReservoirSamplingEnabled(), true);
+                historicRequestTraceStore = RequestTraceStoreFactory.getStore(executionOptions.getReservoirSamplingEnabled(), true);
                 initStoreSize(historicRequestTraceStore, executionOptions::getHistoricTraceStoreSize, "historicRequestTraceStoreSize");
 
 
@@ -276,7 +276,7 @@ public class RequestTracingService implements EventListener, ConfigListener, Mon
             }
 
             // Set up the general request trace store
-            requestTraceStore = RequestTraceStoreFactory.getStore(events, executionOptions.getReservoirSamplingEnabled(), false);
+            requestTraceStore = RequestTraceStoreFactory.getStore(executionOptions.getReservoirSamplingEnabled(), false);
             initStoreSize(requestTraceStore, executionOptions::getTraceStoreSize, "requestTraceStoreSize");
 
             // Disable cleanup task if it's null, less than 0, or reservoir sampling is enabled
@@ -653,8 +653,12 @@ public class RequestTracingService implements EventListener, ConfigListener, Mon
                 attrs.add(String.valueOf(annotationSpan.getStartInstant().toEpochMilli()));
                 attrs.add("End");
                 attrs.add(String.valueOf(annotationSpan.getTraceEndTime().toEpochMilli()));
-                for (Entry<String, String> tag : annotationSpan.getSpanTags().entrySet()) {
-                    attrs.add(tag.getKey());
+                for (Entry<Object, String> tag : annotationSpan.getSpanTags().entrySet()) {
+                    if (tag.getKey() instanceof Tag) {
+                        attrs.add(((Tag) tag.getKey()).getKey());
+                    } else {
+                        attrs.add(tag.getKey().toString());
+                    }
                     attrs.add(tag.getValue());
                 }
                 tracingCollector.group(group)

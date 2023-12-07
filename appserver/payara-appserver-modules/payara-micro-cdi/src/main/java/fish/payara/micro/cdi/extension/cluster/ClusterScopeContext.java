@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2019] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,6 +41,10 @@ package fish.payara.micro.cdi.extension.cluster;
 
 import java.lang.annotation.Annotation;
 
+import com.hazelcast.cp.exception.CPSubsystemException;
+import com.hazelcast.cp.lock.FencedLock;
+import com.hazelcast.cp.lock.exception.LockOwnershipLostException;
+import fish.payara.cluster.DistributedLockType;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.Context;
 import javax.enterprise.context.spi.Contextual;
@@ -57,6 +61,8 @@ import org.glassfish.soteria.cdi.CdiUtils;
 import fish.payara.cluster.Clustered;
 import fish.payara.micro.cdi.extension.cluster.annotations.ClusterScoped;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @Clustered singleton CDI context implementation
@@ -64,6 +70,7 @@ import java.util.Optional;
  * @author lprimak
  */
 class ClusterScopeContext implements Context {
+    private static final Logger log = Logger.getLogger(ClusterScopeContext.class.getName());
     private final BeanManager beanManager;
     private final ClusteredSingletonLookupImpl clusteredLookup;
 
@@ -81,14 +88,28 @@ class ClusterScopeContext implements Context {
 
     @Override
     public <TT> TT get(Contextual<TT> contextual, CreationalContext<TT> creationalContext) {
-        TT beanInstance = get(contextual);
-        if (beanInstance == null) {
-            beanInstance = getFromApplicationScoped(contextual, Optional.of(creationalContext));
-            final Bean<TT> bean = (Bean<TT>) contextual;
-            if (clusteredLookup.getClusteredSingletonMap()
-                    .putIfAbsent(getBeanName(bean, getAnnotation(beanManager, bean)), beanInstance) != null) {
-                bean.destroy(beanInstance, creationalContext);
-                beanInstance = get(contextual);
+        final Bean<TT> bean = (Bean<TT>) contextual;
+        Clustered clusteredAnnotation = getAnnotation(beanManager, bean);
+        clusteredLookup.setClusteredSessionKeyIfNotSet(bean.getBeanClass(), clusteredAnnotation);
+        boolean locked = lock(clusteredAnnotation, clusteredLookup.getDistributedLock());
+        TT beanInstance = null;
+        try {
+            beanInstance = get(contextual);
+            if (beanInstance == null) {
+                beanInstance = getFromApplicationScoped(contextual, Optional.of(creationalContext));
+                if (clusteredLookup.getClusteredSingletonMap()
+                        .putIfAbsent(getBeanName(bean, clusteredAnnotation), beanInstance) != null) {
+                    bean.destroy(beanInstance, creationalContext);
+                    beanInstance = get(contextual);
+                }
+            }
+        } finally {
+            /**
+             * If we couldn't find a bean instance we won't have unlocked in {@link ClusterScopedInterceptor#refreshAndUnlock(InvocationContext)},
+             * so unlock here as a fallback
+             */
+            if (locked && beanInstance == null) {
+                unlock(clusteredAnnotation, clusteredLookup.getDistributedLock());
             }
         }
         return beanInstance;
@@ -100,10 +121,23 @@ class ClusterScopeContext implements Context {
         final Bean<TT> bean = (Bean<TT>) contextual;
         Clustered clusteredAnnotation = getAnnotation(beanManager, bean);
         String beanName = getBeanName(bean, clusteredAnnotation);
-        TT beanInstance = (TT)clusteredLookup.getClusteredSingletonMap().get(beanName);
-        if (clusteredAnnotation.callPostConstructOnAttach() && beanInstance != null &&
-                getFromApplicationScoped(contextual, Optional.empty()) == null ) {
-            beanManager.getContext(ApplicationScoped.class).get(contextual, beanManager.createCreationalContext(contextual));
+        clusteredLookup.setClusteredSessionKeyIfNotSet(bean.getBeanClass(), clusteredAnnotation);
+        boolean locked = lock(clusteredAnnotation, clusteredLookup.getDistributedLock());
+        TT beanInstance = null;
+        try {
+            beanInstance = (TT) clusteredLookup.getClusteredSingletonMap().get(beanName);
+            if (clusteredAnnotation.callPostConstructOnAttach() && beanInstance != null &&
+                    getFromApplicationScoped(contextual, Optional.empty()) == null) {
+                beanManager.getContext(ApplicationScoped.class).get(contextual, beanManager.createCreationalContext(contextual));
+            }
+        } finally {
+            /**
+             * If we couldn't find a bean instance we won't have unlocked in {@link ClusterScopedInterceptor#refreshAndUnlock(InvocationContext)},
+             * so unlock here as a fallback
+             */
+            if (locked && beanInstance == null) {
+                unlock(clusteredAnnotation, clusteredLookup.getDistributedLock());
+            }
         }
         return beanInstance;
     }
@@ -121,12 +155,12 @@ class ClusterScopeContext implements Context {
             return beanManager.getContext(ApplicationScoped.class).get(contextual);
         }
     }
-    
+
     /**
      * Get the most appropriate name for a bean. First checks the `@Clustered`
      * annotation key name property, then the bean EL name, then the bean class
      * name.
-     * 
+     *
      * @param bean       the bean to reference.
      * @param annotation the Clustered annotation to reference.
      * @throws IllegalArgumentException if no name can be found for the bean.
@@ -147,12 +181,34 @@ class ClusterScopeContext implements Context {
         return CdiUtils.getAnnotation(beanManager, clazz, Clustered.class).get();
     }
 
-    private static String firstNonNull(String... items) {
+    static String firstNonNull(String... items) {
         for (String i : items) {
             if (i != null && !i.trim().isEmpty()) {
                 return i;
             }
         }
         throw new IllegalArgumentException("All elements were null.");
+    }
+
+    private static boolean lock(Clustered clusteredAnnotation, FencedLock lock) {
+        if (clusteredAnnotation.lock() == DistributedLockType.LOCK) {
+            if (!lock.isLockedByCurrentThread()) {
+                lock.lock();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected static void unlock(Clustered clusteredAnnotation, FencedLock lock) {
+        if (clusteredAnnotation.lock() == DistributedLockType.LOCK) {
+            try {
+                if (lock.isLockedByCurrentThread()) {
+                    lock.unlock();
+                }
+            } catch (CPSubsystemException | LockOwnershipLostException e) {
+                log.log(Level.WARNING, "Distributed unlock failed", e);
+            }
+        }
     }
 }

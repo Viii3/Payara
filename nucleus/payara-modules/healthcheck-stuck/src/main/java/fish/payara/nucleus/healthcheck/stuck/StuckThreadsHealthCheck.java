@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2016-2020 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2023 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,6 +39,7 @@
  */
 package fish.payara.nucleus.healthcheck.stuck;
 
+import fish.payara.nucleus.healthcheck.HealthCheckStatsProvider;
 import fish.payara.nucleus.healthcheck.HealthCheckResult;
 import fish.payara.monitoring.collect.MonitoringData;
 import fish.payara.monitoring.collect.MonitoringDataCollector;
@@ -54,6 +55,9 @@ import fish.payara.nucleus.healthcheck.configuration.StuckThreadsChecker;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import static java.util.Arrays.asList;
+
+import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +66,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.hk2.runlevel.RunLevel;
 import org.jvnet.hk2.annotations.Service;
@@ -73,9 +81,14 @@ import org.jvnet.hk2.annotations.Service;
  */
 @Service(name = "healthcheck-stuck")
 @RunLevel(StartupRunLevel.VAL)
-public class StuckThreadsHealthCheck extends
-        BaseHealthCheck<HealthCheckStuckThreadExecutionOptions, StuckThreadsChecker>
-        implements MonitoringDataSource, MonitoringWatchSource {
+public class StuckThreadsHealthCheck
+        extends BaseHealthCheck<HealthCheckStuckThreadExecutionOptions, StuckThreadsChecker>
+        implements MonitoringDataSource, MonitoringWatchSource, HealthCheckStatsProvider {
+
+    private final Map<String, Number> stuckThreadResult = new ConcurrentHashMap<>();
+    private static final String STUCK_THREAD_COUNT = "count";
+    private static final String STUCK_THREAD_MAX_DURATION = "maxDuration";
+    private static final Set<String> VALID_SUB_ATTRIBUTES = new HashSet<>(asList(STUCK_THREAD_COUNT, STUCK_THREAD_MAX_DURATION));
 
     @FunctionalInterface
     private interface StuckThreadConsumer {
@@ -83,14 +96,43 @@ public class StuckThreadsHealthCheck extends
     }
 
     @Inject
-    StuckThreadsStore stuckThreadsStore;
+    private StuckThreadsStore stuckThreadsStore;
 
     @Inject
-    StuckThreadsChecker checker;
+    private StuckThreadsChecker checker;
 
     @PostConstruct
     void postConstruct() {
         postConstruct(this, StuckThreadsChecker.class);
+    }
+
+    @Override
+    public Object getValue(Class type, String attributeName, String subAttributeName) {
+        if (subAttributeName == null) {
+            throw new IllegalArgumentException("sub-attribute name is required");
+        }
+        if (!VALID_SUB_ATTRIBUTES.contains(subAttributeName)) {
+            throw new IllegalArgumentException("Invalid sub-attribute name, supported sub-attributes are " + VALID_SUB_ATTRIBUTES);
+        }
+        if (!Number.class.isAssignableFrom(type)) {
+            throw new IllegalArgumentException("sub-attribute type must be number");
+        }
+        return stuckThreadResult.getOrDefault(subAttributeName, 0);
+    }
+
+    @Override
+    public Set<String> getAttributes() {
+        return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getSubAttributes() {
+        return VALID_SUB_ATTRIBUTES;
+    }
+
+    @Override
+    public boolean isEnabled() {
+       return this.getOptions() != null ? this.getOptions().isEnabled() : false;
     }
 
     @Override
@@ -126,6 +168,8 @@ public class StuckThreadsHealthCheck extends
         });
         collector.collect("StuckThreadDuration", maxDuration);
         collector.collect("StuckThreadCount", count);
+        stuckThreadResult.put(STUCK_THREAD_MAX_DURATION, maxDuration.get());
+        stuckThreadResult.put(STUCK_THREAD_COUNT, count.get());
     }
 
     @Override
@@ -163,17 +207,22 @@ public class StuckThreadsHealthCheck extends
         long thresholdInMillis = getThresholdInMillis();
         long now = System.currentTimeMillis();
         ConcurrentHashMap<Long, Long> threads = stuckThreadsStore.getThreads();
+        String[] blacklist = checker.getBlacklistPatterns().split(",");
         for (Entry<Long, Long> thread : threads.entrySet()){
             Long threadId = thread.getKey();
             long workStartedTime = thread.getValue();
             long timeWorkingInMillis = now - workStartedTime;
             if (timeWorkingInMillis > thresholdInMillis){
                 ThreadInfo info = bean.getThreadInfo(threadId, Integer.MAX_VALUE);
-                if (info != null){ //check thread hasn't died already
+                if (info != null && !isInBlacklist(info.getThreadName(), blacklist)){ //check thread hasn't died already
                     consumer.accept(workStartedTime, timeWorkingInMillis, thresholdInMillis, info);
                 }
             }
         }
+    }
+
+    private boolean isInBlacklist(String threadName, String[] blacklistPatterns) {
+        return Arrays.stream(blacklistPatterns).anyMatch(threadName::matches);
     }
 
     private long getThresholdInMillis() {
@@ -185,7 +234,7 @@ public class StuckThreadsHealthCheck extends
     public HealthCheckStuckThreadExecutionOptions constructOptions(StuckThreadsChecker checker) {
         return new HealthCheckStuckThreadExecutionOptions(Boolean.valueOf(checker.getEnabled()),
                 Long.parseLong(checker.getTime()), asTimeUnit(checker.getUnit()), Boolean.valueOf(checker.getAddToMicroProfileHealth()),
-                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()));
+                Long.parseLong(checker.getThreshold()), asTimeUnit(checker.getThresholdTimeUnit()), checker.getBlacklistPatterns());
     }
 
     @Override

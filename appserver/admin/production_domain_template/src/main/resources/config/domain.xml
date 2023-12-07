@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
- * Copyright (c) [2016-2020] Payara Foundation. All rights reserved.
+ * Copyright (c) 2016-2023 Payara Foundation. All rights reserved.
  *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
@@ -125,7 +125,9 @@
           <property value="${com.sun.aas.instanceRoot}/config/keyfile" name="file" />
           <property value="fileRealm" name="jaas-context" />
         </auth-realm>
-        <auth-realm classname="com.sun.enterprise.security.auth.realm.certificate.CertificateRealm" name="certificate" />
+        <auth-realm classname="com.sun.enterprise.security.auth.realm.certificate.CertificateRealm" name="certificate">
+          <property name="certificate-validation" value="false" />
+        </auth-realm>
         <jacc-provider policy-configuration-factory-provider="com.sun.enterprise.security.provider.PolicyConfigurationFactoryImpl" policy-provider="com.sun.enterprise.security.provider.PolicyWrapper" name="default">
           <property value="${com.sun.aas.instanceRoot}/generated/policy" name="repository" />
         </jacc-provider>
@@ -193,37 +195,49 @@
         <jvm-options>[9|]--add-opens=java.naming/javax.naming.spi=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.logging/java.util.logging=ALL-UNNAMED</jvm-options>
+        <jvm-options>[9|]--add-opens=java.management/javax.management=ALL-UNNAMED</jvm-options>
+        <jvm-options>[9|]--add-opens=java.management/javax.management.openmbean=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.base/sun.net.www=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.base/sun.security.util=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.desktop/java.beans=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/java.io=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvm-options>
         <jvm-options>-Xmx2g</jvm-options>
         <jvm-options>-Xms2g</jvm-options>
         <jvm-options>-XX:+UseG1GC</jvm-options>
         <jvm-options>-XX:+UseStringDeduplication</jvm-options>
         <jvm-options>-XX:MaxGCPauseMillis=500</jvm-options>
-        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
         <jvm-options>-XX:MaxMetaspaceSize=2g</jvm-options>
+        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
         <jvm-options>-XX:+UnlockDiagnosticVMOptions</jvm-options>
+        <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
         <jvm-options>-Djava.awt.headless=true</jvm-options>
-        <jvm-options>-Djdk.corba.allowOutputStreamSubclass=true</jvm-options>
-        <jvm-options>-Djavax.xml.accessExternalSchema=all</jvm-options>
-        <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
         <jvm-options>-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf</jvm-options>
+        <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
         <jvm-options>-Djavax.net.ssl.keyStore=${com.sun.aas.instanceRoot}/config/keystore.jks</jvm-options>
         <jvm-options>-Djavax.net.ssl.trustStore=${com.sun.aas.instanceRoot}/config/cacerts.jks</jvm-options>
+        <jvm-options>-Djavax.xml.accessExternalSchema=all</jvm-options>
         <jvm-options>-Djdbc.drivers=org.h2.Driver</jvm-options>
-        <jvm-options>-DANTLR_USE_DIRECT_CLASS_LOADING=true</jvm-options>
-        <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
+        <jvm-options>-Djdk.corba.allowOutputStreamSubclass=true</jvm-options>
         <jvm-options>-Djdk.tls.rejectClientInitiatedRenegotiation=true</jvm-options>
-        <jvm-options>-Dorg.jboss.weld.serialization.beanIdentifierIndexOptimization=false</jvm-options>
+        <jvm-options>-DANTLR_USE_DIRECT_CLASS_LOADING=true</jvm-options>
         <jvm-options>-Dorg.glassfish.grizzly.DEFAULT_MEMORY_MANAGER=org.glassfish.grizzly.memory.HeapMemoryManager</jvm-options>
         <jvm-options>-Dorg.glassfish.grizzly.nio.DefaultSelectorHandler.force-selector-spin-detection=true</jvm-options>
-        <!-- Grizzly NPN Jar version -->
+        <jvm-options>-Dorg.jboss.weld.serialization.beanIdentifierIndexOptimization=false</jvm-options>
+        <jvm-options>[|8]-Djava.endorsed.dirs=${com.sun.aas.installRoot}/modules/endorsed${path.separator}${com.sun.aas.installRoot}/lib/endorsed</jvm-options>
+        <jvm-options>[|8]-Djava.ext.dirs=${com.sun.aas.javaRoot}/lib/ext${path.separator}${com.sun.aas.javaRoot}/jre/lib/ext${path.separator}${com.sun.aas.instanceRoot}/lib/ext</jvm-options>
+        <!-- Grizzly NPN Bootstrap compatible with used JDK version -->
         <jvm-options>[1.8.0|1.8.0u120]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.6.jar</jvm-options>
         <jvm-options>[1.8.0u121|1.8.0u160]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.7.jar</jvm-options>
         <jvm-options>[1.8.0u161|1.8.0u190]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.8.jar</jvm-options>
         <jvm-options>[1.8.0u191|1.8.0u250]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.8.1.jar</jvm-options>
         <jvm-options>[1.8.0u251|]-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
-        <jvm-options>[|8]-Djava.endorsed.dirs=${com.sun.aas.installRoot}/modules/endorsed${path.separator}${com.sun.aas.installRoot}/lib/endorsed</jvm-options>
-        <jvm-options>[|8]-Djava.ext.dirs=${com.sun.aas.javaRoot}/lib/ext${path.separator}${com.sun.aas.javaRoot}/jre/lib/ext${path.separator}${com.sun.aas.instanceRoot}/lib/ext</jvm-options>
         <jvm-options>[Azul-1.8.0u222|1.8.0u260]-XX:+UseOpenJSSE</jvm-options>
+        <!-- allow asadmin command enable-monitoring for JDK 9+ -->
+        <jvm-options>[9|]-Djdk.attach.allowAttachSelf=true</jvm-options>
       </java-config>
       <availability-service>
         <web-container-availability />
@@ -272,6 +286,7 @@
       <system-property name="jersey.config.client.connectTimeout" value="300000" />
       <system-property name="org.jboss.weld.clustering.rollingUpgradesIdDelimiter" value=".." />
       <system-property name="org.jboss.weld.probe.allowRemoteAddress" value="127.0.0.1|::1|::1%.+|0:0:0:0:0:0:0:1|0:0:0:0:0:0:0:1%.+" />
+      <system-property name="org.glassfish.gmbal.no.multipleUpperBoundsException" value="true"/>
     </config>
 
     <config name="default-config" dynamic-reconfiguration-enabled="true">
@@ -285,7 +300,7 @@
       </http-service>
       <iiop-service>
         <orb use-thread-pool-ids="thread-pool-1" />
-        <iiop-listener port="${IIOP_LISTENER_PORT}" id="orb-listener-1" address="0.0.0.0" />
+        <iiop-listener port="${IIOP_LISTENER_PORT}" id="orb-listener-1" lazy-init="true" address="0.0.0.0" />
         <ssl ssl3-enabled="false" />
         <iiop-listener port="${IIOP_SSL_LISTENER_PORT}" id="SSL" address="0.0.0.0" security-enabled="true">
           <ssl ssl3-enabled="false" classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="s1as" />
@@ -329,7 +344,9 @@
           <property name="file" value="${com.sun.aas.instanceRoot}/config/keyfile" />
           <property name="jaas-context" value="fileRealm" />
         </auth-realm>
-        <auth-realm classname="com.sun.enterprise.security.auth.realm.certificate.CertificateRealm" name="certificate" />
+        <auth-realm classname="com.sun.enterprise.security.auth.realm.certificate.CertificateRealm" name="certificate">
+          <property name="certificate-validation" value="false" />
+        </auth-realm>
         <jacc-provider policy-provider="com.sun.enterprise.security.provider.PolicyWrapper" name="default" policy-configuration-factory-provider="com.sun.enterprise.security.provider.PolicyConfigurationFactoryImpl">
           <property name="repository" value="${com.sun.aas.instanceRoot}/generated/policy" />
         </jacc-provider>
@@ -410,35 +427,45 @@
         <jvm-options>[9|]--add-opens=java.naming/javax.naming.spi=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED</jvm-options>
         <jvm-options>[9|]--add-opens=java.logging/java.util.logging=ALL-UNNAMED</jvm-options>
+        <jvm-options>[9|]--add-opens=java.management/javax.management=ALL-UNNAMED</jvm-options>
+        <jvm-options>[9|]--add-opens=java.management/javax.management.openmbean=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.base/sun.net.www=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.base/sun.security.util=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.desktop/java.beans=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-exports=java.naming/com.sun.jndi.ldap=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/java.io=ALL-UNNAMED</jvm-options>
+        <jvm-options>[17|]--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED</jvm-options>
         <jvm-options>-Xmx2g</jvm-options>
         <jvm-options>-Xms2g</jvm-options>
         <jvm-options>-XX:+UseG1GC</jvm-options>
         <jvm-options>-XX:+UseStringDeduplication</jvm-options>
         <jvm-options>-XX:MaxGCPauseMillis=500</jvm-options>
-        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
         <jvm-options>-XX:MaxMetaspaceSize=2g</jvm-options>
+        <jvm-options>-XX:MetaspaceSize=256m</jvm-options>
         <jvm-options>-XX:+UnlockDiagnosticVMOptions</jvm-options>
+        <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
         <jvm-options>-Djava.awt.headless=true</jvm-options>
-        <jvm-options>-Djdk.corba.allowOutputStreamSubclass=true</jvm-options>
-        <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
         <jvm-options>-Djava.security.auth.login.config=${com.sun.aas.instanceRoot}/config/login.conf</jvm-options>
+        <jvm-options>-Djava.security.policy=${com.sun.aas.instanceRoot}/config/server.policy</jvm-options>
         <jvm-options>-Djavax.net.ssl.keyStore=${com.sun.aas.instanceRoot}/config/keystore.jks</jvm-options>
         <jvm-options>-Djavax.net.ssl.trustStore=${com.sun.aas.instanceRoot}/config/cacerts.jks</jvm-options>
         <jvm-options>-Djdbc.drivers=org.h2.Driver</jvm-options>
-        <jvm-options>-DANTLR_USE_DIRECT_CLASS_LOADING=true</jvm-options>
-        <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
+        <jvm-options>-Djdk.corba.allowOutputStreamSubclass=true</jvm-options>
         <jvm-options>-Djdk.tls.rejectClientInitiatedRenegotiation=true</jvm-options>
-        <jvm-options>-Dorg.jboss.weld.serialization.beanIdentifierIndexOptimization=false</jvm-options>
+        <jvm-options>-DANTLR_USE_DIRECT_CLASS_LOADING=true</jvm-options>
         <jvm-options>-Dorg.glassfish.grizzly.DEFAULT_MEMORY_MANAGER=org.glassfish.grizzly.memory.HeapMemoryManager</jvm-options>
         <jvm-options>-Dorg.glassfish.grizzly.nio.DefaultSelectorHandler.force-selector-spin-detection=true</jvm-options>
-        <!-- Grizzly NPN Jar version -->
+        <jvm-options>-Dorg.jboss.weld.serialization.beanIdentifierIndexOptimization=false</jvm-options>
+        <jvm-options>[|8]-Djava.endorsed.dirs=${com.sun.aas.installRoot}/modules/endorsed${path.separator}${com.sun.aas.installRoot}/lib/endorsed</jvm-options>
+        <jvm-options>[|8]-Djava.ext.dirs=${com.sun.aas.javaRoot}/lib/ext${path.separator}${com.sun.aas.javaRoot}/jre/lib/ext${path.separator}${com.sun.aas.instanceRoot}/lib/ext</jvm-options>
+        <!-- Grizzly NPN Bootstrap compatible with used JDK version -->
         <jvm-options>[1.8.0|1.8.0u120]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.6.jar</jvm-options>
         <jvm-options>[1.8.0u121|1.8.0u160]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.7.jar</jvm-options>
         <jvm-options>[1.8.0u161|1.8.0u190]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.8.jar</jvm-options>
         <jvm-options>[1.8.0u191|1.8.0u250]-Xbootclasspath/p:${com.sun.aas.installRoot}/lib/grizzly-npn-bootstrap-1.8.1.jar</jvm-options>
         <jvm-options>[1.8.0u251|]-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
-        <jvm-options>[|8]-Djava.endorsed.dirs=${com.sun.aas.installRoot}/modules/endorsed${path.separator}${com.sun.aas.installRoot}/lib/endorsed</jvm-options>
-        <jvm-options>[|8]-Djava.ext.dirs=${com.sun.aas.javaRoot}/lib/ext${path.separator}${com.sun.aas.javaRoot}/jre/lib/ext${path.separator}${com.sun.aas.instanceRoot}/lib/ext</jvm-options>
         <jvm-options>[Azul-1.8.0u222|1.8.0u260]-XX:+UseOpenJSSE</jvm-options>
       </java-config>
       <availability-service>
@@ -513,6 +540,7 @@
       <system-property name="HZ_LISTENER_PORT" value="5900" />
       <system-property name="fish.payara.classloading.delegate" value="false" />
       <system-property name="org.jboss.weld.clustering.rollingUpgradesIdDelimiter" value=".." />
+      <system-property name="org.glassfish.gmbal.no.multipleUpperBoundsException" value="true"/>
     </config>
   </configs>
 

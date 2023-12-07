@@ -55,7 +55,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Portions Copyright [2016-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
 
 package org.glassfish.web.loader;
 
@@ -224,6 +224,11 @@ public class WebappClassLoader
      * The debugging detail level of this component.
      */
     protected int debug = 0;
+
+    /**
+     * When configured it will host the value for SameSite Cookie
+     */
+    private String cookieSameSiteValue = "";
 
     /**
      * Should this class loader delegate to the parent class loader
@@ -558,10 +563,12 @@ public class WebappClassLoader
 
 
     /**
+     * Unused. Always returns {@code null} - See CVE-2022-22965
      * Get associated resources.
      */
+    @Deprecated
     public DirContext getResources() {
-        return this.resources;
+        return null;
     }
 
 
@@ -664,6 +671,13 @@ public class WebappClassLoader
         this.debug = debug;
     }
 
+    public String getCookieSameSiteValue() {
+        return cookieSameSiteValue;
+    }
+
+    public void setCookieSameSiteValue(String cookieSameSiteValue) {
+        this.cookieSameSiteValue = cookieSameSiteValue;
+    }
 
     /**
      * Return the "delegate first" flag for this class loader.
@@ -1759,6 +1773,11 @@ public class WebappClassLoader
             }
         } catch (ClassNotFoundException e) {
             // Ignore
+        }
+
+        // If we haven't found it locally, and we're using bundled JSF, DON'T delegate any lookup if it's a JSF class
+        if (useMyFaces && !delegateLoad && (name.startsWith("javax.faces") || name.startsWith("com.sun.faces"))) {
+            throw new ClassNotFoundException(String.format("Class [%s] could not be found in bundled JSF", name));
         }
 
         // (3) Delegate if class was not found locally

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *    Copyright (c) [2017-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ *    Copyright (c) [2017-2023] Payara Foundation and/or its affiliates. All rights reserved.
  * 
  *     The contents of this file are subject to the terms of either the GNU
  *     General Public License Version 2 only ("GPL") or the Common Development
@@ -49,12 +49,14 @@ public class HealthCheckStuckThreadExecutionOptions extends HealthCheckExecution
     
     private long timeStuck;
     private TimeUnit unitStuck;
+    private String blacklistPatterns;
     
-    public HealthCheckStuckThreadExecutionOptions(boolean enabled, long time, TimeUnit unit, boolean addToMicroProfileHealth, 
-            long timeStuck, TimeUnit unitStuck) {
+    public HealthCheckStuckThreadExecutionOptions(boolean enabled, long time, TimeUnit unit, boolean addToMicroProfileHealth,
+                                                  long timeStuck, TimeUnit unitStuck, String blacklistPatterns) {
         super(enabled, time, unit, addToMicroProfileHealth);
         this.timeStuck = timeStuck;
         this.unitStuck = unitStuck;
+        this.blacklistPatterns = blacklistPatterns;
     }
     
     /**
@@ -72,5 +74,12 @@ public class HealthCheckStuckThreadExecutionOptions extends HealthCheckExecution
     public TimeUnit getUnitStuck(){
         return unitStuck;
     }
-    
+
+    /**
+     *
+     * @return Comma separated patterns to filter out threads by name
+     */
+    public String getBlacklistPatterns() {
+        return blacklistPatterns;
+    }
 }

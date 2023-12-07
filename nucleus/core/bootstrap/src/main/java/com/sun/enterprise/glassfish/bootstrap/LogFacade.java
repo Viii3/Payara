@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright [2021-2023] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.glassfish.bootstrap;
 
@@ -79,13 +80,6 @@ public class LogFacade {
         rec.setThrown(thrown);
         logger.log(rec);
     }
-    
-    @LogMessageInfo(
-            message = "GlassFish requires JDK {0}, you are using JDK version {1}.",
-            level = "SEVERE",
-            cause="Incorrect JDK version is used.",
-            action="Please use correct JDK version.")
-    public static final String BOOTSTRAP_INCORRECT_JDKVERSION = "NCLS-BOOTSTRAP-00001";
     
     @LogMessageInfo(
             message = "Using {0} as the framework configuration file.",
@@ -271,6 +265,11 @@ public class LogFacade {
             message = "Got an unexpected exception.",
             level = "WARNING")
     public static final String CAUGHT_EXCEPTION = "NCLS-BOOTSTRAP-00039";
+    
+    @LogMessageInfo(
+            message = "The option warmup was set to true, stopping the server.",
+            level = "WARNING")
+    public static final String WARMUP_OPTION_AS_TRUE = "NCLS-BOOTSTRAP-00040";
 
 }
 

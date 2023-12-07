@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2018-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,6 +50,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.util.logging.Level.WARNING;
 import java.util.logging.Logger;
 import static java.util.stream.Collectors.toSet;
+
+import java.util.Collections;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -63,17 +66,17 @@ import javax.ws.rs.core.Application;
 import org.eclipse.microprofile.openapi.models.OpenAPI;
 import org.eclipse.microprofile.openapi.models.Operation;
 import org.eclipse.microprofile.openapi.models.PathItem;
+import org.eclipse.microprofile.openapi.models.responses.APIResponse;
 import org.glassfish.hk2.classmodel.reflect.AnnotatedElement;
 import org.glassfish.hk2.classmodel.reflect.AnnotationModel;
 import org.glassfish.hk2.classmodel.reflect.ClassModel;
 import org.glassfish.hk2.classmodel.reflect.ExtensibleType;
 import org.glassfish.hk2.classmodel.reflect.MethodModel;
 import org.glassfish.hk2.classmodel.reflect.Type;
-import org.glassfish.hk2.classmodel.reflect.Types;
 
 public class OpenApiContext implements ApiContext {
 
-    private final Types allTypes;
+    private final Map<String, Type> allTypes;
     private final ClassLoader appClassLoader;
     private final OpenAPI api;
     private final Set<Type> allowedTypes;
@@ -86,7 +89,9 @@ public class OpenApiContext implements ApiContext {
 
     private Map<ExtensibleType<? extends ExtensibleType>, AnnotationInfo> parsedTypes = new ConcurrentHashMap<>();
 
-    public OpenApiContext(Types allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader, OpenAPI api) {
+    private Map<String, APIResponse> mappedExceptionResponses = new ConcurrentHashMap<>();
+
+    public OpenApiContext(Map<String, Type> allTypes, Set<Type> allowedTypes, ClassLoader appClassLoader, OpenAPI api) {
         this.allTypes = allTypes;
         this.allowedTypes = allowedTypes;
         this.api = api;
@@ -101,6 +106,7 @@ public class OpenApiContext implements ApiContext {
         this.appClassLoader = parentApiContext.appClassLoader;
         this.resourceMapping = parentApiContext.resourceMapping;
         this.parsedTypes = parentApiContext.parsedTypes;
+        this.mappedExceptionResponses = parentApiContext.mappedExceptionResponses;
         this.annotatedElement = annotatedElement;
     }
 
@@ -126,18 +132,30 @@ public class OpenApiContext implements ApiContext {
     }
 
     @Override
+    public void addMappedExceptionResponse(String exceptionType, APIResponse exceptionResponse) {
+        if (exceptionType != null) {
+            mappedExceptionResponses.put(exceptionType, exceptionResponse);
+        }
+    }
+
+    @Override
+    public Map<String, APIResponse> getMappedExceptionResponses() {
+        return Collections.unmodifiableMap(mappedExceptionResponses);
+    }
+
+    @Override
     public boolean isAllowedType(Type type) {
         return allowedTypes.contains(type);
     }
 
     @Override
     public boolean isApplicationType(String type) {
-        return allTypes.getBy(type) != null;
+        return allTypes.containsKey(type);
     }
 
     @Override
     public Type getType(String type) {
-        return allTypes.getBy(type);
+        return allTypes.get(type);
     }
 
     @Override
@@ -173,7 +191,7 @@ public class OpenApiContext implements ApiContext {
                                 .stream()
                                 .map(Class::getName)
                                 .filter(name -> !name.startsWith("org.glassfish.jersey")) // Remove all Jersey providers
-                                .map(allTypes::getBy)
+                                .map(allTypes::get)
                                 .filter(Objects::nonNull)
                                 .collect(toSet()));
                     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
@@ -238,7 +256,7 @@ public class OpenApiContext implements ApiContext {
     private String getResourcePath(MethodModel method) {
         AnnotationInfo annotations = getAnnotationInfo(method.getDeclaringType());
         if (annotations.isAnyAnnotationPresent(method,
-                GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class, PATCH.class)) {
+                GET.class, POST.class, PUT.class, DELETE.class, HEAD.class, OPTIONS.class, PATCH.class, Path.class)) {
             if (annotations.isAnnotationPresent(Path.class, method)) {
                 // If the method is a valid resource
                 return ModelUtils.normaliseUrl(getResourcePath(method.getDeclaringType()) + "/"

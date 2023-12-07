@@ -1,4 +1,4 @@
-Thank you for downloading Payara Server 5.29.0!
+Thank you for downloading Payara Server @@@FULL_VERSION@@@!
 
 Here are a few short steps to get you started...
 
@@ -8,16 +8,21 @@ Here are a few short steps to get you started...
 
 Payara Server currently supports the following Java Virtual Machines:
 
-* Oracle JDK8 (u162+), Oracle JDK 11 (11.0.5+)
-* Azul Zulu JDK8 (u162+), Azul Zulu JDK 11 (11.0.5u10+)
-* OpenJDK JDK8 (u162+), OpenJDK 11 (11.0.5+)
+* Azul Zulu JDK: 8 (u162+), 11 (11.0.5u10+), 17 (17.34/17.0.3+)
+* Oracle JDK: 8 (u162+), 11 (11.0.5+), 17 (17.0.3+)
+* Amazon Corretto: 8, 11 (11.0.5+), 17 (17.0.3+)
+* Adopt Open JDK: 8, 11 (11.0.5+), 17 (17.0.3+)
+* Adopt Open JDK with Eclipse Open J9: 8, 11 (11.0.5+), 17 (17.0.3+)
+* Any other JVM based on OpenJDK 8u162+, 11.0.5+ or 17.0.3+
 
-TLS 1.3 is supported on JDK 8 with Azul Zulu 1.8.222+ only and all JDK 11 versions.
+The Payara Platform runs on the x64 and arm64 variants of the above JVMs.
+
+TLS 1.3 is supported on JDK 8 with Azul Platform Core 1.8.222+, Open JDK 8u262+ based builds and any future LTS releases of the JDK (11, 17, and so on).
 
 1. Installing Payara Server
 ===========================
 
-Installing Payara Server is just a matter of unzipping the Payara Server archive in the desired directory. Since you are reading this, you have probably already unzipped Payara Server. If not, just type the following command in the directory where you want Payara Server to be installed: jar xvf payara-5.20.1.zip
+Installing Payara Server is just a matter of unzipping the Payara Server archive in the desired directory. Since you are reading this, you have probably already unzipped Payara Server. If not, just type the following command in the directory where you want Payara Server to be installed: jar xvf payara-@@@FULL_VERSION@@@.zip
 
 The default domain called 'domain1' is already installed and preconfigured.
 
@@ -50,13 +55,13 @@ To stop Payara Server, just issue the following command:
 Open the following in your browser: https://docs.payara.fish/. It contains useful information such as the details about the Payara Project, links to the Payara Server Documentation, etc.
 
 
-Make sure to also check the Payara Server 5.29.0 Release Notes as they contain important information: https://docs.payara.fish/enterprise/docs/5.29.0/release-notes/release-notes-27-0.html
+Make sure to also check the Payara Server @@@FULL_VERSION@@@ Release Notes as they contain important information: https://docs.payara.fish/enterprise/docs/@@@FULL_VERSION@@@/release-notes/release-notes-@@@MINOR_VERSION@@@-@@@UPDATE_VERSION@@@.html
 
 
 5. Documentation
 ================
 
-Payara Server 5.29.0 Release Notes: https://docs.payara.fish/enterprise/docs/5.29.0/release-notes/release-notes-27-0.html
+Payara Server @@@FULL_VERSION@@@ Release Notes: https://docs.payara.fish/enterprise/docs/@@@FULL_VERSION@@@/release-notes/release-notes-@@@MINOR_VERSION@@@-@@@UPDATE_VERSION@@@.html
 
 Payara Server Documentation: https://docs.payara.fish/
 

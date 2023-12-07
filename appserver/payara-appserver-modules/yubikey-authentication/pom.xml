@@ -46,7 +46,7 @@
     <parent>
         <groupId>fish.payara.server.internal.payara-appserver-modules</groupId>
         <artifactId>payara-appserver-modules</artifactId>
-        <version>5.29.0-SNAPSHOT</version>
+        <version>5.59.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>yubikey-authentication</artifactId>
@@ -69,8 +69,10 @@
                         </goals>
                         <configuration>
                             <instructions>
+                                <Import-Package>
+                                    *
+                                </Import-Package>
                                 <Export-Package>
-                                    fish.payara.security.annotations,
                                     fish.payara.security.authentication.twoIdentityStore,
                                     fish.payara.security.identitystores
                                 </Export-Package>

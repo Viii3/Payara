@@ -38,7 +38,7 @@
  * holder.
  */
 
-// Portions Copyright [2016-2019] [Payara Foundation and/or affiliates]
+// Portions Copyright [2016-2023] [Payara Foundation and/or affiliates]
 
 package com.sun.appserv.server.util;
 
@@ -46,22 +46,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- *
  * This class provides static methods to make accessible the version as well as
  * the individual parts that make up the version
- * 
-*/
+ */
 public class Version {
-    
+
     private static final String INSTALL_ROOT_PROP_NAME = "com.sun.aas.installRoot";
     private static final String PRODUCT_NAME_KEY = "product_name";
     private static final String BRIEF_PRODUCT_NAME_KEY = "brief_product_name";
@@ -77,8 +70,9 @@ public class Version {
     private static final String DEFAULT_DOMAIN_TEMPLATE_JAR = "nucleus-domain.jar";
     private static final String ADMIN_CLIENT_COMMAND_NAME_KEY = "admin_client_command_name";
     private static final String INITIAL_ADMIN_GROUPS_KEY = "initial_admin_user_groups";
+    private static final String DISTRIBUTION_KEY = "distribution";
     private static final List<Properties> VERSION_PROPS = new ArrayList<Properties>();
-    private static final Map<String,Properties> VERSION_PROPS_MAP = new HashMap<String,Properties>();
+    private static final Map<String, Properties> VERSION_PROPS_MAP = new HashMap<String, Properties>();
     private static final Properties versionProp = getVersionProp();
 
     private static Properties getVersionProp() {
@@ -150,11 +144,11 @@ public class Version {
      * Returns version
      */
     public static String getVersion() {
-        StringBuilder sb = new StringBuilder(getProductName());
-        sb.append(" ").append(getVersionPrefix());
-        sb.append(" ").append(getVersionNumber());
-        sb.append(" ").append(getVersionSuffix());
-        return sb.toString();
+        String[] versionComponents = {getProductName(), getVersionPrefix(), getVersionNumber(), getVersionSuffix()};
+        return Arrays.stream(versionComponents)
+                .filter(component -> !component.isEmpty())
+                .collect(Collectors.joining(" "))
+                .trim();
     }
 
     /**
@@ -164,7 +158,7 @@ public class Version {
         // construct version number
         String maj = getMajorVersion();
         String min = getMinorVersion();
-        String upd = getUpdateVersion();
+        String upd = getUpdateVersion().replaceAll("\\D+", "");
         String v;
         try {
             if (min != null && min.length() > 0 && Integer.parseInt(min) >= 0) {
@@ -185,7 +179,7 @@ public class Version {
         }
         return v;
     }
-    
+
     /**
      * Returns full version including build id
      */
@@ -211,7 +205,7 @@ public class Version {
      * Returns Minor version
      */
     public static String getMinorVersion() {
-        return getProperty(MINOR_VERSION_KEY, "0").replace("-SNAPSHOT","");
+        return getProperty(MINOR_VERSION_KEY, "0").replace("-SNAPSHOT", "");
     }
 
     /**
@@ -220,7 +214,7 @@ public class Version {
     public static String getUpdateVersion() {
         return getProperty(UPDATE_VERSION_KEY, "0");
     }
-    
+
     /**
      * Returns Build version
      */
@@ -241,7 +235,7 @@ public class Version {
     public static String getVersionSuffix() {
         return getProperty(VERSION_SUFFIX_KEY, "");
     }
-    
+
     /**
      * Returns Proper Product Name
      */
@@ -282,7 +276,11 @@ public class Version {
     public static String getInitialAdminGroups() {
         return getProperty(INITIAL_ADMIN_GROUPS_KEY, "asadmin");
     }
-    
+
+    public static String getDistributionKey() {
+        return getProperty(DISTRIBUTION_KEY, "");
+    }
+
     /*
      * Fetch the value for the property identified by key
      * from the first Properties object in the list. If it doesn't exist

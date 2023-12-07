@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.admin.launcher;
 
@@ -76,7 +76,6 @@ public abstract class GFLauncher {
 
     private static final Pattern JAVA_VERSION_PATTERN = Pattern.compile(".* version \"([^\"\\-]+)(-.*)?\".*");
     private final List<String> commandLine = new ArrayList<String>();
-    private final List<String> jvmOptionsList = new ArrayList<String>();
     private final GFLauncherInfo info;
     private Map<String, String> asenvProps;
     private JavaConfig javaConfig;
@@ -227,12 +226,16 @@ public abstract class GFLauncher {
         GFLauncherLogger.addLogFileHandler(logFilename);
         setClasspath();
         setCommandLine();
-        setJvmOptions();
         logCommandLine();
+        checkJDKVersion();
         // if no <network-config> element, we need to upgrade this domain
         needsAutoUpgrade = !parser.hasNetworkConfig();
         needsManualUpgrade = !parser.hasDefaultConfig();
         setupCalledByClients = true;
+    }
+    
+    public Map<String, String> getSysPropsFromXml() {
+        return sysPropsFromXml;
     }
 
     /**
@@ -688,22 +691,12 @@ public abstract class GFLauncher {
         }
     }
 
-    void setJvmOptions() {
-        List<String> jvmOpts = getJvmOptions();
-        jvmOpts.clear();
-
-        if (jvmOptions != null) {
-            addIgnoreNull(jvmOpts, jvmOptions.toStringArray());
-        }
-
-    }
-
     /**
-     * Returns the Java Virtual Machine options
+     * Returns the Java Virtual Machine options (for testing)
      * @return 
      */
-    public final List<String> getJvmOptions() {
-        return jvmOptionsList;
+    List<String> getJvmOptions() {
+        return jvmOptions.toStringArray();
     }
 
     /**
@@ -827,9 +820,16 @@ public abstract class GFLauncher {
         List<File> prefixCP = javaConfig.getPrefixClasspath();
         List<File> suffixCP = javaConfig.getSuffixClasspath();
         List<File> profilerCP = profiler.getClasspath();
+        List<File> extCP = Collections.emptyList();
+        if (!jvmOptions.getCombinedMap().containsKey("java.ext.dirs")) {
+            extCP = Collections.singletonList(
+                    new File(info.getInstanceRootDir(), "lib/ext/*")
+            );
+        }
 
         // create a list of all the classpath pieces in the right order
         List<File> all = new ArrayList<File>();
+        all.addAll(extCP);
         all.addAll(prefixCP);
         all.addAll(profilerCP);
         all.addAll(mainCP);
@@ -1056,6 +1056,12 @@ public abstract class GFLauncher {
                 sb.append(s);
             }
             GFLauncherLogger.info(GFLauncherLogger.COMMAND_LINE, sb.toString());
+        }
+    }
+
+    private void checkJDKVersion() {
+        if(!JDK.isRunningLTSJDK()) {
+            GFLauncherLogger.warning("You are running the product on an unsupported JDK version and might see unexpected results or exceptions.");
         }
     }
 

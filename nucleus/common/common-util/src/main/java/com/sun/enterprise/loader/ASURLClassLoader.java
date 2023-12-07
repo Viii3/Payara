@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
- // Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates]
+ // Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.loader;
 
@@ -620,13 +620,36 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
                         res.setProtectionDomain(ASURLClassLoader.this, entry.getCertificates());
                         return classData;
                     }
+                    if (isMultiRelease(zip)) {
+                        String javaVersion = System.getProperty("java.version");
+                        JarEntry multiVersionEntry = zip.getJarEntry("META-INF/versions/" + javaVersion + "/" + entryName);
+                        if (multiVersionEntry != null) {
+                            InputStream classStream = zip.getInputStream(multiVersionEntry);
+                            byte[] classData = getClassData(classStream);
+                            res.setProtectionDomain(ASURLClassLoader.this, multiVersionEntry.getCertificates());
+                            return classData;
+                        }
+                    }
                 } else { // Its a directory....
-                    File classFile = new File (res.file, entryName.replace('/', File.separatorChar));
+                    String entryPath = entryName.replace('/', File.separatorChar);
+                    File classFile = new File (res.file, entryPath);
                     if (classFile.exists()) {
                         try (InputStream classStream = new FileInputStream(classFile)) {
                             byte[] classData = getClassData(classStream);
                             res.setProtectionDomain(ASURLClassLoader.this, null);
                             return classData;
+                        }
+                    }
+                    
+                    File multiVersionDir = new File(res.file, "META-INF/versions/");
+                    if (multiVersionDir.exists()) {
+                        File multiVersionClassFile = new File(multiVersionDir, entryPath);
+                        if (multiVersionClassFile.exists()) {
+                            try (InputStream classStream = new FileInputStream(multiVersionClassFile)) {
+                                byte[] classData = getClassData(classStream);
+                                res.setProtectionDomain(ASURLClassLoader.this, null);
+                                return classData;
+                            }
                         }
                     }
                 }
@@ -635,6 +658,17 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
             }
             return null;
         });
+    }
+
+    public boolean isMultiRelease(JarFile jarFile) throws IOException {
+        Manifest manifest = jarFile.getManifest();
+        if (manifest != null) {
+            Attributes attributes = manifest.getMainAttributes();
+            if (attributes != null && attributes.getValue("Multi-Release") != null) {
+                return Boolean.valueOf(attributes.getValue("Multi-Release"));
+            }
+        }
+        return false;
     }
 
     @Override

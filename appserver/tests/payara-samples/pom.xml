@@ -2,7 +2,7 @@
 <!--
  *    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- *    Copyright (c) [2019-2021] Payara Foundation and/or its affiliates. All rights reserved.
+ *    Copyright (c) [2019-2022] Payara Foundation and/or its affiliates. All rights reserved.
  *
  *    The contents of this file are subject to the terms of either the GNU
  *    General Public License Version 2 only ("GPL") or the Common Development
@@ -46,7 +46,7 @@
     <parent>
         <groupId>fish.payara.server.internal.tests</groupId>
         <artifactId>payara-tests</artifactId>
-        <version>5.29.0-SNAPSHOT</version>
+        <version>5.59.0-SNAPSHOT</version>
     </parent>
 
     <groupId>fish.payara.samples</groupId>
@@ -68,6 +68,9 @@
 
         <!-- Exclude unstable tests by default-->
         <excludedGroups>fish.payara.samples.Unstable</excludedGroups>
+
+        <payara.home></payara.home>
+        <payara.executable>${payara.home}${file.separator}bin${file.separator}asadmin</payara.executable>
     </properties>
 
     <modules>
@@ -99,6 +102,7 @@
             <properties>
                 <payara.domain.name>domain1</payara.domain.name>
                 <payara.directory.name>payara5</payara.directory.name>
+                <payara.server.managed />
             </properties>
 
             <dependencies>
@@ -181,6 +185,7 @@
             -->
             <properties>
                 <payara.containerType>MICRO</payara.containerType>
+                <payara.micro.managed />
             </properties>
 
             <dependencies>
@@ -232,6 +237,10 @@
             This profile requires you to start up a Payara server outside of the build.
             Each sample will then reuse this instance to run the tests.
             -->
+            <properties>
+                <payara.server.remote />
+            </properties>
+
             <dependencies>
                 <dependency>
                     <groupId>fish.payara.arquillian</groupId>
@@ -271,22 +280,19 @@
                 <excludedGroups></excludedGroups>
             </properties>
         </profile>
-    </profiles>
 
-    <repositories>
-        <!-- omnifaces jacc-provider is not in any other repository -->
-        <repository>
-            <id>payara-eclipse</id>
-            <name>Payara Eclipse</name>
-            <url>https://raw.github.com/payara/Payara_PatchedProjects/eclipse</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <payara.executable>${payara.home}${file.separator}bin${file.separator}asadmin.bat</payara.executable>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>
@@ -302,7 +308,7 @@
                 <groupId>org.jboss.arquillian</groupId>
                 <artifactId>arquillian-bom</artifactId>
                 <!-- >= 1.7.0 supports parallel testing -->
-                <version>1.7.0.Alpha9</version>
+                <version>1.7.0.Alpha13</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -514,7 +520,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>${maven.failsafe.plugin.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -539,6 +545,12 @@
             <artifactId>payara-client-ee8</artifactId>
             <scope>test</scope>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.jersey.ext.cdi</groupId>
+                    <artifactId>jersey-cdi1x</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- needed for maven-war-plugin to work properly -->
         <dependency>

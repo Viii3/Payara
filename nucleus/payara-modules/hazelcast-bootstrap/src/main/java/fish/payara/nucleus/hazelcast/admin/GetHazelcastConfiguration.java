@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2014-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2014-2022] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -102,8 +102,8 @@ public class GetHazelcastConfiguration implements AdminCommand {
         }
 
         HazelcastConfigSpecificConfiguration nodeConfiguration = config.getExtensionByType(HazelcastConfigSpecificConfiguration.class);
-
         HazelcastRuntimeConfiguration runtimeConfiguration = domain.getExtensionByType(HazelcastRuntimeConfiguration.class);
+
         final ActionReport actionReport = context.getActionReport();
 
         if (checkEncrypted) {
@@ -123,7 +123,6 @@ public class GetHazelcastConfiguration implements AdminCommand {
         columnFormatter.addRow(new Object[]{"Auto Increment Port", runtimeConfiguration.getAutoIncrementPort(), "Domain"});
         columnFormatter.addRow(new Object[]{"Start Port",runtimeConfiguration.getStartPort(),"Domain"});
         columnFormatter.addRow(new Object[]{"Cluster Name",runtimeConfiguration.getClusterGroupName(),"Domain"});
-        columnFormatter.addRow(new Object[]{"Cluster Password",runtimeConfiguration.getClusterGroupPassword(),"Domain"});
         columnFormatter.addRow(new Object[]{"License Key",runtimeConfiguration.getLicenseKey(),"Domain"});
         columnFormatter.addRow(new Object[]{"Host Aware Partitioning",runtimeConfiguration.getHostAwarePartitioning(),"Domain"});
         columnFormatter.addRow(new Object[]{"DAS Public Address",runtimeConfiguration.getDASPublicAddress(),"Domain"});
@@ -162,7 +161,6 @@ public class GetHazelcastConfiguration implements AdminCommand {
         map.put("jndiName", nodeConfiguration.getJNDIName());
         map.put("lite", nodeConfiguration.getLite());
         map.put("clusterName", runtimeConfiguration.getClusterGroupName());
-        map.put("clusterPassword", runtimeConfiguration.getClusterGroupPassword());
         map.put("licenseKey", runtimeConfiguration.getLicenseKey());
         map.put("hostAwarePartitioning", runtimeConfiguration.getHostAwarePartitioning());
         map.put("dasPublicAddress", runtimeConfiguration.getDASPublicAddress());

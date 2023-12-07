@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2017 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017-2022 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,18 +40,17 @@
 package fish.payara.microprofile.jwtauth.jwt;
 
 import static java.util.Collections.singleton;
-import static java.util.stream.Collectors.toSet;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
+import static java.util.stream.Collectors.toSet;
 import javax.json.JsonArray;
 import javax.json.JsonNumber;
 import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.security.enterprise.CallerPrincipal;
-
 import org.eclipse.microprofile.jwt.Claims;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
@@ -63,6 +62,12 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 public class JsonWebTokenImpl extends CallerPrincipal implements JsonWebToken {
     
     private final Map<String, JsonValue> claims;
+
+    protected JsonWebTokenImpl() {
+        // for proxying request-scoped bean
+        super(null);
+        claims = Collections.EMPTY_MAP;
+    }
 
     public JsonWebTokenImpl(String callerName, Map<String, JsonValue> claims) {
         super(callerName);
@@ -77,7 +82,7 @@ public class JsonWebTokenImpl extends CallerPrincipal implements JsonWebToken {
     @SuppressWarnings("unchecked")
     public <T> T getClaim(String claimName) {
         
-        JsonValue claimValue = getClaims().get(claimName);
+        JsonValue claimValue = claims.get(claimName);
         if (claimValue == null) {
             return null;
         }
@@ -108,12 +113,16 @@ public class JsonWebTokenImpl extends CallerPrincipal implements JsonWebToken {
             return (T) ((JsonString) claimValue).getString();
         }
         
-        return (T) getClaims().get(claimName);
+        return (T) claims.get(claimName);
     }
     
     @Override
     public Set<String> getClaimNames() {
-        return getClaims().keySet();
+        if (claims.isEmpty()) {
+            // TCK tests require to return null if there are no claims
+            return null;
+        }
+        return claims.keySet();
     }
     
     private static Set<String> asStringSet(JsonArray jsonArray) {

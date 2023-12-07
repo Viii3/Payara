@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2021] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2023] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,34 +39,9 @@
  */
 package fish.payara.micro.impl;
 
-import com.sun.appserv.server.util.Version;
-import com.sun.enterprise.glassfish.bootstrap.Constants;
-import com.sun.enterprise.glassfish.bootstrap.GlassFishImpl;
-import com.sun.enterprise.server.logging.ODLLogFormatter;
-import fish.payara.appserver.rest.endpoints.config.admin.ListRestEndpointsCommand;
-import fish.payara.boot.runtime.BootCommand;
-import fish.payara.boot.runtime.BootCommands;
-import fish.payara.deployment.util.GAVConvertor;
-import fish.payara.micro.BootstrapException;
-import fish.payara.micro.PayaraMicroRuntime;
-import fish.payara.micro.boot.AdminCommandRunner;
-import fish.payara.micro.boot.PayaraMicroBoot;
-import fish.payara.micro.boot.PayaraMicroLauncher;
-import fish.payara.micro.boot.loader.OpenURLClassLoader;
-import fish.payara.micro.cmd.options.RUNTIME_OPTION;
-import fish.payara.micro.cmd.options.RuntimeOptions;
-import fish.payara.micro.cmd.options.ValidationException;
-import fish.payara.micro.data.InstanceDescriptor;
-import fish.payara.nucleus.executorservice.PayaraFileWatcher;
-import org.glassfish.embeddable.BootstrapProperties;
-import org.glassfish.embeddable.CommandRunner;
-import org.glassfish.embeddable.Deployer;
-import org.glassfish.embeddable.GlassFish;
-import org.glassfish.embeddable.GlassFish.Status;
-import org.glassfish.embeddable.GlassFishException;
-import org.glassfish.embeddable.GlassFishProperties;
-import org.glassfish.embeddable.GlassFishRuntime;
-
+import com.sun.enterprise.util.JDK;
+import com.sun.enterprise.util.PropertyPlaceholderHelper;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -75,6 +50,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -102,6 +79,39 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import com.sun.appserv.server.util.Version;
+import com.sun.common.util.logging.SortedLoggingProperties;
+import com.sun.enterprise.glassfish.bootstrap.Constants;
+import com.sun.enterprise.glassfish.bootstrap.GlassFishImpl;
+import com.sun.enterprise.server.logging.ODLLogFormatter;
+
+import fish.payara.deployment.util.JavaArchiveUtils;
+import fish.payara.deployment.util.URIUtils;
+import org.glassfish.embeddable.BootstrapProperties;
+import org.glassfish.embeddable.CommandRunner;
+import org.glassfish.embeddable.Deployer;
+import org.glassfish.embeddable.GlassFish;
+import org.glassfish.embeddable.GlassFish.Status;
+import org.glassfish.embeddable.GlassFishException;
+import org.glassfish.embeddable.GlassFishProperties;
+import org.glassfish.embeddable.GlassFishRuntime;
+
+import fish.payara.appserver.rest.endpoints.config.admin.ListRestEndpointsCommand;
+import fish.payara.boot.runtime.BootCommand;
+import fish.payara.boot.runtime.BootCommands;
+import fish.payara.deployment.util.GAVConvertor;
+import fish.payara.micro.BootstrapException;
+import fish.payara.micro.PayaraMicroRuntime;
+import fish.payara.micro.boot.AdminCommandRunner;
+import fish.payara.micro.boot.PayaraMicroBoot;
+import fish.payara.micro.boot.PayaraMicroLauncher;
+import fish.payara.micro.boot.loader.OpenURLClassLoader;
+import fish.payara.micro.cmd.options.RUNTIME_OPTION;
+import fish.payara.micro.cmd.options.RuntimeOptions;
+import fish.payara.micro.cmd.options.ValidationException;
+import fish.payara.micro.data.InstanceDescriptor;
+import fish.payara.nucleus.executorservice.PayaraFileWatcher;
+
 /**
  * Main class for Bootstrapping Payara Micro Edition This class is used from
  * applications to create a full JavaEE runtime environment and deploy war
@@ -125,7 +135,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     private int hzPort = Integer.MIN_VALUE;
     private int hzStartPort = Integer.MIN_VALUE;
     private String hzClusterName;
-    private String hzClusterPassword;
     private int httpPort = Integer.MIN_VALUE;
     private int sslPort = Integer.MIN_VALUE;
     private int maxHttpThreads = Integer.MIN_VALUE;
@@ -143,6 +152,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     private GlassFish gf;
     private PayaraMicroRuntimeImpl runtime;
     private boolean noCluster = false;
+    private boolean noHazelcast = false;
     private boolean hostAware = true;
     private boolean autoBindHttp = false;
     private boolean autoBindSsl = false;
@@ -163,8 +173,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     private boolean outputLauncher;
     private File copyDirectory;
     private Properties userSystemProperties;
-    private List<String> repositoryURLs;
-    private final String defaultMavenRepository = "https://repo.maven.apache.org/maven2/";
+    private final List<String> repositoryURIs;
     private final short defaultHttpPort = 8080;
     private final short defaultHttpsPort = 8181;
     private final BootCommands preBootCommands;
@@ -209,7 +218,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
      * --help Shows this message and exits\n
      * @throws BootstrapException If there is a problem booting the server
      */
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         create(args);
     }
 
@@ -713,7 +722,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     public PayaraMicroImpl addRepoUrl(String... URLs) {
         //if (runtime != null) {
         checkNotRunning();
-        repositoryURLs.addAll(Arrays.asList(URLs));
+        repositoryURIs.addAll(Arrays.asList(URLs));
         return this;
     }
 
@@ -728,6 +737,17 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     }
 
     /**
+     * Indicated whether distributed data grid is enabled
+     *
+     * @return
+     */
+    @Override
+    public boolean isNoHazelcast() {
+        return noHazelcast;
+    }
+
+
+    /**
      * Enables or disables clustering before bootstrap
      *
      * @param noCluster set to true to disable clustering
@@ -738,6 +758,19 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         //if (runtime != null) {
         checkNotRunning();
         this.noCluster = noCluster;
+        return this;
+    }
+
+    /**
+     * Enables or disables clustering before bootstrap
+     *
+     * @param noHazelcast set to true to disable clustering
+     * @return
+     */
+    @Override
+    public PayaraMicroImpl setNoHazelcast(boolean noHazelcast) {
+        checkNotRunning();
+        this.noHazelcast = noHazelcast;
         return this;
     }
 
@@ -947,29 +980,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     }
 
     /**
-     * Gets the password of the Hazelcast cluster group
-     *
-     * @return
-     */
-    @Override
-    public String getHzClusterPassword() {
-        return hzClusterPassword;
-    }
-
-    /**
-     * Sets the Hazelcast cluster group password. For two clusters to work
-     * together then the group name and password must be the same
-     *
-     * @param hzClusterPassword The password to set
-     * @return
-     */
-    @Override
-    public PayaraMicroImpl setHzClusterPassword(String hzClusterPassword) {
-        this.hzClusterPassword = hzClusterPassword;
-        return this;
-    }
-
-    /**
      * Gets the name of the instance group
      *
      * @return The name of the instance group
@@ -1022,6 +1032,10 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 resetLogging(loggingProperty);
             });
         }
+        //Check a supported JDK version is being used
+        if (!JDK.isRunningLTSJDK()) {
+            LOGGER.warning("You are running the product on an unsupported JDK version and might see unexpected results or exceptions.");
+        }
         runtimeDir.processDirectoryInformation();
 
         // build the runtime
@@ -1038,7 +1052,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             gfproperties.setConfigFileURI(runtimeDir.getDomainXML().toURI().toString());
 
             try {
-                configureCommandFiles();
+                parsePreBootCommandFiles();
             } catch (IOException ex) {
                 LOGGER.log(Level.SEVERE, "Unable to load command file", ex);
             }
@@ -1063,7 +1077,12 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             callHandler(preBootHandler);
             gf.start();
 
-            // Execute post boot commands
+            // Parse and execute post boot commands
+            try {
+                parsePostBootCommandFiles();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Unable to load command file", ex);
+            }
             postBootCommands.executeCommands(gf.getCommandRunner());
             callHandler(postBootHandler);
             this.runtime = new PayaraMicroRuntimeImpl(gf, gfruntime);
@@ -1073,6 +1092,12 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             // These steps are separated in case any steps need to be done in between
             gf.getCommandRunner().run("initialize-all-applications");
 
+            // Parse and execute post deploy commands
+            try {
+                parsePostDeployCommandFiles();
+            } catch (IOException ex) {
+                LOGGER.log(Level.SEVERE, "Unable to load command file", ex);
+            }
             postDeployCommands.executeCommands(gf.getCommandRunner());
 
             long end = System.currentTimeMillis();
@@ -1128,11 +1153,10 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
     private PayaraMicroImpl() {
         // Initialise a random instance name
-        repositoryURLs = new LinkedList<>();
+        repositoryURIs = new LinkedList<>();
         preBootCommands = new BootCommands();
         postBootCommands = new BootCommands();
         postDeployCommands = new BootCommands();
-        repositoryURLs.add(defaultMavenRepository);
         addShutdownHook();
     }
 
@@ -1182,9 +1206,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                     break;
                 case clustername:
                     hzClusterName = value;
-                    break;
-                case clusterpassword:
-                    hzClusterPassword = value;
                     break;
                 case hostaware: {
                     hostAware = true;
@@ -1246,6 +1267,9 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 case nocluster:
                     noCluster = true;
                     break;
+                case nohazelcast:
+                    noHazelcast = true;
+                    break;
                 case lite:
                     liteMember = true;
                     break;
@@ -1265,7 +1289,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                     enableHealthCheck = Boolean.parseBoolean(value);
                     break;
                 case additionalrepository:
-                    repositoryURLs.add(value);
+                    repositoryURIs.add(value);
                     break;
                 case outputuberjar:
                     uberJar = new File(value);
@@ -1396,7 +1420,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                         LOGGER.warning("Multiple --contextroot arguments only the last one will apply");
                     }
                     contextRoot = value;
-                    if (contextRoot.equals("ROOT")) {
+                    if (isRoot(contextRoot)) {
                         contextRoot = "/";
                     }
                     break;
@@ -1413,6 +1437,10 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                     break;
             }
         }
+    }
+
+    private boolean isRoot(String context) {
+        return "ROOT".equals(context);
     }
 
     private void configureRequestTracingService() {
@@ -1527,7 +1555,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
                 deployments.put(deployment.getName(), deployment.toURI());
 
-                if (supportsContextRoot(deployment)) {
+                if (JavaArchiveUtils.hasContextRoot(deployment)) {
                     if (deploymentContext != null) {
                         addDeploymentContext(deployment.getName(), deploymentContext);
                     } else {
@@ -1536,13 +1564,13 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 }
             } else if (option == RUNTIME_OPTION.deploydir || option == RUNTIME_OPTION.deploymentdir) {
                 // Get all files in the directory, and sort them by file type
-                File[] deploymentEntries = deploymentRoot.listFiles();
+                File[] deploymentEntries = deploymentRoot.listFiles(file -> JavaArchiveUtils.hasJavaArchiveExtension(file.getName(), false));
                 Arrays.sort(deploymentEntries, new DeploymentComparator());
 
                 for (File deploymentEntry : deploymentEntries) {
-                    if (deploymentEntry.isFile() && deploymentEntry.canRead() && hasJavaArchiveExtension(deploymentEntry.getName())) {
+                    if (deploymentEntry.isFile() && deploymentEntry.canRead()) {
                         deployments.put(deploymentEntry.getName(), deploymentEntry.toURI());
-                        if (supportsContextRoot(deploymentEntry)) {
+                        if (JavaArchiveUtils.hasContextRoot(deploymentEntry)) {
                             contextRootAvailable = false;
                         }
                     }
@@ -1555,7 +1583,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
                 deployments.put(artifactName, artifactURI);
 
-                if (artifactName.endsWith(".war")) {
+                if (JavaArchiveUtils.hasWebArchiveExtension(artifactName)) {
                     String deploymentContext = gavEntry.getKey();
                     if (contextRootAvailable) {
                         deploymentContext = contextRoot;
@@ -1572,7 +1600,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         if (contextRoots == null) {
             contextRoots = new Properties();
         }
-        if ("ROOT".equals(deploymentContext)) {
+        if (isRoot(deploymentContext)) {
             deploymentContext = "/";
         }
         contextRoots.put(fileName, deploymentContext);
@@ -1620,24 +1648,23 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
                 for (String entry : microInfEntries) {
                     File deployment = new File(entry);
-                    String deploymentName = removeJavaArchiveExtension(deployment.getName());
+                    String deploymentName = JavaArchiveUtils.removeJavaArchiveExtension(deployment.getName(), false);
 
                     List<String> deploymentParams = new ArrayList<>();
                     deploymentParams.add("--availabilityenabled=true");
                     deploymentParams.add("--force=true");
                     deploymentParams.add("--loadOnly=true");
                     deploymentParams.add("--name=" + deploymentName);
-
-                    if (deployment.getName().endsWith(".war")) {
+                    if (JavaArchiveUtils.hasWebArchiveExtension(deployment.getName())) {
                         String deploymentContext;
-                        if ("ROOT".equals(deploymentName)) {
+                        if (isRoot(deploymentName)) {
                             deploymentContext = "/";
                         } else if (contextRoots != null && contextRoots.containsKey(deployment.getName())) {
                             deploymentContext = contextRoots.getProperty(deployment.getName());
                         } else {
                             deploymentContext = deploymentName;
                         }
-                        if ("ROOT".equals(deploymentContext)) {
+                        if (isRoot(deploymentContext)) {
                             deploymentContext = "/";
                         }
                         deploymentParams.add("--contextroot=" + deploymentContext);
@@ -1667,11 +1694,11 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 deploymentParams.add("--loadOnly=true");
 
                 String deploymentContext = null;
-                if ("file".equalsIgnoreCase(deploymentURI.getScheme())) {
+                if (URIUtils.hasFileScheme(deploymentURI)) {
                     File deployment = new File(deploymentURI);
-                    if (supportsContextRoot(deployment)) {
-                        String deploymentName = deployment.isFile() ? removeJavaArchiveExtension(fileName) : fileName;
-                        if ("ROOT".equals(deploymentName)) {
+                    if (JavaArchiveUtils.hasContextRoot(deployment)) {
+                        String deploymentName = deployment.isFile() ? JavaArchiveUtils.removeJavaArchiveExtension(fileName, false) : fileName;
+                        if (isRoot(deploymentName)) {
                             deploymentContext = "/";
                         } else if (contextRoots != null && contextRoots.containsKey(fileName)) {
                             deploymentContext = contextRoots.getProperty(fileName);
@@ -1683,8 +1710,8 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                         }
                     }
                 } else {
-                    deploymentParams.add("--name=" + removeJavaArchiveExtension(fileName));
-                    if (fileName.endsWith(".war")) {
+                    deploymentParams.add("--name=" + JavaArchiveUtils.removeJavaArchiveExtension(fileName, false));
+                    if (JavaArchiveUtils.hasWebArchiveExtension(fileName)) {
                         if (contextRoot != null) {
                             deploymentContext = contextRoot;
                             contextRoot = null;
@@ -1695,7 +1722,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 }
 
                 if (deploymentContext != null) {
-                    if ("ROOT".equals(deploymentContext)) {
+                    if (isRoot(deploymentContext)) {
                         deploymentContext = "/";
                     }
                     deploymentParams.add("--contextroot=" + deploymentContext);
@@ -1709,28 +1736,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         LOGGER.log(Level.INFO, "Deployed {0} archive(s)", deploymentCount);
     }
 
-    private String removeJavaArchiveExtension(String fileName) {
-        if (hasJavaArchiveExtension(fileName)) {
-            return fileName.substring(0, fileName.length() - 4);
-        } else {
-            return fileName;
-        }
-    }
-
-    private static boolean hasJavaArchiveExtension(String filePath) {
-        if (filePath == null) {
-            return false;
-        }
-        return filePath.endsWith(".war") || filePath.endsWith(".jar") || filePath.endsWith(".rar");
-    }
-
-    private boolean supportsContextRoot(File archive) {
-        if (archive == null) {
-            return false;
-        }
-        return archive.isFile() ? archive.getName().endsWith(".war") : archive.isDirectory() && new File(archive.getPath(), "WEB-INF").exists();
-    }
-
     private void addShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(
                 "GlassFish Shutdown Hook") {
@@ -1738,6 +1743,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             public void run() {
                 try {
                     if (gf != null) {
+                        gf.stop();
                         gf.dispose();
                     }
                 } catch (GlassFishException ex) {
@@ -1771,10 +1777,11 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
             System.setProperty("java.util.logging.config.file", runtimeDir.getLoggingProperties().getAbsolutePath());
             try (InputStream is = new FileInputStream(runtimeDir.getLoggingProperties())) {
-                LogManager.getLogManager().readConfiguration(is);
+                LogManager.getLogManager().readConfiguration(replaceEnvProperties(is));
 
                 // go through all root handlers and set formatters based on properties
                 Logger rootLogger = LogManager.getLogManager().getLogger("");
+
                 for (Handler handler : rootLogger.getHandlers()) {
                     String formatter = LogManager.getLogManager().getProperty(handler.getClass().getCanonicalName() + ".formatter");
                     if (formatter != null) {
@@ -1808,19 +1815,19 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
 
                 // now write them back
                 try (OutputStream os = new FileOutputStream(runtimeDir.getLoggingProperties())) {
-                    currentProps.store(os, "Generated Logging properties file from Payara Micro log to file option");
+                    new SortedLoggingProperties(currentProps).store(os, "Generated Logging properties file from Payara Micro log to file option");
                 } catch (IOException ex) {
                     LOGGER.log(Level.SEVERE, "Unable to load the logging properties from the runtime directory", ex);
                 }
             }
             System.setProperty("java.util.logging.config.file", runtimeDir.getLoggingProperties().getAbsolutePath());
             try (InputStream is = new FileInputStream(runtimeDir.getLoggingProperties())) {
-                LogManager.getLogManager().readConfiguration(is);
+                LogManager.getLogManager().readConfiguration(replaceEnvProperties(is));
 
                 // reset the formatters on the two handlers
                 //Logger rootLogger = Logger.getLogger("");
                 String formatter = LogManager.getLogManager().getProperty("java.util.logging.ConsoleHandler.formatter");
-                Formatter formatterClass = new ODLLogFormatter();
+                Formatter formatterClass = new ODLLogFormatter(null);
                 try {
                     formatterClass = (Formatter) Class.forName(formatter).newInstance();
                 } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
@@ -1836,33 +1843,73 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         }
     }
 
-    private void configureCommandFiles() throws IOException {
-        // load the embedded files
-        URL scriptURL = Thread.currentThread().getContextClassLoader().getResource("MICRO-INF/pre-boot-commands.txt");
+    /**
+     * Method to replace Env properties with corresponding value from System properties
+     * @param is InputStream from File with properties
+     * @return an instance of ByteArrayInputStream with the preprocessed properties
+     * @throws IOException
+     */
+    private ByteArrayInputStream replaceEnvProperties(InputStream is) throws IOException {
+        //preprocessing the properties read from the custom properties file
+        Properties configuration = new Properties();
+        configuration.load(is);
+        //set the System.getenv() to be used for the replacement process. The desired property to be mapped
+        //should need to be available on the System.getenv() Map
+        configuration = new PropertyPlaceholderHelper(System.getenv(),
+                PropertyPlaceholderHelper.ENV_REGEX).replacePropertiesPlaceholder(configuration);
+        StringWriter writer = new StringWriter();
+        configuration.store(new PrintWriter(writer), null);
+        //here is added the new inputStream with the preprocessed properties solving the replacement issues
+        return new ByteArrayInputStream(writer.getBuffer().toString().getBytes());
+    }
+
+    /**
+     * Helper method to parse the pre-boot command file.
+     *
+     * @throws IOException
+     */
+    private void parsePreBootCommandFiles() throws IOException {
+        parseCommandFiles("MICRO-INF/pre-boot-commands.txt", preBootFileName, preBootCommands, false);
+    }
+
+    /**
+     * Helper method to parse the post-boot command file.
+     *
+     * @throws IOException
+     */
+    private void parsePostBootCommandFiles() throws IOException {
+        parseCommandFiles("MICRO-INF/post-boot-commands.txt", postBootFileName, postBootCommands, true);
+    }
+
+    /**
+     * Helper method to parse the post-deploy command file.
+     *
+     * @throws IOException
+     */
+    private void parsePostDeployCommandFiles() throws IOException {
+        parseCommandFiles("MICRO-INF/post-deploy-commands.txt", postDeployFileName, postDeployCommands, true);
+    }
+
+    /**
+     * Parse the pre-boot, post-boot, or post-deploy command files - both the embedded one in MICRO-INF and the file
+     * provided by the user.
+     *
+     * @param resourcePath The path of the embedded pre-boot, post-boot, or post-deploy command file.
+     * @param fileName The path of the pre-boot, post-boot, or post-deploy command file provided by the user.
+     * @param bootCommands The {@link BootCommands} object to add the parsed commands to.
+     * @param expandValues Whether variable expansion should be attempted - cannot be done during pre-boot.
+     * @throws IOException
+     */
+    private void parseCommandFiles(String resourcePath, String fileName, BootCommands bootCommands,
+            boolean expandValues) throws IOException {
+        // Load the embedded file
+        URL scriptURL = Thread.currentThread().getContextClassLoader().getResource(resourcePath);
         if (scriptURL != null) {
-            preBootCommands.parseCommandScript(scriptURL);
+            bootCommands.parseCommandScript(scriptURL, expandValues);
         }
 
-        if (preBootFileName != null) {
-            preBootCommands.parseCommandScript(new File(preBootFileName));
-        }
-
-        scriptURL = Thread.currentThread().getContextClassLoader().getResource("MICRO-INF/post-boot-commands.txt");
-        if (scriptURL != null) {
-            postBootCommands.parseCommandScript(scriptURL);
-        }
-
-        if (postBootFileName != null) {
-            postBootCommands.parseCommandScript(new File(postBootFileName));
-        }
-
-        scriptURL = Thread.currentThread().getContextClassLoader().getResource("MICRO-INF/post-deploy-commands.txt");
-        if (scriptURL != null) {
-            postDeployCommands.parseCommandScript(scriptURL);
-        }
-
-        if (postDeployFileName != null) {
-            postDeployCommands.parseCommandScript(new File(postDeployFileName));
+        if (fileName != null) {
+            bootCommands.parseCommandScript(new File(fileName), expandValues);
         }
     }
 
@@ -1972,10 +2019,11 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         }
 
         if (noCluster) {
+            preBootCommands.add(new BootCommand("set", "configs.config.server-config.hazelcast-config-specific-configuration.clustering-enabled=false"));
+        } else if (noHazelcast) {
             preBootCommands.add(new BootCommand("set", "configs.config.server-config.hazelcast-config-specific-configuration.enabled=false"));
             preBootCommands.add(new BootCommand("set", "configs.config.server-config.ejb-container.ejb-timer-service.ejb-timer-service=Dummy"));
         } else {
-
             if (hzPort > Integer.MIN_VALUE) {
                 preBootCommands.add(new BootCommand("set", "hazelcast-runtime-configuration.multicast-port=" + hzPort));
             }
@@ -1989,16 +2037,12 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             }
 
             if (alternateHZConfigFile != null) {
-                preBootCommands.add(new BootCommand("set", "hazelcast-runtime-configuration.hazelcast-configuration-file=" + alternateHZConfigFile.getName()));
+                preBootCommands.add(new BootCommand("set", "hazelcast-runtime-configuration.hazelcast-configuration-file=" + alternateHZConfigFile.getPath()));
             }
             preBootCommands.add(new BootCommand("set", "configs.config.server-config.hazelcast-config-specific-configuration.lite=" + liteMember));
 
             if (hzClusterName != null) {
                 preBootCommands.add(new BootCommand("set", "hazelcast-runtime-configuration.cluster-group-name=" + hzClusterName));
-            }
-
-            if (hzClusterPassword != null) {
-                preBootCommands.add(new BootCommand("set", "hazelcast-runtime-configuration.cluster-group-password=" + hzClusterPassword));
             }
 
             if (instanceName != null) {
@@ -2086,11 +2130,10 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     }
 
     private Map.Entry<String, URI> getGAVURI(String gav) throws GlassFishException {
-        GAVConvertor gavConvertor = new GAVConvertor();
         try {
-            Map.Entry<String, URL> artefactMapEntry = gavConvertor.getArtefactMapEntry(gav, repositoryURLs);
-            return new AbstractMap.SimpleImmutableEntry<>(artefactMapEntry.getKey(), artefactMapEntry.getValue().toURI());
-        } catch (MalformedURLException | URISyntaxException ex) {
+            Map.Entry<String, URI> artefactMapEntry = GAVConvertor.getArtefactMapEntry(gav, repositoryURIs);
+            return new AbstractMap.SimpleImmutableEntry<>(artefactMapEntry.getKey(), artefactMapEntry.getValue());
+        } catch (URISyntaxException ex) {
             throw new GlassFishException(ex.getMessage());
         }
     }
@@ -2221,7 +2264,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         if (alternateHZConfigFileStr != null && !alternateHZConfigFileStr.isEmpty()) {
             alternateHZConfigFile = new File(alternateHZConfigFileStr);
         }
-        
+
         String userLogPropertiesFileStr = getProperty("payaramicro.logPropertiesFile");
         if (userLogPropertiesFileStr  != null && !userLogPropertiesFileStr.trim().isEmpty()) {
              setLogPropertiesFile(new File(userLogPropertiesFileStr));
@@ -2247,11 +2290,11 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         hostAware = getBooleanProperty("payaramicro.hostAware", "true");
         hzStartPort = getIntegerProperty("payaramicro.startPort", Integer.MIN_VALUE);
         hzClusterName = getProperty("payaramicro.clusterName");
-        hzClusterPassword = getProperty("payaramicro.clusterPassword");
         liteMember = getBooleanProperty("payaramicro.lite");
         maxHttpThreads = getIntegerProperty("payaramicro.maxHttpThreads", Integer.MIN_VALUE);
         minHttpThreads = getIntegerProperty("payaramicro.minHttpThreads", Integer.MIN_VALUE);
         noCluster = getBooleanProperty("payaramicro.noCluster");
+        noHazelcast = getBooleanProperty("payaramicro.noHazelcast");
         disablePhoneHome = getBooleanProperty("payaramicro.disablePhoneHome");
         enableRequestTracing = getBooleanProperty("payaramicro.enableRequestTracing");
         requestTracingThresholdUnit = getProperty("payaramicro.requestTracingThresholdUnit", "SECONDS");
@@ -2374,10 +2417,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             props.setProperty("payaramicro.clusterName", hzClusterName);
         }
 
-        if (hzClusterPassword != null) {
-            props.setProperty("payaramicro.clusterPassword", hzClusterPassword);
-        }
-
         if (clustermode != null) {
             props.setProperty("payaramicro.clusterMode", clustermode);
         }
@@ -2410,6 +2449,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         props.setProperty("payaramicro.logPropertiesFile", Boolean.toString(logPropertiesFile));
         props.setProperty("payaramicro.enableDynamicLogging", Boolean.toString(enableDynamicLogging));
         props.setProperty("payaramicro.noCluster", Boolean.toString(noCluster));
+        props.setProperty("payaramicro.noHazelcast", Boolean.toString(noHazelcast));
         props.setProperty("payaramicro.hostAware", Boolean.toString(hostAware));
         props.setProperty("payaramicro.disablePhoneHome", Boolean.toString(disablePhoneHome));
         props.setProperty("payaramicro.showServletMappings", Boolean.toString(showServletMappings));

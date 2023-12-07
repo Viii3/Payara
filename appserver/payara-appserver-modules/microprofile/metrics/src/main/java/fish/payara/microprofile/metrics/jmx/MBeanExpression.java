@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *    Copyright (c) [2018] Payara Foundation and/or its affiliates. All rights reserved.
+ *    Copyright (c) [2018-2021] Payara Foundation and/or its affiliates. All rights reserved.
  * 
  *     The contents of this file are subject to the terms of either the GNU
  *     General Public License Version 2 only ("GPL") or the Common Development
@@ -40,15 +40,14 @@
 
 package fish.payara.microprofile.metrics.jmx;
 
-import static fish.payara.microprofile.metrics.jmx.MBeanMetadataHelper.ATTRIBUTE_SEPARATOR;
-import static fish.payara.microprofile.metrics.jmx.MBeanMetadataHelper.SUB_ATTRIBUTE_SEPARATOR;
+import static fish.payara.microprofile.metrics.jmx.MetricsMetadataHelper.ATTRIBUTE_SEPARATOR;
+import static fish.payara.microprofile.metrics.jmx.MetricsMetadataHelper.SUB_ATTRIBUTE_SEPARATOR;
 import java.lang.management.ManagementFactory;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 import static java.util.logging.Level.WARNING;
 import java.util.logging.Logger;
 import javax.management.AttributeNotFoundException;
@@ -137,11 +136,12 @@ public class MBeanExpression {
                 CompositeData compositeData = (CompositeData) attribute;
                 return (Number) compositeData.get(getSubAttributeName());
             } else {
-                throw new IllegalArgumentException(getMBean());
+                throw new IllegalArgumentException("The MBean expression is neither a number nor CompositeData: " + getMBean() + ", attribute " + attributeName + ", type " + attribute.getClass());
             }
+        } catch (InstanceNotFoundException ex) {
+            throw new IllegalStateException("MBean instance not found: " + ex.getMessage(), ex);
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-            throw new IllegalStateException(ex);
+            throw new IllegalStateException("Unable to get numeric value of MBean: " + ex.getMessage(), ex);
         }
     }
 

@@ -306,6 +306,8 @@ public class RequestTrace implements Serializable, Comparable<RequestTrace> {
                 RequestTraceSpan bestMatchingParent = null;
                 for (RequestTraceSpan comparisonSpan : trace) {
                     if (span.getTimeOccured() > comparisonSpan.getTimeOccured()
+                            && span.getTraceEndTime() != null
+                            && comparisonSpan.getTraceEndTime() != null
                             && span.getTraceEndTime().compareTo(comparisonSpan.getTraceEndTime()) < 0) {
                         if (bestMatchingParent == null) {
                             bestMatchingParent = comparisonSpan;

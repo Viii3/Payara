@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2016-2018 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2023 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,8 +56,9 @@ import org.jvnet.hk2.annotations.Service;
 
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.monitor.LocalTopicStats;
+import com.hazelcast.topic.LocalTopicStats;
 import com.hazelcast.topic.impl.TopicService;
+import java.util.UUID;
 
 /**
  * A Hazelcast based Event Bus for Payara
@@ -107,7 +108,7 @@ public class EventBus implements EventListener, MonitoringDataSource {
      * @param message
      * @return 
      */
-    public boolean publish(String topic, ClusterMessage message) {
+    public boolean publish(String topic, ClusterMessage<?> message) {
         boolean result = false;
         if (hzCore.isEnabled()) {
             hzCore.getInstance().getTopic(topic).publish(message);
@@ -123,14 +124,15 @@ public class EventBus implements EventListener, MonitoringDataSource {
      * @return true if successfully registered, false otherwise (i.e. if Hazelcast
      * is not enabled)
      */
-    public boolean addMessageReceiver(String topic, MessageReceiver mr) {
+    @SuppressWarnings("unchecked")
+    public boolean addMessageReceiver(String topic, MessageReceiver<?> mr) {
         boolean result = false;
         if (hzCore.isEnabled()) {
             TopicListener tl = messageReceivers.get(topic);
             if (tl == null) {
                 // create a topic listener on the specified topic
                 TopicListener newTL = new TopicListener(topic);
-                String regId = hzCore.getInstance().getTopic(topic).addMessageListener(newTL);
+                UUID regId = hzCore.getInstance().getTopic(topic).addMessageListener(newTL);
                 messageReceivers.put(topic, newTL);
                 tl = newTL;
                 tl.setRegistrationID(regId);
@@ -147,7 +149,7 @@ public class EventBus implements EventListener, MonitoringDataSource {
      * @param topic The name of the topic that messages have been received on
      * @param mr The {@link MessageReciever} to stop listening for messages
      */
-    public void removeMessageReceiver(String topic, MessageReceiver mr) {
+    public void removeMessageReceiver(String topic, MessageReceiver<?> mr) {
         TopicListener tl = messageReceivers.get(topic);
         if (tl != null) {
             int remaining = tl.removeMessageReceiver(mr);
@@ -163,6 +165,7 @@ public class EventBus implements EventListener, MonitoringDataSource {
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void event(Event event) {
         if (event.is(HazelcastEvents.HAZELCAST_BOOTSTRAP_COMPLETE) && hzCore.isEnabled()) {
             logger.config("Payara Clustered Event Bus Enabled");

@@ -2,7 +2,7 @@
 
    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
   
-   Copyright (c) [2016-2020] Payara Foundation and/or its affiliates. All rights reserved.
+   Copyright (c) [2016-2022] Payara Foundation and/or its affiliates. All rights reserved.
   
    The contents of this file are subject to the terms of either the GNU
    General Public License Version 2 only ("GPL") or the Common Development
@@ -57,13 +57,13 @@
         setPageSessionAttribute(key="convertToFalseList", value={"enabled","dynamic","autoIncrementPort","hostAwarePartitioning","encryptDatagrid"});
         setSessionAttribute(key="hazelcastTabs" value="hazelcastConfig");
         if (#{pageSession.valueMap['enabled']}=true) {
-        setPageSessionAttribute(key="enabledSelected", value="true");
+            setPageSessionAttribute(key="enabledSelected", value="true");
         }
         setPageSessionAttribute(key="dynamic", value="false");
         setPageSessionAttribute(key="clusterMode", value="#{pageSession.valueMap['clusterMode']}");
         mapPut(map="#{pageSession.valueMap}" key="target" value="domain");
         setAttribute(key="zero" value="$int{0}");
-        />
+    />
 </event>
 #include"/hazelcast/hazelcast.js"
 <sun:form id="propertyForm">
@@ -102,7 +102,7 @@
                     }
 
                     gf.updateEntity(endpoint="#{sessionScope.REST_URL}/set-hazelcast-configuration" attrs="#{pageSession.valueMap}" convertToFalse="#{pageSession.convertToFalseList}");
-                    />
+                />
             </sun:button>
         </sun:panelGroup>
     </facet>
@@ -138,14 +138,11 @@
         <sun:property id="clusterNameProp" labelAlign="left" noWrap="#{true}" overlapLabel="#{false}" label="$resource{i18nhc.hazelcast.configuration.clusterName}"  helpText="$resource{i18nhc.hazelcast.configuration.clusterNameHelp}">
             <sun:textField id="clusterName" columns="$int{40}" maxLength="30" text="#{pageSession.valueMap['clusterName']}" />
         </sun:property>
-        <sun:property id="clusterPasswordProp" labelAlign="left" noWrap="#{true}" overlapLabel="#{false}" label="$resource{i18nhc.hazelcast.configuration.clusterPassword}"  helpText="$resource{i18nhc.hazelcast.configuration.clusterPasswordHelp}">
-            <sun:passwordField id="clusterName" columns="$int{40}" maxLength="30" text="#{pageSession.valueMap['clusterPassword']}" />
-        </sun:property>
         <sun:property id="startPortProp" labelAlign="left" noWrap="#{true}" overlapLabel="#{false}" label="$resource{i18nhc.hazelcast.configuration.startPort}"  helpText="$resource{i18nhc.hazelcast.configuration.startPortHelp}">
             <sun:textField id="startPort" columns="$int{40}"  styleClass="integer" maxLength="30" text="#{pageSession.valueMap['startPort']}" />
         </sun:property>
         <sun:property id="licenseKeyProp" labelAlign="left" noWrap="#{true}" overlapLabel="#{false}" label="$resource{i18nhc.hazelcast.configuration.licenseKey}"  helpText="$resource{i18nhc.hazelcast.configuration.licenseKeyHelp}">
-            <sun:textField id="licenseKey" columns="$int{40}" maxLength="100" text="#{pageSession.valueMap['licenseKey']}" />
+            <sun:textField id="licenseKey" columns="$int{40}" maxLength="200" text="#{pageSession.valueMap['licenseKey']}" />
         </sun:property> 
         <sun:property id="hostawareProp" labelAlign="left" noWrap="#{true}" overlapLabel="#{false}" label="$resource{i18nhc.hazelcast.configuration.hostaware}"  helpText="$resource{i18nhc.hazelcast.configuration.hostawareHelp}">
             <sun:checkbox id="hostaware" selected="#{pageSession.valueMap['hostAwarePartitioning']}" selectedValue="true" />
