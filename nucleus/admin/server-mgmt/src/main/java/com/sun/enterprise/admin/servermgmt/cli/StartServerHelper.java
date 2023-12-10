@@ -102,6 +102,7 @@ public class StartServerHelper {
     private static final String PROPS_PORT_NAME = "_PORT";
     
     private static final String PROPS_HZ_PORT_NAME = "HZ_LISTENER_PORT";
+    private static final String PROPS_JMS_PROVIDER_PORT = "JMS_PROVIDER_PORT";
 
     public StartServerHelper(Logger logger0, boolean terse0,
             ServerDirs serverDirs0, GFLauncher launcher0,
@@ -358,7 +359,8 @@ public class StartServerHelper {
                 host = addr.getHost();
                 Map<String, String> propsFromXMl = this.launcher.getSysPropsFromXml();
                 Set<Map.Entry<String, String>> setOfPorts = propsFromXMl.entrySet().stream()
-                        .filter(e -> !e.getKey().contains(PROPS_HZ_PORT_NAME) 
+                        .filter(e -> !e.getKey().contains(PROPS_HZ_PORT_NAME)
+                                && !e.getKey().contains(PROPS_JMS_PROVIDER_PORT)
                                 && e.getKey().contains(PROPS_PORT_NAME)).collect(Collectors.toSet());
                 for (Map.Entry<String, String> e: setOfPorts) {
                     if(!NetUtils.isPortFree(host, Integer.parseInt(e.getValue()))) {
