@@ -360,6 +360,7 @@ public class StartServerHelper {
                 Map<String, String> propsFromXMl = this.launcher.getSysPropsFromXml();
                 Set<Map.Entry<String, String>> setOfPorts = propsFromXMl.entrySet().stream()
                         .filter(e -> !e.getKey().contains(PROPS_HZ_PORT_NAME)
+                                // Ignore JMS as it might be set to REMOTE
                                 && !e.getKey().contains(PROPS_JMS_PROVIDER_PORT)
                                 && e.getKey().contains(PROPS_PORT_NAME)).collect(Collectors.toSet());
                 for (Map.Entry<String, String> e: setOfPorts) {
