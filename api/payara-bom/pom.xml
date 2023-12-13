@@ -1,7 +1,7 @@
 <!--
   ~    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
   ~
-  ~    Copyright (c) [2019-2021] Payara Foundation and/or its affiliates. All rights reserved.
+  ~    Copyright (c) [2019-2023] Payara Foundation and/or its affiliates. All rights reserved.
   ~
   ~    The contents of this file are subject to the terms of either the GNU
   ~    General Public License Version 2 only ("GPL") or the Common Development
@@ -696,9 +696,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.sun.messaging.mq</groupId>
+                <groupId>org.glassfish.mq</groupId>
                 <artifactId>imqjmx</artifactId>
-                <version>4.4.2</version>
+                <version>5.1</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.mq</groupId>
