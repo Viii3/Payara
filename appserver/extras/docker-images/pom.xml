@@ -153,6 +153,8 @@
                                         <copy file="src/main/docker/Dockerfile" toFile="target/antrun/Dockerfile.jdk8">
                                             <filterset>
                                                 <filter token="docker.java.image" value="${docker.java.repository}:${docker.jdk8.tag}"/>
+                                                <filter token="docker.payara.domainName" value="${docker.payara.domainName}"/>
+                                                <filter token="docker.payara.rootDirectoryName" value="${docker.payara.rootDirectoryName}"/>
                                             </filterset>
                                         </copy>
                                         <copy file="src/main/docker/Dockerfile" toFile="target/antrun/Dockerfile.jdk11">
