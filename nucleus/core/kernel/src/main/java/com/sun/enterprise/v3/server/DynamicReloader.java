@@ -47,7 +47,9 @@ import com.sun.enterprise.config.serverbeans.ServerTags;
 import com.sun.enterprise.v3.admin.CommandRunnerImpl;
 import com.sun.enterprise.admin.report.XMLActionReporter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -310,7 +312,17 @@ public class DynamicReloader implements Runnable {
             boolean answer = reloadFile.lastModified() > latestRecordedLoad;
             return answer;
         }
-        
+
+        private Properties readReloadFile() {
+            Properties prop = new Properties();
+            try (InputStream istream = new FileInputStream(reloadFile)) {
+                prop.load(istream);
+            } catch (Exception ex) {
+                // skip
+            }
+            return prop;
+        }
+
         private void recordLoad() {
             latestRecordedLoad = System.currentTimeMillis();
         }
