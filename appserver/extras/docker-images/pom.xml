@@ -129,7 +129,7 @@
             </modules>
         </profile>
         <profile>
-            <id>generate-docker-images</id>
+            <id>generate-jdk-8-and-11-docker-images</id>
             <activation>
                 <file>
                     <!-- Essentially - Skip this aggregator pom -->
@@ -174,7 +174,7 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>build-docker-image</id>
+                                <id>build-jdk-8-and-11-docker-images</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
@@ -226,7 +226,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>deploy-docker-image</id>
+                                <id>deploy-jdk-8-and-11-docker-images</id>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
@@ -327,7 +327,7 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>build-docker-image-jdk17</id>
+                                <id>build-jdk17-docker-image</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
@@ -362,7 +362,7 @@
                             </execution>
 
                             <execution>
-                                <id>deploy-docker-image</id>
+                                <id>deploy-jdk17-docker-image</id>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
@@ -440,7 +440,7 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>build-docker-image-jdk21</id>
+                                <id>build-jdk21-docker-image</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
@@ -475,7 +475,7 @@
                             </execution>
 
                             <execution>
-                                <id>deploy-docker-image-jdk21</id>
+                                <id>deploy-jdk21-docker-image</id>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
