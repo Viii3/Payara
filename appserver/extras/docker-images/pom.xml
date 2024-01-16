@@ -129,7 +129,7 @@
             </modules>
         </profile>
         <profile>
-            <id>generate-jdk-8-and-11-docker-images</id>
+            <id>generate-jdk8-and-11-docker-images</id>
             <activation>
                 <file>
                     <!-- Essentially - Skip this aggregator pom -->
@@ -143,7 +143,7 @@
                         <artifactId>maven-antrun-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>filter-jdk-8-and-11-dockerfiles</id>
+                                <id>filter-jdk8-and-11-dockerfiles</id>
                                 <phase>package</phase>
                                 <goals>
                                     <goal>run</goal>
@@ -174,7 +174,7 @@
                         <artifactId>docker-maven-plugin</artifactId>
                         <executions>
                             <execution>
-                                <id>build-jdk-8-and-11-docker-images</id>
+                                <id>build-jdk8-and-11-docker-images</id>
                                 <goals>
                                     <goal>build</goal>
                                 </goals>
@@ -226,7 +226,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>deploy-jdk-8-and-11-docker-images</id>
+                                <id>deploy-jdk8-and-11-docker-images</id>
                                 <goals>
                                     <goal>push</goal>
                                 </goals>
