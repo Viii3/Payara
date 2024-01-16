@@ -197,6 +197,11 @@
                                                     <descriptor>assembly.xml</descriptor>
                                                     <tarLongFileMode>gnu</tarLongFileMode>
                                                 </assembly>
+                                                <buildx>
+                                                    <platforms>
+                                                        <platform>${docker.platforms}</platform>
+                                                    </platforms>
+                                                </buildx>
                                             </build>
                                         </image>
                                         <image>
