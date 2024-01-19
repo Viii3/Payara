@@ -271,6 +271,7 @@
         <jxmpp.version>0.6.4</jxmpp.version>
         <minidns.version>0.3.4</minidns.version>
         <certificate-management.version>1.0.0</certificate-management.version>
+        <license-maven-plugin.version>2.3.0</license-maven-plugin.version>
     </properties>
 
     <profiles>
@@ -452,6 +453,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>download-and-aggregate-licenses</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>license:aggregate-add-third-party</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -499,6 +521,19 @@
                         <testExcludes>
                             <testExclude>**/.ade_path/**</testExclude>
                         </testExcludes>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>${license-maven-plugin.version}</version>
+                    <configuration>
+                        <outputDirectory>${project.basedir}/appserver/packager/legal/src/main/resources/glassfish/legal</outputDirectory>
+                        <thirdPartyFilename>3RD-PARTY-LICENSE.txt</thirdPartyFilename>
+                        <excludedGroups>fish.payara.*</excludedGroups>
+                        <fileTemplate>appserver/packager/legal/src/main/resources/license-template.ftl</fileTemplate>
+                        <missingFile>${project.basedir}/appserver/packager/legal/src/main/resources/THIRD-PARTY.properties</missingFile>
+                        <force>true</force>
                     </configuration>
                 </plugin>
                 <plugin>
