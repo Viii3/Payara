@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2019] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.v3.server;
 
@@ -47,7 +47,9 @@ import com.sun.enterprise.config.serverbeans.ServerTags;
 import com.sun.enterprise.v3.admin.CommandRunnerImpl;
 import com.sun.enterprise.admin.report.XMLActionReporter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -55,12 +57,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import javax.security.auth.Subject;
 import org.glassfish.api.admin.ParameterMap;
 import org.glassfish.api.admin.config.ApplicationName;
+import org.glassfish.api.deployment.DeployCommandParameters;
 import org.glassfish.deployment.common.DeploymentProperties;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.internal.api.InternalSystemAdministrator;
@@ -242,8 +246,12 @@ public class DynamicReloader implements Runnable {
         deployParam.set(DeploymentProperties.PATH, appInfo.getApplicationDirectory().getCanonicalPath());
         deployParam.set(DeploymentProperties.NAME, appInfo.getApplication().getName());
         deployParam.set(DeploymentProperties.KEEP_REPOSITORY_DIRECTORY, "true");
+        Properties reloadFile = appInfo.readReloadFile();
+        boolean keepState = Boolean.parseBoolean(reloadFile.getProperty(DeployCommandParameters.ParameterNames.KEEP_STATE));
+        if(keepState) {
+            deployParam.set(DeployCommandParameters.ParameterNames.KEEP_STATE, "true");
+        }
         commandRunner.getCommandInvocation("deploy", new XMLActionReporter(), kernelSubject).parameters(deployParam).execute();
-        
         
         appInfo.recordLoad();
     }
@@ -304,7 +312,17 @@ public class DynamicReloader implements Runnable {
             boolean answer = reloadFile.lastModified() > latestRecordedLoad;
             return answer;
         }
-        
+
+        private Properties readReloadFile() {
+            Properties prop = new Properties();
+            try (InputStream istream = new FileInputStream(reloadFile)) {
+                prop.load(istream);
+            } catch (Exception ex) {
+                // skip
+            }
+            return prop;
+        }
+
         private void recordLoad() {
             latestRecordedLoad = System.currentTimeMillis();
         }
