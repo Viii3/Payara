@@ -330,7 +330,7 @@
         <jxmpp.version>0.6.4</jxmpp.version>
         <minidns.version>0.3.4</minidns.version>
         <certificate-management.version>1.0.1</certificate-management.version>
-        <license-maven-plugin.version>2.3.0</license-maven-plugin.version>
+        <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
         <diagnostics-tool.version>1.0.0</diagnostics-tool.version>
     </properties>
 
@@ -543,22 +543,16 @@
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${license-maven-plugin.version}</version>
                 <inherited>false</inherited>
                 <executions>
                     <execution>
                         <id>download-and-aggregate-licenses</id>
-                        <phase>validate</phase>
+                        <phase>generate-resources</phase>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>aggregate-add-third-party</goal>
                         </goals>
-                        <configuration>
-                            <executable>mvn</executable>
-                            <arguments>
-                                <argument>license:aggregate-add-third-party</argument>
-                            </arguments>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
