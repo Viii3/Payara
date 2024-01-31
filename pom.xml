@@ -268,7 +268,7 @@
         <upgrade.tool.version>1.8</upgrade.tool.version>
         <osgi.version>8.0.0</osgi.version>
         <osgi.cmpn.version>7.0.0</osgi.cmpn.version>
-        <osgi.enterprise.version>8.0.0</osgi.enterprise.version>
+        <osgi.enterprise.version>7.0.0</osgi.enterprise.version>
         <osgi.annotation.version>8.1.0</osgi.annotation.version>
         <osgi.dto.version>1.1.1</osgi.dto.version>
         <jxmpp.version>0.6.4</jxmpp.version>
