@@ -449,7 +449,7 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>osgi.annotation</artifactId>
-                <version>${osgi.version}</version>
+                <version>${osgi.annotation.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
