@@ -40,7 +40,7 @@
     holder.
 
 -->
-<!-- Portions Copyright 2016-2023 Payara Foundation and/or its affiliates -->
+<!-- Portions Copyright 2016-2024 Payara Foundation and/or its affiliates -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -122,7 +122,7 @@
         <hk2.plugin.version>2.6.1.payara-p8</hk2.plugin.version>
         <tiger.types.version>1.4.payara-p1</tiger.types.version>
 
-        <glassfish-corba.version>4.1.1.payara-p5</glassfish-corba.version>
+        <glassfish-corba.version>4.1.1.payara-p6</glassfish-corba.version>
         <saaj-api.version>1.4.0</saaj-api.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
