@@ -1554,7 +1554,8 @@ public class WebModule extends PwcWebModule implements Context {
         } else if(name.startsWith("alternatedocroot_")) {
             parseAlternateDocBase(name, value);
         } else if(name.startsWith("valve_") ||
-                name.startsWith("listener_")) {
+            name.startsWith("listener_") ||
+            name.startsWith("send-error_")) {
             // do nothing; these properties are dealt with
             // in configureCatalinaProperties()
         } else {
