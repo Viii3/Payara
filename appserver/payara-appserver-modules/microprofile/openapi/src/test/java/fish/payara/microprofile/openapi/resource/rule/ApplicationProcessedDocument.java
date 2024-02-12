@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2018-2023] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2018-2024 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,9 +78,11 @@ public class ApplicationProcessedDocument {
             // Apply base processor
             new BaseProcessor(asList(new URL("http://localhost:8080/testlocation_123"))).process(document, null);
 
-            // Apply application processor
-            new ApplicationProcessor(OpenAPISupplier.typesToMap(getTypes()), getApplicationTypes(extraClasses), appClassLoader)
-                    .process(document, null);
+            File userDir = new File(System.getProperty("user.dir"));
+            File modelDir = new File(userDir, "target" + File.separator + "test-classes");
+
+            new ApplicationProcessor(OpenAPISupplier.typesToMap(getTypes(), modelDir.toURI()),
+                    getApplicationTypes(extraClasses), appClassLoader).process(document, null);
             if (filter != null) {
                 new FilterProcessor(filter.newInstance()).process(document, null);
             }
