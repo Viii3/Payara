@@ -123,7 +123,7 @@ pipeline {
                     }
                     post {
                         always {
-                            processReportAndStopDomain()
+                            stopDomain()
                         }
                         cleanup {
                             saveLogsAndCleanup 'mp-tck-log.zip'
