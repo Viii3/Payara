@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2024 Payara Foundation and/or affiliates
 
 package org.glassfish.kernel.event;
 
@@ -48,6 +49,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
+
+import com.hazelcast.replicatedmap.ReplicatedMapCantBeCreatedOnLiteMemberException;
 import org.glassfish.api.event.EventListener;
 import org.glassfish.api.event.EventListener.Event;
 import org.glassfish.api.event.EventTypes;
@@ -121,6 +124,7 @@ public class EventsImpl implements Events {
                     public void run() {
                         try {
                             listener.event(event);
+                        } catch (ReplicatedMapCantBeCreatedOnLiteMemberException e) { // Ignore
                         } catch(Throwable e) {
                             logger.log(Level.WARNING, KernelLoggerInfo.exceptionDispatchEvent, e);
                         }
