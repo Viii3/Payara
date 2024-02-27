@@ -5,9 +5,25 @@
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
+  # Configuration for Maven
+  - package-ecosystem: "maven" 
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    open-pull-requests-limit: 5
+    target-branch: "master"
+  # Configuration for git submodule
+  - package-ecosystem: "git submodule" 
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    target-branch: "master"
+  # Configuration for Dockerfile
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      # Disable all pull requests for Docker dependencies
     open-pull-requests-limit: 5
     target-branch: "master"
