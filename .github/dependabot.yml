@@ -13,13 +13,6 @@ updates:
     open-pull-requests-limit: 5
     target-branch: "master"
   # Configuration for git submodule
-  - package-ecosystem: "git submodule" 
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    target-branch: "master"
-  # Configuration for Dockerfile
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
