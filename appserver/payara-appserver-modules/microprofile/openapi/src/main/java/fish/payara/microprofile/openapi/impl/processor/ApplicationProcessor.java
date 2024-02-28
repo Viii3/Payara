@@ -1254,6 +1254,10 @@ public class ApplicationProcessor implements OASProcessor, ApiVisitor {
 
         if (schema == null) {
             schema = new SchemaImpl();
+        }
+
+        // if there is a known type, but not set in schema, use it
+        if (schema.getType() == null) {
             schema.setType(schemaType);
         }
 
