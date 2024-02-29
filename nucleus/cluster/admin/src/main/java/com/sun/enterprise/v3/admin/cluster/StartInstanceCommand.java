@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  * 
- * Portions Copyright [2018-2023] [Payara Foundation and/or its affiliates]
+ * Portions Copyright [2018-2024] [Payara Foundation and/or its affiliates]
  */
 package com.sun.enterprise.v3.admin.cluster;
 
@@ -127,7 +127,7 @@ public class StartInstanceCommand implements AdminCommand {
     @Min(message = "Timeout must be at least 1 second long.", value = 1)
     @Param(optional = true, defaultValue = "120")
     private int timeout;
-
+    
     @Inject
     private ServiceLocator serviceLocator;
 
@@ -139,7 +139,7 @@ public class StartInstanceCommand implements AdminCommand {
 
     @Inject
     private Servers servers;
-
+    
     @Inject
     private PayaraExecutorService executor;
 
@@ -152,7 +152,7 @@ public class StartInstanceCommand implements AdminCommand {
     private Server instance;
 
     private static final String NL = System.getProperty("line.separator");
-
+    
 
     /**
      * restart-instance needs to try to start the instance from scratch if it is not
@@ -197,7 +197,7 @@ public class StartInstanceCommand implements AdminCommand {
             report.setMessage(msg);
             return;
         }
-
+        
         instance = servers.getServer(instanceName);
         if (instance == null) {
             msg = Strings.get("start.instance.noSuchInstance", instanceName);
@@ -245,7 +245,7 @@ public class StartInstanceCommand implements AdminCommand {
 
         if (report.getActionExitCode() == SUCCESS) {
             // Make sure instance is really up
-            if (!pollForLife(instance)) {
+            if (!pollForLife(instance, executor, timeout)) {
                 report.setMessage(Strings.get("start.instance.timeout", instanceName));
                 report.setActionExitCode(FAILURE);
             }
@@ -274,10 +274,10 @@ public class StartInstanceCommand implements AdminCommand {
 
         command.add("--sync");
         command.add(sync);
-
+        
         command.add("--timeout");
         command.add(timeout + "");
-
+      
         if (debug) {
             command.add("--debug");
         }
@@ -331,7 +331,7 @@ public class StartInstanceCommand implements AdminCommand {
      * 
      * @return true if the instance started up, or false otherwise.
      */
-    private boolean pollForLife(Server instance) {
+    static boolean pollForLife(Server instance, PayaraExecutorService executor, int timeout) {
 
         // Start a new thread to check when the instance has started
         CountDownLatch instanceTimeout = new CountDownLatch(1);
