@@ -236,7 +236,6 @@
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <jsonp.version>1.1.6</jsonp.version>
         <jbi.version>1.0</jbi.version>
-        <jakarta-platform.version>8.0.0</jakarta-platform.version>
         <microprofile-release.version>4.1</microprofile-release.version>
         <microprofile-opentracing.version>2.0</microprofile-opentracing.version>
         <microprofile-config.version>2.0.1</microprofile-config.version>

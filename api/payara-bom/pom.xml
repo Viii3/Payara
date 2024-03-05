@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-web-api</artifactId>
-                <version>${jakarta-platform.version}</version>
+                <version>${jakartaee.api.version}</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-bom</artifactId>
-                <version>${jakarta-platform.version}</version>
+                <version>${jakartaee.api.version}</version>
                 <type>pom</type>
             </dependency>
 
