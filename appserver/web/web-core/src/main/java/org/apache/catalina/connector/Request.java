@@ -2943,7 +2943,6 @@ public class Request implements HttpRequest, HttpServletRequest {
     // ------------------------------------------------------ Protected Methods
 
     protected Session doGetSession(boolean create) {
-
         // There cannot be a session if no context has been assigned yet
         if (context == null) {
             return null;
