@@ -756,9 +756,10 @@ public class StandardSession implements HttpSession, Session, Serializable {
      */
     @Override
     public void access() {
-        this.lastAccessedTime = this.thisAccessedTime;
-        this.thisAccessedTime = System.currentTimeMillis();
-
+        synchronized (this) {
+            this.lastAccessedTime = this.thisAccessedTime;
+            this.thisAccessedTime = System.currentTimeMillis();
+        }
         evaluateIfValid();
     }
 
