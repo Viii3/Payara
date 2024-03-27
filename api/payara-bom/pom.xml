@@ -718,13 +718,13 @@
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>jakarta.json</artifactId>
-                <version>${jsonp.version}</version>
+                <version>${jsonp.impl.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>jsonp-jaxrs</artifactId>
-                <version>${jsonp.version}</version>
+                <version>${jsonp.impl.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ibm.jbatch</groupId>
