@@ -56,7 +56,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates]
 
 package org.apache.catalina.session;
 
@@ -1089,7 +1089,18 @@ public class StandardSession implements HttpSession, Session, Serializable {
      */
     @Override
     public boolean hasExpired() {
-        return maxInactiveInterval >= 0 && (System.currentTimeMillis() - thisAccessedTime >= maxInactiveInterval * 1000L);
+        LOGGER.info("hasExpired() -> Thread:" + Thread.currentThread().toString());
+        LOGGER.info("hasExpired() -> lastAccessedTime:" + this.lastAccessedTime);
+        LOGGER.info("hasExpired() -> thisAccessedTime:" + this.thisAccessedTime);
+        LOGGER.info("hasExpired() -> thisCreationTime:" + this.creationTime);
+        LOGGER.info("hasExpired() -> currentTime:" + System.currentTimeMillis());
+        LOGGER.info("hasExpired() -> maxInactiveInterval:" + maxInactiveInterval);
+        long diff = System.currentTimeMillis() - this.thisAccessedTime;
+        LOGGER.info("hasExpired() -> diff:" + diff);
+        long maxIncInterval = maxInactiveInterval * 1000L;
+        LOGGER.info("hasExpired() -> maxIncInterval:" + maxIncInterval);
+        return maxInactiveInterval >= 0
+                && (diff >= maxIncInterval);
     }
     // END SJSAS 6329289
 
