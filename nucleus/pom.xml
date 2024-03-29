@@ -182,7 +182,7 @@
         <nucleus.install.dir.name>nucleus</nucleus.install.dir.name>
         <ant.version>1.10.14</ant.version>
         <ant-launcher.version>1.10.14</ant-launcher.version>
-        <metainf-services.version>1.9</metainf-services.version>
+        <metainf-services.version>1.11</metainf-services.version>
 
         <!-- Debug / analysis -->
         <findbugs.skip>true</findbugs.skip>
