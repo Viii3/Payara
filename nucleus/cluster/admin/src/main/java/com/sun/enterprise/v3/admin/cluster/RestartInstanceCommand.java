@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2022] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2018-2024] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.v3.admin.cluster;
 
@@ -57,7 +57,7 @@ import org.glassfish.api.admin.*;
 import org.glassfish.hk2.api.PerLookup;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.jvnet.hk2.annotations.Service;
-
+import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.ArrayList;
@@ -65,8 +65,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.sun.enterprise.v3.admin.cluster.StartInstanceCommand.pollForLife;
+
 /**
- *
  * @author bnevins
  */
 @Service(name = "restart-instance")
@@ -136,6 +137,9 @@ public class RestartInstanceCommand implements AdminCommand {
     private String oldPid;
 
     private AdminCommandContext context;
+    
+    @Inject
+    private PayaraExecutorService executor;
 
     @Override
     public void execute(AdminCommandContext ctx) {
@@ -168,13 +172,14 @@ public class RestartInstanceCommand implements AdminCommand {
                 logger.log(Level.FINE, "Restart-instance old-pid = {0}", oldPid);
             callInstance();
             checkForRestart();
-
+            pollForLife(instance, executor, timeout);
+            synchronizeInstance();
+            
             if (!isError()) {
                 String msg = Strings.get("restart.instance.success", instanceName);
                 logger.info(msg);
                 report.setMessage(msg);
             }
-            synchronizeInstance();
         } catch (InstanceNotRunningException inre) {
             start();
         } catch (CommandException ce) {
@@ -210,10 +215,8 @@ public class RestartInstanceCommand implements AdminCommand {
         // Convert the command into a string representing the command a human should run.
         humanCommand = makeCommandHuman(command);
 
-
         String msg;
         String nodeHost;
-
 
         if (node != null) {
             nodeHost = node.getNodeHost();
@@ -295,7 +298,6 @@ public class RestartInstanceCommand implements AdminCommand {
 
     /**
      * return null if all went OK...
-     *
      */
     private void callInstance() throws CommandException {
         if (isError())
@@ -324,8 +326,7 @@ public class RestartInstanceCommand implements AdminCommand {
         try {
             rac = createRac(cmdName);
             rac.executeCommand(new ParameterMap());
-        }
-        catch (CommandException ex) {
+        } catch (CommandException ex) {
             // there is only one reason that _get-runtime-info would have a problem
             // namely if the instance isn't running.
             throw new InstanceNotRunningException();
@@ -399,7 +400,7 @@ public class RestartInstanceCommand implements AdminCommand {
         return rac.findPropertyInReport("pid");
     }
 
-    /* 
+    /*
      * The instance is not running -- so let's try to start it.
      * There is no good way to call a Command on ourself.  So use the
      * command directly.
@@ -410,8 +411,7 @@ public class RestartInstanceCommand implements AdminCommand {
         try {
             StartInstanceCommand sic = new StartInstanceCommand(habitat, instanceName, Boolean.parseBoolean(debug), env);
             sic.execute(context);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // this is NOT normal!  start-instance communicates errors via the
             // reporter.  This catch should never happen.  It is here for robustness.
             // and especially for programmer/regression errors.

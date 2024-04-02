@@ -1,7 +1,7 @@
 <!--
   ~    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
   ~
-  ~    Copyright (c) [2019-2023] Payara Foundation and/or its affiliates. All rights reserved.
+  ~    Copyright (c) 2019-2024 Payara Foundation and/or its affiliates. All rights reserved.
   ~
   ~    The contents of this file are subject to the terms of either the GNU
   ~    General Public License Version 2 only ("GPL") or the Common Development
@@ -44,7 +44,7 @@
     <parent>
         <groupId>fish.payara.api</groupId>
         <artifactId>api-parent</artifactId>
-        <version>5.60.0-SNAPSHOT</version>
+        <version>5.62.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>payara-bom</artifactId>
@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-web-api</artifactId>
-                <version>${jakarta-platform.version}</version>
+                <version>${jakartaee.api.version}</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>jakarta.platform</groupId>
                 <artifactId>jakarta.jakartaee-bom</artifactId>
-                <version>${jakarta-platform.version}</version>
+                <version>${jakartaee.api.version}</version>
                 <type>pom</type>
             </dependency>
 
@@ -431,7 +431,7 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>osgi.cmpn</artifactId>
-                <version>${osgi.version}</version>
+                <version>${osgi.cmpn.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -443,13 +443,13 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>osgi.enterprise</artifactId>
-                <version>${osgi.version}</version>
+                <version>${osgi.enterprise.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>osgi.annotation</artifactId>
-                <version>${osgi.version}</version>
+                <version>${osgi.annotation.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

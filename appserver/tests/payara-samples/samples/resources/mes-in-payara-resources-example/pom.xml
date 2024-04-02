@@ -48,7 +48,7 @@
     <parent>
         <groupId>fish.payara.samples</groupId>
         <artifactId>payara-samples-resources-tests</artifactId>
-        <version>5.60.0-SNAPSHOT</version>
+        <version>5.62.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -65,7 +65,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.12.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -95,7 +95,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-entitymanager</artifactId>
-            <version>5.6.9.Final</version>
+            <version>5.6.15.Final</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
