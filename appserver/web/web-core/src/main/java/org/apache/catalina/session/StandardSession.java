@@ -297,6 +297,8 @@ public class StandardSession implements HttpSession, Session, Serializable {
      * Flag indicating whether this session is valid or not.
      */
     protected boolean isValid = false;
+    
+    protected volatile boolean isAccessed = false;
 
     /**
      * Internal notes associated with this session by Catalina components
@@ -765,6 +767,7 @@ public class StandardSession implements HttpSession, Session, Serializable {
      */
     @Override
     public void access() {
+        isAccessed = true;
         this.lastAccessedTime = this.thisAccessedTime;
         this.thisAccessedTime = System.currentTimeMillis();
         evaluateIfValid();
@@ -785,6 +788,7 @@ public class StandardSession implements HttpSession, Session, Serializable {
         LOGGER.info("endAccess -> lastAccessedTime:" + this.lastAccessedTime);
         LOGGER.info("endAccess -> thisAccessedTime:" + this.thisAccessedTime);
         LOGGER.info("endAccess -> thisCreationTime:" + this.creationTime);
+        isAccessed = false;
     }
 
 
@@ -2054,7 +2058,9 @@ public class StandardSession implements HttpSession, Session, Serializable {
         //control assign of lastAccessedTime and thisAccessedTime if both on the local are more recent that the values saved 
         //on the store then use current values
         long readlastAccessedTime = ((Long) stream.readObject());
-        if (readlastAccessedTime != 0 && readlastAccessedTime >= lastAccessedTime) {
+        //assign the read value from storage in case the value is greater than the current
+        //this means that other member from the cluster updated the value
+        if (readlastAccessedTime != 0 && readlastAccessedTime >= lastAccessedTime && !isAccessed) {
             lastAccessedTime = readlastAccessedTime;
         }
 
@@ -2062,7 +2068,9 @@ public class StandardSession implements HttpSession, Session, Serializable {
         isNew = ((Boolean) stream.readObject());
         isValid = ((Boolean) stream.readObject());
         long readThisAccessedTime = ((Long) stream.readObject());
-        if (readThisAccessedTime != 0 && readThisAccessedTime >= thisAccessedTime) {
+        //assign the read value from storage in case the value is greater than the current
+        //this means that other member from the cluster updated the value
+        if (readThisAccessedTime != 0 && readThisAccessedTime >= thisAccessedTime && !isAccessed) {
             thisAccessedTime = readThisAccessedTime;
         }
 
