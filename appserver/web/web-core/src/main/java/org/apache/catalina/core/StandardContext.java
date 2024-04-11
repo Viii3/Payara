@@ -55,7 +55,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// Portions Copyright [2016-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
 
 package org.apache.catalina.core;
 
@@ -5739,6 +5739,7 @@ public class StandardContext
 
             // Start ContainerBackgroundProcessor thread
             super.threadStart();
+            // Start ContainerBackgroundSessionProcessor thread
             super.threadSessionStart();
             
 
@@ -6175,6 +6176,10 @@ public class StandardContext
         // END S1AS8PE 4965017
     }
 
+    /**
+     * Execute periodic task to get last values added on the session storage, those values 
+     * can be added by another instance on the cluster.
+     */
     @Override
     public void backgroundSessionUpdate() {
         if ((getManager() != null)) {
