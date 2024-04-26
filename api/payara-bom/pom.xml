@@ -44,7 +44,7 @@
     <parent>
         <groupId>fish.payara.api</groupId>
         <artifactId>api-parent</artifactId>
-        <version>5.62.0-SNAPSHOT</version>
+        <version>5.63.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>payara-bom</artifactId>
@@ -718,13 +718,13 @@
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>jakarta.json</artifactId>
-                <version>${jsonp.version}</version>
+                <version>${jsonp.impl.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.glassfish</groupId>
                 <artifactId>jsonp-jaxrs</artifactId>
-                <version>${jsonp.version}</version>
+                <version>${jsonp.impl.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.ibm.jbatch</groupId>

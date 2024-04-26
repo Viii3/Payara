@@ -46,7 +46,7 @@
     <parent>
         <groupId>fish.payara.samples</groupId>
         <artifactId>payara-samples-profiled-tests</artifactId>
-        <version>5.62.0-SNAPSHOT</version>
+        <version>5.63.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>grpc-ejb</artifactId>
@@ -55,7 +55,7 @@
 
     <properties>
         <!-- gRPC versions -->
-        <grpc.version>1.62.2</grpc.version>
+        <grpc.version>1.63.0</grpc.version>
     </properties>
 
     <dependencies>
@@ -99,7 +99,7 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.6.2</version>
+                <version>1.7.1</version>
             </extension>
         </extensions>
         <plugins>
