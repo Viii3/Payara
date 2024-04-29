@@ -12,3 +12,38 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 5
     target-branch: "master"
+    groups:
+      jakarta:
+        patterns:
+        - "jakarta.*"
+        update-types:
+        - "patch"
+      microprofile:
+        patterns:
+        - "org.eclipse.microprofile*"
+        update-types:
+        - "patch"
+      fish:
+        patterns:
+        - "fish.payara.*"
+        update-types:
+        - "minor"
+        - "patch"
+    ignore:
+      - dependency-name: "jakarta.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "jakarta.*"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: org.eclipse.microprofile*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.eclipse.microprofile*"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "fish.payara.*"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    ignore:
+    - dependency-name: "*"
+    target-branch: "master"
