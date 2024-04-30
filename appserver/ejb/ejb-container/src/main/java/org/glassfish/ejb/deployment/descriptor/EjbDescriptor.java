@@ -2407,6 +2407,42 @@ public abstract class EjbDescriptor extends CommonResourceDescriptor implements 
         }
     }
 
+    public void processDescriptor() {
+        if (this.bundleDescriptor != null) {
+            for (Object ejbRefObj : this.bundleDescriptor.getEjbReferenceDescriptors()) {
+                addEjbReferenceDescriptor((EjbReference) ejbRefObj);
+            }
+
+            for (Object msgDestRefObj : this.bundleDescriptor.getMessageDestinationReferenceDescriptors()) {
+                addMessageDestinationReferenceDescriptor((MessageDestinationReferenceDescriptor) msgDestRefObj);
+            }
+
+            for (Object envPropObj : this.bundleDescriptor.getEnvironmentProperties()) {
+                addOrMergeEnvironmentProperty((EnvironmentProperty) envPropObj);
+            }
+
+            for (Object servRefObj : this.bundleDescriptor.getServiceReferenceDescriptors()) {
+                addServiceReferenceDescriptor((ServiceReferenceDescriptor) servRefObj);
+            }
+
+            for (Object resRefObj : this.bundleDescriptor.getResourceReferenceDescriptors()) {
+                addResourceReferenceDescriptor((ResourceReferenceDescriptor) resRefObj);
+            }
+
+            for (Object resourceEnvRefObj : this.bundleDescriptor.getResourceEnvReferenceDescriptors()) {
+                addResourceEnvReferenceDescriptor((ResourceEnvReferenceDescriptor) resourceEnvRefObj);
+            }
+
+            for (EntityManagerFactoryReferenceDescriptor entMgrFacRef : this.bundleDescriptor.getEntityManagerFactoryReferenceDescriptors()) {
+                addEntityManagerFactoryReferenceDescriptor(entMgrFacRef);
+            }
+
+            for (EntityManagerReferenceDescriptor entMgrRef : this.bundleDescriptor.getEntityManagerReferenceDescriptors()) {
+                addEntityManagerReferenceDescriptor(entMgrRef);
+            }
+        }
+    }
+
     /**
      * Called by WebArchivist to notify this EjbDescriptor that it has been associated with a web bundle.
      *
