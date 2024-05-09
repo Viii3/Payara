@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2019-2024] [Payara Foundation and/or its affiliates]
 
 package org.glassfish.loader.util;
 
@@ -62,6 +62,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -252,26 +253,42 @@ public class ASClassLoaderUtil {
                 if (mr != null) {
                     for (HK2Module module : mr.getModules()) {
                         for (URI uri : module.getModuleDefinition().getLocations()) {
-                            if (uri.toString().startsWith("reference:")) {
+                            String uriString = uri.toString();
+                            if (uriString.startsWith("reference:")) {
                                 try {
                                     // OSGi modules can have "reference:" prepended to them if they're exploded, except
                                     // there doesn't appear to be an actual FileSystemProvider for this type
-                                    tmpString.append(new URI(uri.toString().substring("reference:".length())));
+                                    tmpString.append(new URI(uriString.substring("reference:".length())));
                                     tmpString.append(File.pathSeparator);
                                 } catch (URISyntaxException use) {
                                     deplLogger.log(Level.WARNING,
                                             "Error truncating URI with prefix of \"reference:\"",
                                             use);
                                 }
-                            } else if (uri.toString().startsWith("jardir:")) {
+                            } else if (uriString.startsWith("jardir:")) {
                                 // OSGi fileinstall created modules can have a "jardir:" schema for directory
                                 // structures, but there is no FileSystemProvider for this type.
                                 // Since the path is the file system path, just substitute the "file:" schema
-                                tmpString.append("file:").append(uri.toString().substring("jardir:".length()));
+                                tmpString.append("file:").append(uriString.substring("jardir:".length()));
+                                tmpString.append(File.pathSeparator);
+                            } else if (uriString.startsWith("jar:")) {
+                                // In Spring Boot application, the URIs are pointing to embedded JARs in a JAR,
+                                // resulting in a FileSystemNotFoundException when parsed with Paths.get(...)
+                                int index = uriString.indexOf("!");
+                                String jarPath = index == -1 ?
+                                        uriString.substring("jar:".length()) : uriString.substring("jar:".length(), index);
+                                tmpString.append(jarPath);
                                 tmpString.append(File.pathSeparator);
                             } else {
-                                tmpString.append(Paths.get(uri).toString());
-                                tmpString.append(File.pathSeparator);
+                                try {
+                                    tmpString.append(Paths.get(uri).toString());
+                                    tmpString.append(File.pathSeparator);
+                                } catch(FileSystemNotFoundException fsNotFound) {
+                                    LogRecord logRecord = new LogRecord(Level.WARNING, "Unable to add the URI in the classpath: {0}");
+                                    logRecord.setParameters(new Object[]{uri});
+                                    logRecord.setThrown(fsNotFound);
+                                    deplLogger.log(logRecord);
+                                }
                             }
                         }
                     }

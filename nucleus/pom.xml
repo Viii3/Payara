@@ -48,7 +48,7 @@
     <parent>
         <groupId>fish.payara.server</groupId>
         <artifactId>payara-aggregator</artifactId>
-        <version>5.63.0-SNAPSHOT</version>
+        <version>5.64.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>payara-nucleus-parent</artifactId>
@@ -64,7 +64,7 @@
         <maven.assembly.plugin.version>3.4.2</maven.assembly.plugin.version>
         <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.eclipse.plugin.version>2.10</maven.eclipse.plugin.version>
-        <maven.invoker.plugin.version>3.3.0</maven.invoker.plugin.version>
+        <maven.invoker.plugin.version>3.6.1</maven.invoker.plugin.version>
         <maven.war.plugin.version>3.3.2</maven.war.plugin.version>
         <maven.makepkgs.plugin.version>0.6.2</maven.makepkgs.plugin.version>
         <maven.jaxb2.plugin.version>0.15.1</maven.jaxb2.plugin.version>
@@ -103,7 +103,7 @@
         <classmate.version>1.5.0</classmate.version>
         <jboss.logging.version>3.4.3.Final</jboss.logging.version>
         <!-- Javassist (JAVA programming ASSISTant) makes Java bytecode manipulation simple. It is a class library for editing bytecodes in Java. -->
-        <javassist.version>3.29.2-GA</javassist.version>
+        <javassist.version>3.30.2-GA</javassist.version>
 
         <!-- A pure Java implementation of the SSH-2 protocol -->
         <trilead-ssh2.version>build-217-jenkins-16</trilead-ssh2.version>
@@ -166,7 +166,7 @@
         <findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
         <findbugs.version>1.7</findbugs.version>
         <findbugs.glassfish.logging.validLoggerPrefixes>javax.enterprise</findbugs.glassfish.logging.validLoggerPrefixes>
-        <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
 
         <awaitility.version>4.2.0</awaitility.version>
 

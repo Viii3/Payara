@@ -46,7 +46,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>fish.payara.server</groupId>
     <artifactId>payara-aggregator</artifactId>
-    <version>5.63.0-SNAPSHOT</version>
+    <version>5.64.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Payara Project</name>
@@ -62,7 +62,7 @@
         <connection>scm:git:git@github.com:payara/payara-enterprise.git</connection>
         <url>scm:git:git@github.com:payara/payara-enterprise.git</url>
         <developerConnection>scm:git:git@github.com:payara/payara-enterprise.git</developerConnection>
-        <tag>payara-enterprise-5.63.0-SNAPSHOT</tag>
+        <tag>payara-enterprise-5.64.0-SNAPSHOT</tag>
     </scm>
 
     <issueManagement>
@@ -207,13 +207,13 @@
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
-        <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+        <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
         <maven.dependency.plugin.version>3.3.0</maven.dependency.plugin.version>
         <maven.gpg.plugin.version>3.2.0</maven.gpg.plugin.version>
         <maven.deploy.plugin.version>3.0.0</maven.deploy.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
-        <maven.install.plugin.version>3.1.0</maven.install.plugin.version>
+        <maven.install.plugin.version>3.1.2</maven.install.plugin.version>
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
@@ -227,7 +227,7 @@
         <!-- BOM-referenced versions -->
         <jakartaee.api.version>8.0.0</jakartaee.api.version>
         <servlet-api.version>4.0.4</servlet-api.version>
-        <grizzly.version>2.4.4.payara-p8</grizzly.version>
+        <grizzly.version>2.4.4.payara-p9</grizzly.version>
         <jax-rs-api.impl.version>2.1.6</jax-rs-api.impl.version>
         <jersey.version>2.41.payara-p1</jersey.version>
         <jakarta.validation.version>2.0.2</jakarta.validation.version>
@@ -288,7 +288,7 @@
         <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version>
         <jakarta.activation-impl.version>1.2.2</jakarta.activation-impl.version>
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
-        <jline.version>3.26.1</jline.version>
+        <jline.version>3.21.0</jline.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <jsonp.version>1.1.6</jsonp.version>
         <jsonp.impl.version>1.1.6.payara-p1</jsonp.impl.version>
@@ -330,7 +330,7 @@
         <jxmpp.version>0.6.4</jxmpp.version>
         <minidns.version>0.3.4</minidns.version>
         <certificate-management.version>1.0.1</certificate-management.version>
-        <license-maven-plugin.version>2.3.0</license-maven-plugin.version>
+        <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
         <diagnostics-tool.version>1.0.0</diagnostics-tool.version>
     </properties>
 
@@ -510,6 +510,27 @@
                 </pluginRepository>
             </pluginRepositories>
         </profile>
+
+        <profile>
+            <id>GenerateThirdPartyLicenseFile</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <id>download-and-aggregate-licenses</id>
+                                <goals>
+                                    <goal>aggregate-add-third-party</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -537,27 +558,6 @@
                                 <param>minor_version</param>
                                 <param>update_version</param>
                             </parameterNames>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <inherited>false</inherited>
-                <executions>
-                    <execution>
-                        <id>download-and-aggregate-licenses</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>mvn</executable>
-                            <arguments>
-                                <argument>license:aggregate-add-third-party</argument>
-                            </arguments>
                         </configuration>
                     </execution>
                 </executions>
