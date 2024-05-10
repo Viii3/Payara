@@ -302,6 +302,10 @@ void processReportAndStopDomain() {
     sh "${ASADMIN} stop-database || true"
 }
 
+void processReport() {
+    junit '**/target/*-reports/*.xml'
+}
+
 void stopDomain() {
     sh "${ASADMIN} stop-domain ${DOMAIN_NAME}"
     sh "${ASADMIN} stop-database || true"
