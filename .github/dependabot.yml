@@ -13,25 +13,16 @@ updates:
     open-pull-requests-limit: 5
     target-branch: "master"
     ignore:
+      # Ignore major and minor version updates for dependencies with group IDs starting with jakarta
       - dependency-name: "jakarta.*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+      # Ignore major and minor version updates for dependencies with group IDs starting with org.eclipse.microprofile
       - dependency-name: org.eclipse.microprofile*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+      # Ignore major version updates for dependencies with group ID starting with fish.payara
       - dependency-name: "fish.payara.*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "org.eclipse.persistence"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "org.glassfish"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "org.eclipse"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "com.ibm.jbatch"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "com.sun.xml.bind"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "org.hibernate.validator"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "org.jboss.weld"
         update-types: ["version-update:semver-major"]
 
       # Ignore major version updates for individual dependencies within the org.eclipse.persistence group
