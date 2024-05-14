@@ -61,8 +61,11 @@ public final class JDK {
     private static final int OPENJSSE_MAXIMUM_UPDATE_VERSION = 252;
 
     public static boolean isTls13Supported() {
-        return getMinor() >= TLS13_MINIMUM_MINOR_VERSION
-            && getUpdate() >= TLS13_MINIMUM_UPDATE_VERSION;
+        if (getMajor() == 1) {
+            return getMinor() >= TLS13_MINIMUM_MINOR_VERSION
+                    && getUpdate() >= TLS13_MINIMUM_UPDATE_VERSION;
+        }
+        return getMajor() >= TLS13_MINIMUM_MINOR_VERSION;
     }
 
     public static boolean isOpenJSSEFlagRequired() {
@@ -372,18 +375,16 @@ public final class JDK {
                 String[] split = jvReal.split("[\\.]+");
 
                 if (split.length > 0) {
-                    if (split.length > 0) {
-                        major = Integer.parseInt(split[0]);
-                    }
-                    if (split.length > 1) {
-                        minor = Integer.parseInt(split[1]);
-                    }
-                    if (split.length > 2) {
-                        subminor = Integer.parseInt(split[2]);
-                    }
-                    if (split.length > 3) {
-                        update = Integer.parseInt(split[3]);
-                    }
+                    major = Integer.parseInt(split[0]);
+                }
+                if (split.length > 1) {
+                    minor = Integer.parseInt(split[1]);
+                }
+                if (split.length > 3) {
+                    subminor = Integer.parseInt(split[2]);
+                    update = Integer.parseInt(split[3]);
+                } else if (split.length > 2) {
+                    update = Integer.parseInt(split[2]);
                 }
             } else {
                 if (!StringUtils.ok(javaVersion))
