@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2018-2024] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.util;
 
@@ -351,7 +351,7 @@ public final class JDK {
     private static Version JDK_VERSION;
 
     // silently fall back to ridiculous defaults if something is crazily wrong...
-    private static void initialize() {
+    static void initialize() {
         major = 1;
         minor = subminor = update = 0;
         try {
