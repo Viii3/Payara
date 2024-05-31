@@ -112,10 +112,5 @@
             <groupId>jakarta.interceptor</groupId>
             <artifactId>jakarta.interceptor-api</artifactId>
         </dependency>
-        <dependency> <!-- for FindBugs -->
-            <groupId>com.sun.mail</groupId>
-            <artifactId>jakarta.mail</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 </project>
