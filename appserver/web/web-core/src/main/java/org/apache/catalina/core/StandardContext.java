@@ -5931,6 +5931,9 @@ public class StandardContext
 
             // Stop ContainerBackgroundProcessor thread
             super.threadStop();
+            
+            // Stop ContainerBackgroundProcessor thread
+            super.threadSessionStop();
 
             if ((manager != null) && (manager instanceof Lifecycle)) {
                 if(manager instanceof StandardManager) {
