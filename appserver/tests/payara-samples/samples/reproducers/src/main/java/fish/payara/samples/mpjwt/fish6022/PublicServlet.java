@@ -42,15 +42,7 @@
 
 package fish.payara.samples.mpjwt.fish6022;
 
-<<<<<<< HEAD:appserver/tests/payara-samples/samples/reproducers/src/main/java/fish/payara/samples/mpjwt/fish6022/PublicServlet.java
 import java.io.IOException;
-=======
-import jakarta.ws.rs.container.ResourceInfo;
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
->>>>>>> d2527119382 (bugfix: removed class loader leaks):appserver/payara-appserver-modules/microprofile/telemetry/src/main/java/fish/payara/microprofile/telemetry/tracing/jaxrs/ResourceCache.java
 
 import javax.inject.Inject;
 import javax.servlet.ServletException;
@@ -58,7 +50,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 @WebServlet("/servlet")
@@ -73,13 +64,5 @@ public class PublicServlet extends HttpServlet {
         } else {
             resp.getWriter().println("ok");
         }
-    }
-
-    /**
-     * clear all classes belonging to this class loader
-     * @param classLoader
-     */
-    void clear(ClassLoader classLoader) {
-        tracedCache.entrySet().removeIf(entry -> entry.getKey().resourceClass.getClassLoader() == classLoader);
     }
 }
