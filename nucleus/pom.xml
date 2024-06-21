@@ -157,6 +157,7 @@
         <ant.version>1.10.14</ant.version>
         <ant-launcher.version>1.10.14</ant-launcher.version>
         <metainf-services.version>1.11</metainf-services.version>
+        <javadoc.options>-Xdoclint:none</javadoc.options>
 
         <!-- Debug / analysis -->
         <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
@@ -1006,17 +1007,6 @@ Parent is ${project.parent}</echo>
                 </plugins>
             </build>
         </profile>
-
-                        <profile>
-            <id>doclint-java8-disable</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <properties>
-                <javadoc.options>-Xdoclint:none</javadoc.options>
-            </properties>
-        </profile>
-
         <profile>
             <id>DeploySnapshot-Internal</id>
             <activation>
