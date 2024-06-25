@@ -52,6 +52,7 @@ import org.glassfish.hk2.api.PreDestroy;
 import java.io.*;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
+import java.lang.ref.WeakReference;
 import java.net.*;
 import java.nio.file.Path;
 import java.security.*;
@@ -433,7 +434,7 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
                          *prevent the JDK's JarURLConnection caching from
                          *locking the jar file until JVM exit.
                          */
-                        InternalURLStreamHandler handler = new InternalURLStreamHandler(res, name);
+                        InternalURLStreamHandler handler = new InternalURLStreamHandler(this, res, name);
 
                         // Create a new sub URL from the resource URL (i.e. res.source). To avoid double encoding
                         // (see https://glassfish.dev.java.net/issues/show_bug.cgi?id=13045)
@@ -895,7 +896,7 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
          */
         if (stream != null) {
             if (! (stream instanceof SentinelInputStream)) {
-                stream = new SentinelInputStream(stream);
+                stream = new SentinelInputStream(this, stream);
             }
         }
         return stream;
@@ -1124,9 +1125,10 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
      * @author vtsyganok
      * @author tjquinn
      */
-    protected final class SentinelInputStream extends FilterInputStream {
+    protected static final class SentinelInputStream extends FilterInputStream {
         private volatile boolean closed = false;
-        private final Throwable throwable;
+        private volatile Throwable throwable;
+        private final WeakReference<ASURLClassLoader> loader;
 
         /**
          * Constructs new FilteredInputStream which reports InputStreams not closed properly.
@@ -1135,10 +1137,11 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
          *
          * @param in - InputStream to be wrapped
          */
-        protected SentinelInputStream(final InputStream in) {
+        protected SentinelInputStream(ASURLClassLoader loader, final InputStream in) {
             super(in);
             throwable = new Throwable();
-            getStreams().add(this);
+            this.loader = new WeakReference<>(loader);
+            loader.streams.add(this);
         }
 
         /**
@@ -1171,15 +1174,6 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
             super.finalize();
         }
 
-        /**
-         * Returns the vector of open streams; creates it if needed.
-         *
-         * @return Vector<SentinelInputStream> holding open streams
-         */
-        private List<SentinelInputStream> getStreams() {
-            return streams;
-        }
-
         private synchronized void _close() throws IOException {
             if ( closed ) {
                 return;
@@ -1187,7 +1181,10 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
             // race condition with above check, but should have no harmful effects
 
             closed = true;
-            getStreams().remove(this);
+            throwable = null;
+            if (loader.get() != null) {
+                loader.get().streams.remove(this);
+            }
             super.close();
         }
 
@@ -1210,9 +1207,10 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
      *
      * @author fkieviet
      */
-    private class InternalJarURLConnection extends JarURLConnection {
+    private static class InternalJarURLConnection extends JarURLConnection {
         private final URLEntry mRes;
         private final String mName;
+        private final WeakReference<ASURLClassLoader> loader;
 
         /**
          * Constructor
@@ -1222,11 +1220,12 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
          * @param name String
          * @throws MalformedURLException from super class
          */
-        public InternalJarURLConnection(URL url, URLEntry res, String name)
+        public InternalJarURLConnection(ASURLClassLoader loader, URL url, URLEntry res, String name)
             throws MalformedURLException {
             super(url);
             mRes = res;
             mName = name;
+            this.loader = new WeakReference<>(loader);
         }
 
         /**
@@ -1259,7 +1258,7 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
             if (entry == null) {
                 throw new IOException("no entry called " + mName + " found in " + mRes.source);
             }
-            return new SentinelInputStream(mRes.zip.getInputStream(entry));
+            return new SentinelInputStream(loader.get(), mRes.zip.getInputStream(entry));
         }
     }
 
@@ -1272,10 +1271,11 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
      *
      * @author fkieviet
      */
-    private class InternalURLStreamHandler extends URLStreamHandler {
+    private static class InternalURLStreamHandler extends URLStreamHandler {
         /** must be 'volatile' for thread visibility */
         private volatile URL   mURL;
         private final URLEntry mRes;
+        private final WeakReference<ASURLClassLoader> loader;
 
         /**
          * Constructor
@@ -1283,8 +1283,9 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
          * @param res URLEntry
          * @param name String
          */
-        public InternalURLStreamHandler(URLEntry res, String name) {
+        public InternalURLStreamHandler(ASURLClassLoader loader, URLEntry res, String name) {
             mRes = res;
+            this.loader = new WeakReference<>(loader);
         }
 
         /**
@@ -1306,7 +1307,7 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
                     assert (entryName.startsWith("/"));
                     entryName = entryName.substring(1);
                 }
-                return new InternalJarURLConnection(u, mRes, entryName);
+                return new InternalJarURLConnection(loader.get(), u, mRes, entryName);
             } catch (URISyntaxException e) {
                 throw new IOException(e);
             }

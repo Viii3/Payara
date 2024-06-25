@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] Payara Foundation and/or affiliates
+// Portions Copyright [2019-2024] Payara Foundation and/or affiliates
 
 package com.sun.ejb;
 
@@ -281,7 +281,7 @@ public class EjbInvocation //
 
     EjbInvocation(String compEnvId, Container container) {
         super.componentId = compEnvId;
-        super.container = container;
+        setContainer(container);
         super.setComponentInvocationType(ComponentInvocation.ComponentInvocationType.EJB_INVOCATION);
 
         EjbBundleDescriptor ejbBundleDesc = container.getEjbDescriptor().getEjbBundleDescriptor();
@@ -383,6 +383,7 @@ public class EjbInvocation //
     @Override
     public Object getJaccEjb() {
         Object bean = null;
+        Object container = getContainer();
         if( container != null ) {
             bean = ((Container) container).getJaccEjb(this);
         }
@@ -464,7 +465,7 @@ public class EjbInvocation //
      */
     @Override
     public boolean userTransactionMethodsAllowed() {
-        return ((Container) container).userTransactionMethodsAllowed(this);
+        return ((Container) getContainer()).userTransactionMethodsAllowed(this);
     }
 
     /**
@@ -473,7 +474,7 @@ public class EjbInvocation //
      */
     @Override
     public void userTransactionLookupAllowed() throws NameNotFoundException {
-        ((BaseContainer) container).checkUserTransactionLookup(this);
+        ((BaseContainer) getContainer()).checkUserTransactionLookup(this);
     }
 
     /**
@@ -481,7 +482,7 @@ public class EjbInvocation //
      */
     @Override
     public void doAfterUtxBegin() {
-        ((Container) container).doAfterBegin(this);
+        ((Container) getContainer()).doAfterBegin(this);
     }
 
     public InterceptorManager.InterceptorChain getInterceptorChain() {
@@ -662,11 +663,11 @@ public class EjbInvocation //
 
     @Override
     public  Object invokeBeanMethod() throws Throwable {
-        return ((BaseContainer) container).invokeBeanMethod(this);
+        return ((BaseContainer) getContainer()).invokeBeanMethod(this);
     }
 
     public com.sun.enterprise.security.SecurityManager getEjbSecurityManager() {
-        return ((BaseContainer)container).getSecurityManager();
+        return ((BaseContainer) getContainer()).getSecurityManager();
     }
 
     @Override
@@ -696,7 +697,7 @@ public class EjbInvocation //
     private Exception authorizeWebServiceAndSetMethod(Method m) {
         try {
             this.method = m;
-            if (((com.sun.ejb.Container) container).authorize(this)) {
+            if (((com.sun.ejb.Container) getContainer()).authorize(this)) {
                 // Record the method on which the successful
                 // authorization check was performed.
                 setWebServiceMethod(m);
