@@ -83,7 +83,7 @@
         <dbschema.version>6.7</dbschema.version>
         <schema2beans.version>6.7</schema2beans.version>
         <!-- Java API for XML Registries Resource Adapter -->
-        <jaxr.version>JAXR_RA_20091012</jaxr.version>
+        <jaxr.version>JAXR_RA_20091016</jaxr.version>
         <rest.monitoring.version>1.0.0-Beta</rest.monitoring.version>
 
         <nimbus-jose-jwt.version>9.37.3</nimbus-jose-jwt.version>
