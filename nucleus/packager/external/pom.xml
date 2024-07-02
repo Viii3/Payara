@@ -62,7 +62,6 @@
     <name>Repackaged nucleus external modules</name>
 
     <properties>
-        <findbugs.skip>true</findbugs.skip>
         <deploy.skip>false</deploy.skip>
     </properties>
 
