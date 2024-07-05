@@ -45,6 +45,7 @@ import com.hazelcast.cluster.ClusterState;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.collection.ISet;
 import com.hazelcast.config.Config;
+import com.hazelcast.config.YamlConfigBuilder;
 import com.hazelcast.config.DiscoveryStrategyConfig;
 import com.hazelcast.config.ExecutorConfig;
 import com.hazelcast.config.GlobalSerializerConfig;
@@ -350,7 +351,8 @@ public class HazelcastCore implements EventListener, ConfigListener {
             if (file.exists()) {
                 Logger.getLogger(HazelcastCore.class.getName()).log(Level.INFO,
                         "Loading Hazelcast configuration from file: {0}", hazelcastFilePath);
-                config = ConfigLoader.load(hazelcastFilePath);
+                config = isYamlFile(hazelcastFilePath) ?
+                        new YamlConfigBuilder(hazelcastFilePath).build() : ConfigLoader.load(hazelcastFilePath);
                 if (config == null) {
                     Logger.getLogger(HazelcastCore.class.getName()).log(Level.WARNING,
                             "Hazelcast Core could not find configuration file {0} using default configuration",
@@ -459,6 +461,10 @@ public class HazelcastCore implements EventListener, ConfigListener {
             Logger.getLogger(HazelcastCore.class.getName()).log(Level.WARNING, "Hazelcast Configuration data could no be saved", ex);
         }
         return config;
+    }
+
+    private static boolean isYamlFile(String hazelcastFilePath) {
+        return hazelcastFilePath.endsWith(".yaml") || hazelcastFilePath.endsWith(".yml");
     }
 
     private void setPayaraSerializerConfig(SerializationConfig serConfig) {
