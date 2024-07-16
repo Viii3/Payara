@@ -215,7 +215,7 @@
         <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
         <maven.install.plugin.version>3.1.2</maven.install.plugin.version>
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
-        <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
+        <maven.failsafe.plugin.version>3.3.1</maven.failsafe.plugin.version>
         <maven.site.plugin.version>3.12.1</maven.site.plugin.version>
         <dynamic.build.properties.version>0.0.1.a2</dynamic.build.properties.version>
 
