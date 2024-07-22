@@ -7,8 +7,8 @@
 [submodule "appserver/extras/certificate-management"]
 	path = appserver/extras/certificate-management
 	url = https://github.com/payara/Certificate-Management
-	branch = master
+	branch = main
 [submodule "appserver/extras/diagnostics-tool"]
 	path = appserver/extras/diagnostics-tool
 	url = https://github.com/payara/Diagnostics-Tool
-	branch = master
+	branch = main
