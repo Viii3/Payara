@@ -40,7 +40,7 @@
     holder.
 
 -->
-<!-- Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates] -->
+<!-- Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates] -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -86,7 +86,7 @@
         <jaxr.version>JAXR_RA_20091016</jaxr.version>
         <rest.monitoring.version>1.0.0-Beta</rest.monitoring.version>
 
-        <nimbus-jose-jwt.version>9.37.3</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>9.39.1</nimbus-jose-jwt.version>
         <accessors-smart.version>2.5.1</accessors-smart.version>
         <json-smart.version>2.5.1</json-smart.version>
         <reactor-core.version>3.6.4</reactor-core.version>
