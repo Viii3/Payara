@@ -5941,7 +5941,7 @@ public class StandardContext
                     try {
                         ((StandardManager)manager).stop(isShutdown);
                     } catch (LifecycleException e) {
-                        log.log(Level.INFO, LogFacade.MANAGER_NOT_STARTED_INFO, e);
+                        log.log(Level.INFO, e.getMessage());
                     }
                 } else {
                     ((Lifecycle)manager).stop();
