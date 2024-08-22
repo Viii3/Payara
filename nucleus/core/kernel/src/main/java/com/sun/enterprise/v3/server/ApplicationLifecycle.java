@@ -655,6 +655,9 @@ public class ApplicationLifecycle implements Deployment, PostConstruct {
      */
     private boolean isAppAvailableOnTarget(final String appName, final String targetName) {
         List<String> targets = domain.getAllReferencedTargetsForApplication(appName);
+        if (targets.isEmpty()) {
+            return true;
+        }
         return targets.stream().anyMatch(t -> t.equals(targetName));
     }
 
