@@ -1,5 +1,5 @@
 /*
- * Copyright (c) [2016-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2024] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -97,7 +97,8 @@ public class SetNotificationConfiguration implements AdminCommand {
     @Param(name = "notifierEnabled")
     private Boolean notifierEnabled;
 
-    @Param(name = "noisy", defaultValue = "true", optional = true)
+    @Deprecated
+    @Param(name = "noisy", defaultValue = "true", optional = true, obsolete = true)
     private Boolean noisy;
 
     @Param(name = "useSeparateLogFile", defaultValue = "false", optional = true)
@@ -149,7 +150,6 @@ public class SetNotificationConfiguration implements AdminCommand {
         params.add("dynamic", notifierDynamic.toString());
         params.add("target", target);
         params.add("enabled", notifierEnabled.toString());
-        params.add("noisy", noisy.toString());
         params.add("useSeparateLogFile", useSeparateLogFile.toString());
         inv.parameters(params);
         inv.execute();
