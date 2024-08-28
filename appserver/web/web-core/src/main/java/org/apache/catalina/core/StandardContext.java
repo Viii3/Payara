@@ -2298,9 +2298,9 @@ public class StandardContext
         Wrapper oldJspServlet = null;
 
         // Allow webapp to override JspServlet inherited from global web.xml.
-        boolean isJspServlet = "jsp".equals(wrapperName);
+        boolean isJspServlet = Constants.JSP_SERVLET_NAME.equals(wrapperName);
         if (isJspServlet) {
-            oldJspServlet = (Wrapper) findChild("jsp");
+            oldJspServlet = (Wrapper) findChild(Constants.JSP_SERVLET_NAME);
             if (oldJspServlet != null) {
                 removeChild(oldJspServlet);
             }
@@ -3231,7 +3231,7 @@ public class StandardContext
     public void addJspMapping(String pattern) {
         String servletName = findServletMapping("*.jsp");
         if (servletName == null) {
-            servletName = "jsp";
+            servletName = Constants.JSP_SERVLET_NAME;
         }
 
         if( findChild(servletName) != null) {
@@ -5751,6 +5751,8 @@ public class StandardContext
         } catch (Throwable t) {
             log.log(Level.SEVERE, LogFacade.STARTUP_CONTEXT_FAILED_EXCEPTION, getName());
             try {
+                // ensure that all JSP resources are released in stop() method below
+                forceLoadJspServlet();
                 stop();
             } catch (Throwable tt) {
                 log.log(Level.SEVERE, LogFacade.CLEANUP_FAILED_EXCEPTION, tt);
@@ -5936,7 +5938,11 @@ public class StandardContext
 
             if ((manager != null) && (manager instanceof Lifecycle)) {
                 if(manager instanceof StandardManager) {
-                    ((StandardManager)manager).stop(isShutdown);
+                    try {
+                        ((StandardManager)manager).stop(isShutdown);
+                    } catch (LifecycleException e) {
+                        log.log(Level.INFO, e.getMessage());
+                    }
                 } else {
                     ((Lifecycle)manager).stop();
                 }
@@ -8106,5 +8112,21 @@ public class StandardContext
             return ((WebappClassLoader)cl).getExtractedResourcePath(path);
         }
         return null;
+    }
+
+
+    /**
+     * Force loading of the JSP servlet. This is needed in case of
+     * initialization failure, so the JSP servlet would be unloaded properly
+     * and release all of its resources
+     *
+     * @throws ServletException
+     */
+    private void forceLoadJspServlet() throws ServletException {
+        Container jspServlet = findChild(Constants.JSP_SERVLET_NAME);
+        if (jspServlet instanceof Wrapper) {
+            Wrapper jspServletWrapper = (Wrapper) jspServlet;
+            jspServletWrapper.load();
+        }
     }
 }
