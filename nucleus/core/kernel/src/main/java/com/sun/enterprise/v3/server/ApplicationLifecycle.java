@@ -38,7 +38,7 @@
  * holder.
  */
 
-// Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates.]
+// Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates.]
 
 package com.sun.enterprise.v3.server;
 
@@ -645,7 +645,7 @@ public class ApplicationLifecycle implements Deployment, PostConstruct {
             currentDeploymentContext.get().pop();
         }
     }
-
+    
     @Override
     public ApplicationInfo deploy(final ExtendedDeploymentContext context) {
         return deploy(null, context);
