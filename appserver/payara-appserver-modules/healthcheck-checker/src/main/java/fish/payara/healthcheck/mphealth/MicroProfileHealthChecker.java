@@ -1,7 +1,7 @@
 /*
  *  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
- *  Copyright (c) [2018-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ *
+ *  Copyright (c) [2018-2024] Payara Foundation and/or its affiliates. All rights reserved.
  * 
  *  The contents of this file are subject to the terms of either the GNU
  *  General Public License Version 2 only ("GPL") or the Common Development
@@ -53,6 +53,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
 import javax.validation.constraints.Pattern;
+
+import fish.payara.internal.notification.EventLevel;
 
 import com.sun.enterprise.config.serverbeans.Server;
 import com.sun.enterprise.v3.services.impl.GrizzlyService;
@@ -170,6 +172,14 @@ implements PostConstruct, MonitoringDataSource, MonitoringWatchSource {
             }
         }
         return result;
+    }
+
+    @Override
+    protected EventLevel createNotificationEventLevel (HealthCheckResultStatus checkResult) {
+        if (checkResult == HealthCheckResultStatus.FINE || checkResult == HealthCheckResultStatus.GOOD) {
+            return EventLevel.INFO;
+        }
+        return EventLevel.WARNING;
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2024] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,6 +56,8 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
+
+import fish.payara.internal.notification.EventLevel;
 
 import com.sun.enterprise.config.serverbeans.Config;
 import com.sun.enterprise.config.serverbeans.Domain;
@@ -517,6 +519,7 @@ public class RequestTracingService implements EventListener, ConfigListener, Mon
                 .subject("Request execution time: " + elapsedTime + "(ms) exceeded the acceptable threshold")
                 .message(requestTrace.toString())
                 .data(new RequestTracingNotificationData(requestTrace))
+                .level(EventLevel.WARNING)
                 .build();
             notificationEventBus.publish(notification);
         }
