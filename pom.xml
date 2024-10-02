@@ -331,7 +331,7 @@
         <minidns.version>0.3.4</minidns.version>
         <certificate-management.version>1.0.1</certificate-management.version>
         <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
-        <diagnostics-tool.version>1.0.0</diagnostics-tool.version>
+        <diagnostics-tool.version>1.1.0</diagnostics-tool.version>
     </properties>
 
     <profiles>
