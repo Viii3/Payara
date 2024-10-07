@@ -97,14 +97,14 @@ public class SetNotificationConfiguration implements AdminCommand {
     @Param(name = "notifierEnabled")
     private Boolean notifierEnabled;
 
-    @Deprecated
-    @Param(name = "noisy", optional = true, obsolete = true)
-    protected Boolean noisy;
-
     @Param(name = "useSeparateLogFile", defaultValue = "false", optional = true)
     private Boolean useSeparateLogFile;
 
-    @Param(name = "filter", optional = true, acceptableValues = "info,warning,severe")
+    @Deprecated
+    @Param(name = "noisy", optional = true, obsolete = true)
+    private Boolean noisy;
+
+    @Param(name = "filter", optional = true, acceptableValues = "INFO,WARNING,SEVERE")
     protected String filter;
 
     @Inject
