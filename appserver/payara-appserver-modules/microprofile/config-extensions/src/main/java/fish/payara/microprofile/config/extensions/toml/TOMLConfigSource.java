@@ -42,7 +42,7 @@ package fish.payara.microprofile.config.extensions.toml;
 import com.fasterxml.jackson.dataformat.toml.TomlMapper;
 import fish.payara.nucleus.microprofile.config.source.extension.ConfiguredExtensionConfigSource;
 import fish.payara.nucleus.microprofile.config.spi.MicroprofileConfigConfiguration;
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import org.jvnet.hk2.annotations.Service;
 
 import java.io.File;
