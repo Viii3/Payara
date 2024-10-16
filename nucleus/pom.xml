@@ -95,7 +95,7 @@
         <hk2.plugin.version>2.6.1.payara-p10</hk2.plugin.version>
         <tiger.types.version>1.4.payara-p1</tiger.types.version>
 
-        <glassfish-corba.version>4.1.1.payara-p7</glassfish-corba.version>
+        <glassfish-corba.version>4.1.1.payara-p8</glassfish-corba.version>
         <saaj-api.version>1.4.0</saaj-api.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
