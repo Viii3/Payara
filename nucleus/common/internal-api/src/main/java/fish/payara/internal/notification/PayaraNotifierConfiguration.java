@@ -57,7 +57,7 @@ public interface PayaraNotifierConfiguration extends ConfigBeanProxy {
     String DEFAULT_ENABLED_VALUE = "false";
     @Deprecated
     String DEFAULT_NOISY_VALUE = "true";
-    String DEFAULT_EVENT_FILTER = "WARNING_(DEFAULT)"; // A safe dummy value used for the upgrade service.
+    String DEFAULT_EVENT_FILTER = "WARNING";
 
     @Attribute(defaultValue = DEFAULT_ENABLED_VALUE, dataType = Boolean.class)
     String getEnabled();
