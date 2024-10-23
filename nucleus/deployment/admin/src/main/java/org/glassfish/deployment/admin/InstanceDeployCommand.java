@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
@@ -218,31 +219,31 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
             } else {
                 t = deployment.prepareAppConfigChanges(deploymentContext);
             }
-            
-            ApplicationInfo appInfo;
-            appInfo = deployment.deploy(deploymentContext);
 
-            if (report.getActionExitCode()==ActionReport.ExitCode.SUCCESS) {
-                try {
-                    moveAltDDFilesToPermanentLocation(deploymentContext, logger);
-                    // register application information in domain.xml
-                    if (application != null)  {
-                        // application element already synchronized over
-                        // just write application-ref
-                        deployment.registerAppInDomainXML(appInfo, deploymentContext, t, true);
-                    } else {
-                        // write both application and application-ref
-                        deployment.registerAppInDomainXML(appInfo, deploymentContext, t);
-                    }
-                } catch (Exception e) {
-                    // roll back the deployment and re-throw the exception
-                    deployment.undeploy(name, deploymentContext);
-                    deploymentContext.clean();
-                    throw e;
-                }
-            } else if (isAppAlreadyDeployed(report)) {
-                // just write application-ref
+            ApplicationInfo appInfo = getApplicationInfo(deploymentContext);
+            if (appInfo != null) {
                 deployment.registerAppInDomainXML(appInfo, deploymentContext, t, true);
+            } else {
+                appInfo = deployment.deploy(deploymentContext);
+                if (report.getActionExitCode()==ActionReport.ExitCode.SUCCESS) {
+                    try {
+                        moveAltDDFilesToPermanentLocation(deploymentContext, logger);
+                        // register application information in domain.xml
+                        if (application != null)  {
+                            // application element already synchronized over
+                            // just write application-ref
+                            deployment.registerAppInDomainXML(appInfo, deploymentContext, t, true);
+                        } else {
+                            // write both application and application-ref
+                            deployment.registerAppInDomainXML(appInfo, deploymentContext, t);
+                        }
+                    } catch (Exception e) {
+                        // roll back the deployment and re-throw the exception
+                        deployment.undeploy(name, deploymentContext);
+                        deploymentContext.clean();
+                        throw e;
+                    }
+                }
             }
         } catch (Throwable e) {
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
@@ -268,7 +269,7 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
             } else if (report.getActionExitCode().equals(ActionReport.ExitCode.FAILURE)) {
                 String errorMessage = report.getMessage();
                 Throwable cause = report.getFailureCause();
-                if (cause != null && !isAppAlreadyDeployed(report)) {
+                if (cause != null) {
                     String causeMessage = cause.getMessage();
                     if (causeMessage != null &&
                         !causeMessage.equals(errorMessage)) {
@@ -288,9 +289,14 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
 
     }
 
-    private boolean isAppAlreadyDeployed(ActionReport report) {
-        return report != null && report.getFailureCause() != null && report.getFailureCause().getMessage() != null &&
-                report.getFailureCause().getMessage().contains("already has a web module");
+    private ApplicationInfo getApplicationInfo(ExtendedDeploymentContext deploymentContext) {
+        ApplicationInfo applicationInfo = null;
+        Properties appProps = deploymentContext.getAppProps();
+        if (appProps != null) {
+            String appName = appProps.getProperty("defaultAppName");
+            applicationInfo = deployment.get(appName);
+        }
+        return applicationInfo;
     }
 
     private void processGeneratedContent(
