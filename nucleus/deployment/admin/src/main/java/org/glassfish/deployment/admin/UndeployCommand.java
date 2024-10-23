@@ -389,10 +389,10 @@ public class UndeployCommand extends UndeployCommandParameters implements AdminC
 
                     if (subReport.getActionExitCode().equals(
                     ActionReport.ExitCode.FAILURE)) {
-                    // if disable application failed
-                    // we should just return
+                        // if disable application failed
+                        // we should just return
                         report.setMessage(localStrings.getLocalString("disable.command.failed","{0} disabled failed", appName));
-                    return;
+                        return;
                     }
 
                     if (DeploymentUtils.isDomainTarget(target)) {

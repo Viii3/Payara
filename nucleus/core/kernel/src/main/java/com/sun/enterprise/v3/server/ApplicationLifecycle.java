@@ -1382,7 +1382,7 @@ public class ApplicationLifecycle implements Deployment, PostConstruct {
                     targets.add(deployParams.target);
                 } else {
                     List<String> previousTargets = context.getTransientAppMetaData(DeploymentProperties.PREVIOUS_TARGETS, List.class);
-		    if (previousTargets == null) {
+		            if (previousTargets == null) {
                         previousTargets = domain.getAllReferencedTargetsForApplication(deployParams.name);
                     }
                     targets = previousTargets;
@@ -1390,8 +1390,8 @@ public class ApplicationLifecycle implements Deployment, PostConstruct {
 
                 String origVS = deployParams.virtualservers;
                 Boolean origEnabled = deployParams.enabled;
-		Properties previousVirtualServers = context.getTransientAppMetaData(DeploymentProperties.PREVIOUS_VIRTUAL_SERVERS, Properties.class);
-		Properties previousEnabledAttributes = context.getTransientAppMetaData(DeploymentProperties.PREVIOUS_ENABLED_ATTRIBUTES, Properties.class);
+		        Properties previousVirtualServers = context.getTransientAppMetaData(DeploymentProperties.PREVIOUS_VIRTUAL_SERVERS, Properties.class);
+		        Properties previousEnabledAttributes = context.getTransientAppMetaData(DeploymentProperties.PREVIOUS_ENABLED_ATTRIBUTES, Properties.class);
                 for (String target : targets) {
                     // first reset the virtualservers, enabled attribute
                     deployParams.virtualservers = origVS;

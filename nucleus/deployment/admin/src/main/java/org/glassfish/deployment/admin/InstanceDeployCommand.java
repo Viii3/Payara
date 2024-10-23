@@ -240,7 +240,10 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
                     deploymentContext.clean();
                     throw e;
                 }
-            } 
+            } else if (isAppAlreadyDeployed(report)) {
+                // just write application-ref
+                deployment.registerAppInDomainXML(appInfo, deploymentContext, t, true);
+            }
         } catch (Throwable e) {
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
             report.setMessage(e.getMessage());
@@ -265,7 +268,7 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
             } else if (report.getActionExitCode().equals(ActionReport.ExitCode.FAILURE)) {
                 String errorMessage = report.getMessage();
                 Throwable cause = report.getFailureCause();
-                if (cause != null) {
+                if (cause != null && !isAppAlreadyDeployed(report)) {
                     String causeMessage = cause.getMessage();
                     if (causeMessage != null &&
                         !causeMessage.equals(errorMessage)) {
@@ -283,6 +286,11 @@ public class InstanceDeployCommand extends InstanceDeployCommandParameters
 
         }
 
+    }
+
+    private boolean isAppAlreadyDeployed(ActionReport report) {
+        return report != null && report.getFailureCause() != null && report.getFailureCause().getMessage() != null &&
+                report.getFailureCause().getMessage().contains("already has a web module");
     }
 
     private void processGeneratedContent(
