@@ -52,6 +52,7 @@ import com.sun.enterprise.config.serverbeans.Config;
 import com.sun.enterprise.util.ColumnFormatter;
 import com.sun.enterprise.util.SystemPropertyConstants;
 
+import fish.payara.internal.notification.EventLevel;
 import org.glassfish.api.ActionReport;
 import org.glassfish.api.I18n;
 import org.glassfish.api.Param;
@@ -153,7 +154,7 @@ public class GetNotificationConfigurationCommand implements AdminCommand {
                 values[3] = PayaraNotifierConfiguration.DEFAULT_EVENT_FILTER;
             } else {
                 values[2] = notifierConfig.getEnabled();
-                values[3] = notifierConfig.getFilter();
+                values[3] = EventLevel.fromNameOrWarning(notifierConfig.getFilter()).toString();
             }
 
             columnFormatter.addRow(values);
