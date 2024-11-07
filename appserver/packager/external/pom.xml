@@ -74,6 +74,7 @@
         <module>libpam4j</module>
         <module>microprofile-opentracing-repackaged</module>
         <module>smack-core-repackager</module>
+        <module>snmp-repackager</module>
     </modules>
     <build>
         <plugins>
