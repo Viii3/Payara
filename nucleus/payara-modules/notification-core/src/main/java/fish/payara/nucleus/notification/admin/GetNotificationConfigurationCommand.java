@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2016-2020] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) [2016-2024] Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,6 +52,7 @@ import com.sun.enterprise.config.serverbeans.Config;
 import com.sun.enterprise.util.ColumnFormatter;
 import com.sun.enterprise.util.SystemPropertyConstants;
 
+import fish.payara.internal.notification.EventLevel;
 import org.glassfish.api.ActionReport;
 import org.glassfish.api.I18n;
 import org.glassfish.api.Param;
@@ -129,7 +130,7 @@ public class GetNotificationConfigurationCommand implements AdminCommand {
             return;
         }
 
-        String headers[] = { "Notifier Name", "Enabled", "Notifier Enabled", "Notifier Noisy" };
+        String[] headers = {"Notifier Name", "Enabled", "Notifier Enabled", "Filter Level"};
         ColumnFormatter columnFormatter = new ColumnFormatter(headers);
 
         Properties extraProps = new Properties();
@@ -137,7 +138,7 @@ public class GetNotificationConfigurationCommand implements AdminCommand {
             
             final Class<?> notifierClass = serviceHandle.getActiveDescriptor().getImplementationClass();
 
-            Object values[] = new Object[4];
+            Object[] values = new Object[4];
             values[0] = getNotifierName(serviceHandle.getActiveDescriptor());
             values[1] = notificationServiceEnabled;
 
@@ -150,10 +151,10 @@ public class GetNotificationConfigurationCommand implements AdminCommand {
 
             if (notifierConfig == null) {
                 values[2] = PayaraNotifierConfiguration.DEFAULT_ENABLED_VALUE;
-                values[3] = PayaraNotifierConfiguration.DEFAULT_NOISY_VALUE;
+                values[3] = PayaraNotifierConfiguration.DEFAULT_EVENT_FILTER;
             } else {
                 values[2] = notifierConfig.getEnabled();
-                values[3] = notifierConfig.getNoisy();
+                values[3] = EventLevel.fromNameOrWarning(notifierConfig.getFilter()).toString();
             }
 
             columnFormatter.addRow(values);
@@ -161,8 +162,8 @@ public class GetNotificationConfigurationCommand implements AdminCommand {
             Map<String, Object> map = new HashMap<>(3);
             map.put("enabled", values[1]);
             map.put("notifierEnabled", values[2]);
-            map.put("noisy", values[3]);
-            if (notifierConfig != null && notifierConfig instanceof LogNotifierConfiguration) {
+            map.put("filter", values[3]);
+            if (notifierConfig instanceof LogNotifierConfiguration) {
                 map.put("useSeparateLogFile", ((LogNotifierConfiguration) notifierConfig).getUseSeparateLogFile());
             }
             extraProps.put("getNotificationConfiguration" + notifierClass.getSimpleName(), map);
