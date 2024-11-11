@@ -314,9 +314,9 @@
         <monitoring-console-process.version>1.8.1</monitoring-console-process.version>
         <monitoring-console-webapp.version>1.9</monitoring-console-webapp.version>
         <validation.xml.root>${project.build.outputDirectory}</validation.xml.root>
-        <payara.notifiers.version>1.0.1-enterprise</payara.notifiers.version>
-        <payara.notifiers.xmpp-notifier-core.version>1.1-enterprise</payara.notifiers.xmpp-notifier-core.version>
-        <payara-teams-notifier-console-plugin.version>1.1-enterprise</payara-teams-notifier-console-plugin.version>
+        <payara.notifiers.version>1.1-enterprise</payara.notifiers.version>
+        <payara.notifiers.xmpp-notifier-core.version>1.2-enterprise</payara.notifiers.xmpp-notifier-core.version>
+        <payara-teams-notifier-console-plugin.version>1.2-enterprise</payara-teams-notifier-console-plugin.version>
         <smack.version>4.4.8</smack.version>
         <jxmpp.version>1.0.3</jxmpp.version>
         <xpp3.version>1.1.4c_7</xpp3.version>
