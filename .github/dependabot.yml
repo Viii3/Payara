@@ -18,7 +18,7 @@ updates:
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
       # Ignore major and minor version updates for dependencies with group IDs starting with org.eclipse.microprofile
-      - dependency-name: org.eclipse.microprofile*"
+      - dependency-name: "org.eclipse.microprofile.*"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
       # Ignore major version updates for dependencies with group ID starting with fish.payara
@@ -153,6 +153,11 @@ updates:
       - dependency-name: "org.jboss.weld.environment:weld-environment-common"
         update-types: ["version-update:semver-major"]
 
+      # Ignore upgrades from Payara Enterprise to Payara Community
+      - dependency-name: "fish.payara"
+        versions:
+          - "5.2020.*"  # This ignores any upgrades to Payara Community versions (5.2020.x)
+      
   - package-ecosystem: "gitsubmodule"
     directory: "/"
     schedule:

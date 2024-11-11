@@ -46,7 +46,7 @@
     <parent>
         <groupId>fish.payara.extras</groupId>
         <artifactId>extras</artifactId>
-        <version>5.68.0-SNAPSHOT</version>
+        <version>5.69.0-SNAPSHOT</version>
     </parent>
     <artifactId>integration-testing</artifactId>
     <packaging>jar</packaging>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>selenium</artifactId>
-            <version>1.20.1</version>
+            <version>1.20.2</version>
         </dependency>
 
         <dependency>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>jdbc</artifactId>
-            <version>1.20.1</version>
+            <version>1.20.2</version>
         </dependency>
 
         <dependency>
@@ -139,7 +139,7 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mysql</artifactId>
-            <version>1.19.8</version>
+            <version>1.20.2</version>
         </dependency>
 
         <dependency>

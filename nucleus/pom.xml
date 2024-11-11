@@ -48,7 +48,7 @@
     <parent>
         <groupId>fish.payara.server</groupId>
         <artifactId>payara-aggregator</artifactId>
-        <version>5.68.0-SNAPSHOT</version>
+        <version>5.69.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>payara-nucleus-parent</artifactId>
@@ -65,7 +65,7 @@
         <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
         <maven.eclipse.plugin.version>2.10</maven.eclipse.plugin.version>
         <maven.invoker.plugin.version>3.8.0</maven.invoker.plugin.version>
-        <maven.war.plugin.version>3.3.2</maven.war.plugin.version>
+        <maven.war.plugin.version>3.4.0</maven.war.plugin.version>
         <maven.makepkgs.plugin.version>0.6.2</maven.makepkgs.plugin.version>
         <maven.jaxb2.plugin.version>0.15.3</maven.jaxb2.plugin.version>
         <maven.antlr.plugin.version>2.2</maven.antlr.plugin.version>
@@ -95,7 +95,7 @@
         <hk2.plugin.version>2.6.1.payara-p10</hk2.plugin.version>
         <tiger.types.version>1.4.payara-p1</tiger.types.version>
 
-        <glassfish-corba.version>4.1.1.payara-p7</glassfish-corba.version>
+        <glassfish-corba.version>4.1.1.payara-p8</glassfish-corba.version>
         <saaj-api.version>1.4.0</saaj-api.version>
         <bouncycastle.version>1.70</bouncycastle.version>
 
@@ -114,7 +114,7 @@
         <gmbal.version>4.0.3</gmbal.version>
         <antlr.version>2.7.7</antlr.version>
 
-        <commons-io.version>2.16.1</commons-io.version>
+        <commons-io.version>2.17.0</commons-io.version>
 
         <mimepull.version>1.9.15</mimepull.version>
 

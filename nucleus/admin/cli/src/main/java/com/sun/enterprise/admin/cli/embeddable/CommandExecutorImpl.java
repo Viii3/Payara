@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-//Portions Copyright [2016-2019] [Payara Foundation and/or its affiliates]
+//Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.admin.cli.embeddable;
 
@@ -146,6 +146,11 @@ public class CommandExecutorImpl implements org.glassfish.embeddable.CommandRunn
             String extraterse = globalOptions.getOne(ProgramOptions.EXTRATERSE);
             if (extraterse != null && Boolean.parseBoolean(extraterse)) {
                 options.set("extraterse", extraterse);
+            }
+
+            String userName = globalOptions.getOne(ProgramOptions.USER);
+            if (userName != null) {
+                options.set("userName", userName);
             }
         }
 

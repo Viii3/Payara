@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2020] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
 
 package org.glassfish.deployment.admin;
 
@@ -387,12 +387,11 @@ public class UndeployCommand extends UndeployCommandParameters implements AdminC
                     parameters.add(DeploymentProperties.IS_UNDEPLOY, Boolean.TRUE.toString());
                     inv.parameters(parameters).execute();
 
-                    if (subReport.getActionExitCode().equals(
-                    ActionReport.ExitCode.FAILURE)) {
-                    // if disable application failed
-                    // we should just return
+                    if (subReport.getActionExitCode().equals(ActionReport.ExitCode.FAILURE)) {
+                        // if disable application failed
+                        // we should just return
                         report.setMessage(localStrings.getLocalString("disable.command.failed","{0} disabled failed", appName));
-                    return;
+                        return;
                     }
 
                     if (DeploymentUtils.isDomainTarget(target)) {
