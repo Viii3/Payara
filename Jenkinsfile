@@ -28,10 +28,9 @@ pipeline {
             steps {
                 echo '*#*#*#*#*#*#*#*#*#*#*#*#  Building SRC  *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#'
                 withCredentials([usernameColonPassword(credentialsId: 'engineering-jenkins-nexus', variable: 'NEXUS_USER')]) {
-                    sh """mvn -B -V -ff -e clean install -PQuickBuild,BuildEmbedded,BuildEnterpriseNotifiers \
+                    sh """mvn -B -V -ff -e clean install -PQuickBuild,BuildEmbedded \
                     -Djavax.net.ssl.trustStore=${env.JAVA_HOME}/jre/lib/security/cacerts \
-                    -Djavax.xml.accessExternalSchema=all -Dbuild.number=${payaraBuildNumber} \
-                    -Dpayara.version=5.69.0-SNAPSHOT"""
+                    -Djavax.xml.accessExternalSchema=all -Dbuild.number=${payaraBuildNumber}"""
                 }
                 echo '*#*#*#*#*#*#*#*#*#*#*#*#    Built SRC   *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#'
             }
