@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2023] Payara Foundation and/or affiliates
+// Portions Copyright [2018-2024] Payara Foundation and/or affiliates
 
 package org.glassfish.config.support;
 
@@ -49,6 +49,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -92,7 +93,7 @@ class DomainXmlPreParser {
     private List<String> configNames = new LinkedList<>();
     private Map<String, String> mapServerConfig = new HashMap<>();
     private ClusterData cluster;
-    private DeploymentGroupData deploymentGroup;
+    private DeploymentGroupData deploymentGroup; // Refers to the FIRST deployment group for this instance.
     private final String instanceName;
     private String serverConfigRef;
     private boolean valid = false;
@@ -130,13 +131,6 @@ class DomainXmlPreParser {
         return cluster.name;
     }
 
-    final String getDeploymentGroupName() {
-        if(!validDG) {
-            return null;
-        }
-        return deploymentGroup.name;
-    }
-
     final List<String> getServerNames() {
         if(!valid) {
             return null;
@@ -146,9 +140,14 @@ class DomainXmlPreParser {
 
     final List<String> getDGServerNames() {
         if(!validDG) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
-        return deploymentGroup.dgServerRefs;
+
+        return deploymentGroups
+            .stream()
+            .filter(groupData -> groupData.dgServerRefs.contains(instanceName))
+            .flatMap(groupData -> groupData.dgServerRefs.stream())
+            .collect(Collectors.toList());
     }
 
     public Map<String, String> getMapServerConfig() {
