@@ -891,12 +891,10 @@ public class Response
      */
     @Override
     public void setBufferSize(int size) {
-
-        if (isCommitted() || !outputBuffer.isNew())
+        if (isCommitted()) {
             throw new IllegalStateException(rb.getString(LogFacade.CANNOT_CHANGE_BUFFER_SIZE_EXCEPTION));
-
+        }
         outputBuffer.setBufferSize(size);
-
     }
 
 
