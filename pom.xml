@@ -330,7 +330,7 @@
         <osgi.dto.version>1.1.1</osgi.dto.version>
         <minidns.version>1.0.5</minidns.version>
         <certificate-management.version>1.0.1</certificate-management.version>
-        <license-maven-plugin.version>2.4.0</license-maven-plugin.version>
+        <license-maven-plugin.version>2.5.0</license-maven-plugin.version>
         <diagnostics-tool.version>1.1.0</diagnostics-tool.version>
     </properties>
 
