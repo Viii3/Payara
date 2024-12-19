@@ -101,6 +101,8 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
 
     private static final int JAVA_COMP_LENGTH = "java:comp".length();
     private static final int JAVA_MODULE_LENGTH = "java:module".length();
+    
+    private static final String EJB_BUNDLE_NAME = "ejbBundle";
 
     @Inject
     private ServiceLocator habitat;
@@ -805,7 +807,7 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
      */
     private Object reviewSecondNamespaceIfAvailable(String appName, String componentId, String logicalJndiName) throws NamingException {
         Optional<String> secondComponentId = componentIdInfo.entrySet().stream()
-                .filter(e -> !e.getKey().contains(componentId) && e.getKey().contains(appName))
+                .filter(e -> !e.getKey().contains(componentId) && !e.getKey().contains(EJB_BUNDLE_NAME) && e.getKey().contains(appName))
                 .map(Map.Entry::getKey).findFirst();
         if (secondComponentId.isPresent()) {
             return getNamespace(secondComponentId.get(), logicalJndiName).get(logicalJndiName);
