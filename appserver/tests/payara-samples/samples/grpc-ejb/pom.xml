@@ -55,7 +55,7 @@
 
     <properties>
         <!-- gRPC versions -->
-        <grpc.version>1.68.2</grpc.version>
+        <grpc.version>1.69.0</grpc.version>
     </properties>
 
     <dependencies>
