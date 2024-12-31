@@ -37,12 +37,11 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  *
- * Portions Copyright [2017-2024] Payara Foundation and/or affiliates
+ * Portions Copyright [2017-2019] Payara Foundation and/or affiliates
  */
 
 package com.sun.enterprise.naming.impl;
 
-import java.util.Optional;
 import org.glassfish.api.invocation.ComponentInvocation;
 import org.glassfish.api.invocation.InvocationManager;
 import org.glassfish.api.naming.GlassfishNamingManager;
@@ -101,8 +100,6 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
 
     private static final int JAVA_COMP_LENGTH = "java:comp".length();
     private static final int JAVA_MODULE_LENGTH = "java:module".length();
-    
-    private static final String EJB_BUNDLE_NAME = "ejbBundle";
 
     @Inject
     private ServiceLocator habitat;
@@ -765,10 +762,7 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
         Object obj = namespace.get(logicalJndiName);
 
         if (obj == null) {
-            obj = reviewSecondNamespaceIfAvailable(info.appName, componentId, logicalJndiName);
-            if (obj == null) {
-                throw new NameNotFoundException("No object bound to name " + name);
-            }
+            throw new NameNotFoundException("No object bound to name " + name);
         }
 
         if (obj instanceof NamingObjectProxy) {
@@ -795,26 +789,6 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
 
         return obj;
     }
-
-    /**
-     * This is a method to verify if a second namespace contain the jndi name for componentId
-     *
-     * @param appName         name of the application
-     * @param componentId     id of the component
-     * @param logicalJndiName jndi name used for the search process
-     * @return object that wraps the result of the search or null in case no second namespace is available
-     * @throws NamingException
-     */
-    private Object reviewSecondNamespaceIfAvailable(String appName, String componentId, String logicalJndiName) throws NamingException {
-        Optional<String> secondComponentId = componentIdInfo.entrySet().stream()
-                .filter(e -> !e.getKey().contains(componentId) && !e.getKey().contains(EJB_BUNDLE_NAME) && e.getKey().contains(appName))
-                .map(Map.Entry::getKey).findFirst();
-        if (secondComponentId.isPresent()) {
-            return getNamespace(secondComponentId.get(), logicalJndiName).get(logicalJndiName);
-        }
-        return null;
-    }
-
 
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         ArrayList list = listNames(name);

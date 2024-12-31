@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  *
- * Portions Copyright [2017-2020] Payara Foundation and/or affiliates
+ * Portions Copyright [2017-2024] Payara Foundation and/or affiliates
  */
 
 package com.sun.enterprise.deployment.annotation.handlers;
@@ -46,6 +46,8 @@ import com.sun.enterprise.deployment.*;
 import com.sun.enterprise.deployment.util.DOLUtils;
 import com.sun.enterprise.deployment.annotation.context.ResourceContainerContext;
 import com.sun.enterprise.deployment.annotation.context.ResourceContainerContextImpl;
+import java.util.Arrays;
+import java.util.Optional;
 import org.glassfish.apf.AnnotationHandlerFor;
 import org.glassfish.apf.AnnotationInfo;
 import org.glassfish.apf.AnnotationProcessorException;
@@ -242,6 +244,14 @@ public class ResourceHandler extends AbstractResourceHandler {
                 desc.setInjectResourceType(resourceType.getName());
             }
 
+            //if value is empty we need to verify any other available descriptor that use same field with not empty value
+            if (!ok(desc.getValue())) {
+                String valueFound = searchValueIfAvailable(target.getFieldName(), descriptors);
+                if (!valueFound.isEmpty()) {
+                    desc.setValue(valueFound);
+                }
+            }
+
             // merge description
             if (!ok(desc.getDescription()) && ok(resourceAn.description()))
                 desc.setDescription(resourceAn.description());
@@ -289,6 +299,23 @@ public class ResourceHandler extends AbstractResourceHandler {
         }
 
         return getDefaultProcessedResult();
+    }
+
+    /**
+     * Method to verify any other Environment Properties that contain same field name and return value if not empty
+     * @param fieldName field to search
+     * @param descriptors available descriptors for EJB
+     * @return String value
+     */
+    public String searchValueIfAvailable(String fieldName, EnvironmentProperty[] descriptors) {
+        Optional<EnvironmentProperty> notEmptyValueOptional = Arrays.stream(descriptors)
+                .filter(d -> d.getDisplayName().equalsIgnoreCase(fieldName) || 
+                        fieldName.toLowerCase().contains(d.getDisplayName().toLowerCase()))
+                .filter(EnvironmentProperty::hasAValue).findFirst();
+        if(notEmptyValueOptional.isPresent()) {
+            return notEmptyValueOptional.get().getValue();
+        }
+        return "";
     }
 
     private EnvironmentProperty[] getDescriptors(Class resourceType,
