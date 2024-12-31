@@ -790,7 +790,7 @@ public final class  GlassfishNamingManagerImpl implements GlassfishNamingManager
         return obj;
     }
 
-    
+
     public NamingEnumeration<NameClassPair> list(String name) throws NamingException {
         ArrayList list = listNames(name);
         return new BindingsIterator<>(this, list.iterator(), true);
