@@ -74,7 +74,7 @@ import java.util.Collection;
     CommandTarget.CONFIG, CommandTarget.DAS, CommandTarget.DOMAIN, CommandTarget.STANDALONE_INSTANCE,CommandTarget.CLUSTERED_INSTANCE})
 @I18n("create.system.property")
 public class CreateSystemProperty implements AdminCommand, AdminCommandSecurity.Preauthorization, AdminCommandSecurity.AccessCheckProvider {
-    final private static LocalStringManagerImpl localStrings = new LocalStringManagerImpl(CreateSystemProperties.class);
+    final private static LocalStringManagerImpl localStrings = new LocalStringManagerImpl(CreateSystemProperty.class);
 
     @Param(optional=true, defaultValue=SystemPropertyConstants.DAS_SERVER_NAME)
     String target;
