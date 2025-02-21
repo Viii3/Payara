@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.web;
 
@@ -2073,6 +2073,8 @@ public class WebModule extends PwcWebModule implements Context {
                         cookieConfig.setSecure(value);
                     } else if("cookieHttpOnly".equalsIgnoreCase(name)) {
                         cookieConfig.setHttpOnly(Boolean.valueOf(value));
+                    } else if("cookieSameSite".equalsIgnoreCase(name)) {
+                        cookieConfig.setSameSite(value);
                     } else {
                         Object[] params = {name, value};
                         logger.log(Level.WARNING,
