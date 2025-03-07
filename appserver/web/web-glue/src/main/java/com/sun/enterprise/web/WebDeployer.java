@@ -144,7 +144,7 @@ public class WebDeployer extends JavaEEDeployer<WebContainer, WebApplication>{
 
             if (params.properties != null && params.properties.getProperty("globalContextRoot") != null) {
                 String globalContextRoot = removeSlashes(params.properties.getProperty("globalContextRoot"));
-                if (!globalContextRoot.isBlank()) {
+                if (!globalContextRoot.trim().isEmpty()) {
                     contextRoot = removeSlashes(contextRoot);
                     contextRoot = "/" + globalContextRoot + "/" + contextRoot;
                 }
