@@ -1746,7 +1746,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
     }
 
     private void addGlobalContextRootProperty(List<String> deploymentParams) {
-        if (globalContextRoot != null && !globalContextRoot.isBlank()) {
+        if (globalContextRoot != null && !globalContextRoot.trim().isEmpty()) {
             deploymentParams.add("--properties=" + "globalContextRoot="+globalContextRoot);
         }
     }
