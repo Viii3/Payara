@@ -100,16 +100,16 @@ import java.util.concurrent.TimeUnit;
 })
 public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckConstants {
 
-    final static String baseHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
-    final static String hoggingThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Percentage",
+    final static String[] baseHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
+    final static String[] hoggingThreadsHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Percentage",
             "Retry Count"};
-    final static String thresholdDiagnosticsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Critical Threshold",
+    final static String[] thresholdDiagnosticsHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Critical Threshold",
             "Warning Threshold", "Good Threshold"};
-    final static String stuckThreadsHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit", "Blacklist Patterns"};
-    final static String MPHealthCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Timeout"};
-    final static String microProfileMetricsCheckHeaders[] = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
-    final static String monitoredMicroProfileMetricHeaders[] = {"Monitored Metric Name", "Description" };
-    final static String notifierHeaders[] = {"Name", "Notifier Enabled"};
+    final static String[] stuckThreadsHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Threshold Time", "Threshold Unit", "Blacklist Patterns"};
+    final static String[] MPHealthCheckHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health", "Timeout"};
+    final static String[] microProfileMetricsCheckHeaders = {"Name", "Enabled", "Time", "Unit", "Add to MicroProfile Health"};
+    final static String[] monitoredMicroProfileMetricHeaders = {"Monitored Metric Name", "Description" };
+    final static String[] notifierHeaders = {"Name", "Notifier Enabled"};
     
     private static final String garbageCollectorPropertyName = "garbageCollector";
     private static final String cpuUsagePropertyName = "cpuUsage";
@@ -199,7 +199,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
                 final String notifierClassName = serviceHandle.getActiveDescriptor().getImplementationClass().getSimpleName();
                 final String notifierName = NotifierUtils.getNotifierName(serviceHandle.getActiveDescriptor());
 
-                Object values[] = new Object[2];
+                Object[] values = new Object[2];
                 values[0] = notifierName;
                 values[1] = notifiers.contains(notifierName);
                 notifiersColumnFormatter.addRow(values);
@@ -232,7 +232,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             if (checker instanceof HoggingThreadsChecker) {
                 HoggingThreadsChecker hoggingThreadsChecker = (HoggingThreadsChecker) checker;
 
-                Object values[] = new Object[7];
+                Object[] values = new Object[7];
                 values[0] = hoggingThreadsChecker.getName();
                 values[1] = hoggingThreadsChecker.getEnabled();
                 values[2] = hoggingThreadsChecker.getTime();
@@ -247,7 +247,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             } else if (checker instanceof ThresholdDiagnosticsChecker) {
                 ThresholdDiagnosticsChecker thresholdDiagnosticsChecker = (ThresholdDiagnosticsChecker) checker;
 
-                Object values[] = new Object[8];
+                Object[] values = new Object[8];
                 values[0] = thresholdDiagnosticsChecker.getName();
                 values[1] = thresholdDiagnosticsChecker.getEnabled();
                 values[2] = thresholdDiagnosticsChecker.getTime();
@@ -267,7 +267,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
             } else if (checker instanceof StuckThreadsChecker) {
                 StuckThreadsChecker stuckThreadsChecker = (StuckThreadsChecker) checker;
                 
-                Object values[] = new Object[8];
+                Object[] values = new Object[8];
                 values[0] = stuckThreadsChecker.getName();
                 values[1] = stuckThreadsChecker.getEnabled();
                 values[2] = stuckThreadsChecker.getTime();
@@ -311,7 +311,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
                 List<MonitoredMetric> metrics = microProfileMetricsChecker.getMonitoredMetrics();
                 if (!metrics.isEmpty()) {
                     for (MonitoredMetric monitoredBean : metrics) {
-                        Object metricValues[] = new Object[2];
+                        Object[] metricValues = new Object[2];
                         metricValues[0] = monitoredBean.getMetricName();
                         metricValues[1] = monitoredBean.getDescription();
                         monitoredMicroProfileMetricsColumnFormatter.addRow(metricValues);
@@ -321,7 +321,7 @@ public class GetHealthCheckConfiguration implements AdminCommand, HealthCheckCon
                 } 
                 
             }else if (checker != null) {
-                Object values[] = new Object[5];
+                Object[] values = new Object[5];
                 values[0] = checker.getName();
                 values[1] = checker.getEnabled();
                 values[2] = checker.getTime();
