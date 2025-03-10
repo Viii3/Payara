@@ -37,21 +37,16 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2014-2025] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2014-2017] [Payara Foundation and/or its affiliates]
 
 package org.glassfish.web.deployment.archivist;
 
-import com.sun.enterprise.deploy.shared.ArchiveFactory;
 import com.sun.enterprise.deployment.Application;
-import org.glassfish.deployment.common.InstalledLibrariesResolver;
 import org.glassfish.deployment.common.RootDeploymentDescriptor;
 import com.sun.enterprise.deployment.EjbBundleDescriptor;
 import com.sun.enterprise.deployment.EjbDescriptor;
 import com.sun.enterprise.deployment.WebComponentDescriptor;
 import com.sun.enterprise.deployment.annotation.impl.ModuleScanner;
-import org.glassfish.hk2.classmodel.reflect.Type;
-import org.glassfish.hk2.classmodel.reflect.Types;
-import org.glassfish.internal.deployment.Deployment;
 import org.glassfish.web.deployment.annotation.impl.WarScanner;
 import com.sun.enterprise.deployment.archivist.Archivist;
 import com.sun.enterprise.deployment.archivist.ArchivistFor;
@@ -72,16 +67,12 @@ import org.glassfish.web.deployment.io.WebDeploymentDescriptorFile;
 import org.glassfish.web.deployment.util.*;
 import org.jvnet.hk2.annotations.Service;
 import javax.inject.Inject;
-import org.glassfish.hk2.classmodel.reflect.Parser;
-
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -90,7 +81,6 @@ import java.util.Vector;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 
 /**
@@ -113,10 +103,6 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
     private ServerEnvironment env;
 
     private WebBundleDescriptorImpl defaultWebXmlBundleDescriptor = null;
-    @Inject
-    private ArchiveFactory archiveFactory;
-    @Inject
-    private Deployment deployment;
 
     /**
      * @return the  module type handled by this archivist
@@ -327,10 +313,6 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
                 libs.add(entryName);
             }
         }
-        // Webapp shared libraries
-        if (DeploymentUtils.useWarLibraries(deployment.getCurrentDeploymentContext())) {
-            InstalledLibrariesResolver.getWarLibraries().forEach(warLibrary -> libs.add(warLibrary.toString()));
-        }
         return libs;
     }
 
@@ -351,27 +333,10 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
                 // all web fragment metadata-complete
                 // should be overridden and be true also
                 if (descriptor.isFullAttribute()) {
-                    wfDesc.setFullAttribute(
-                            String.valueOf(descriptor.isFullAttribute()));
+                  wfDesc.setFullAttribute(
+                      String.valueOf(descriptor.isFullAttribute()));
                 }
-                if (wfDesc.isWarLibrary()) {
-                    if (!DeploymentUtils.getWarLibraryCache().containsKey(wfDesc.getWarLibraryPath())) {
-                        ReadableArchive warArchive = null;
-                        try {
-                            warArchive = archiveFactory.openArchive(new File(wfDesc.getWarLibraryPath()));
-                            warArchive.setExtraData(Parser.class, archive.getExtraData(Parser.class));
-                            super.readAnnotations(warArchive, wfDesc, localExtensions);
-                        } finally {
-                            if (warArchive != null) {
-                                warArchive.close();
-                            }
-                        }
-                        DeploymentUtils.getWarLibraryCache().putIfAbsent(wfDesc.getWarLibraryPath(),
-                                new DeploymentUtils.WarLibraryDescriptor(wfDesc, filterTypesByWarLibrary(wfDesc)));
-                    }
-                } else {
-                    super.readAnnotations(archive, wfDesc, localExtensions);
-                }
+                super.readAnnotations(archive, wfDesc, localExtensions);
             }
 
             // scan manifest classpath
@@ -409,16 +374,6 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
         descriptor.addDefaultWebBundleDescriptor(defaultWebBundleDescriptor);
     }
 
-    private List<Type> filterTypesByWarLibrary(WebFragmentDescriptor wfDesc) {
-        Types types = deployment.getCurrentDeploymentContext().getTransientAppMetaData(Types.class.getName(), Types.class);
-        if (types == null) {
-            return new ArrayList<>();
-        }
-        return types.getAllTypes().stream().filter(key -> key.wasDefinedIn(
-                Collections.singletonList(Paths.get(wfDesc.getWarLibraryPath()).toUri()))).collect(Collectors.toList());
-    }
-
-
     /**
      * This method will return the list of web fragment in the desired order.
      */
@@ -438,28 +393,18 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
                 wfArchivist.setAnnotationProcessingRequested(false);
 
                 WebFragmentDescriptor wfDesc = null;
-                ReadableArchive embeddedArchive = null;
-                boolean isWarLibrary = false;
-                if (lib.startsWith("WEB-INF")) {
-                    embeddedArchive = archive.getSubArchive(lib);
-                } else if (archive.getParentArchive() != null) {
-                    embeddedArchive = archive.getParentArchive().getSubArchive("lib").getSubArchive(lib);
-                } else if (!DeploymentUtils.getWarLibraryCache().containsKey(lib) && lib.startsWith("/")
-                        && lib.contains(DeploymentUtils.WAR_LIBRARIES)) {
-                    embeddedArchive = archiveFactory.openArchive(new File(lib));
-                    isWarLibrary = true;
-                }
+                ReadableArchive embeddedArchive = archive.getSubArchive(lib);
                 try {
                     if (embeddedArchive != null &&
                             wfArchivist.hasStandardDeploymentDescriptor(embeddedArchive)) {
                         try {
-                            wfDesc = (WebFragmentDescriptor) wfArchivist.open(embeddedArchive);
-                        } catch (SAXParseException ex) {
-                            throw new IOException(ex);
+                            wfDesc = (WebFragmentDescriptor)wfArchivist.open(embeddedArchive);
+                        } catch(SAXParseException ex) {
+                            IOException ioex = new IOException();
+                            ioex.initCause(ex);
+                            throw ioex;
                         }
-                    } else if (DeploymentUtils.getWarLibraryCache().containsKey(lib)) {
-                        wfDesc = (WebFragmentDescriptor) DeploymentUtils.getWarLibraryCache().get(lib).getDescriptor();
-                    } else {
+                    } else {   
                         wfDesc = new WebFragmentDescriptor();
                         wfDesc.setExists(false);
                     }
@@ -468,13 +413,7 @@ public class WebArchivist extends Archivist<WebBundleDescriptorImpl> {
                         embeddedArchive.close();
                     }
                 }
-                wfDesc.setJarName(lib.substring(lib.lastIndexOf('/') + 1));
-                if (isWarLibrary) {
-                    if (wfDesc.getClassLoader() != null) {
-                        wfDesc.setClassLoader(wfDesc.getClassLoader().getParent());
-                    }
-                    wfDesc.setWarLibraryPath(lib);
-                }
+                wfDesc.setJarName(lib.substring(lib.lastIndexOf('/') + 1));    
                 wfList.add(wfDesc);
 
                 descriptor.putJarNameWebFragmentNamePair(wfDesc.getJarName(), wfDesc.getName());

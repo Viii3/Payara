@@ -37,13 +37,9 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2025] [Payara Foundation and/or its affiliates]
 
 package com.sun.appserv.connectors.internal.api;
 
-import com.sun.enterprise.loader.CurrentBeforeParentClassLoader;
-import org.glassfish.deployment.common.DeploymentUtils;
-import org.glassfish.deployment.common.InstalledLibrariesResolver;
 import org.glassfish.internal.api.ClassLoaderHierarchy;
 import org.glassfish.internal.api.DelegatingClassLoader;
 import org.glassfish.api.admin.*;
@@ -57,11 +53,9 @@ import javax.inject.Singleton;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Collection;
@@ -87,8 +81,7 @@ public class ConnectorsClassLoaderUtil {
     @Inject
     private ClassLoaderHierarchy clh;
 
-    // warLibClassLoader is used to load libraries from the war file
-    private final AtomicReference<CurrentBeforeParentClassLoader> warLibClassLoader = new AtomicReference<>();
+    //private static List<ConnectorClassFinder> systemRARClassLoaders;
 
     private Logger _logger = LogDomains.getLogger(ConnectorRuntime.class, LogDomains.RSR_LOGGER);
 
@@ -216,7 +209,7 @@ public class ConnectorsClassLoaderUtil {
                     libraries = ConnectorsUtil.getInstalledLibrariesFromManifest(location, env);
                 }
 
-                ConnectorClassFinder ccf = createRARClassLoader(location, getCommonClassLoader(), rarName, libraries);
+                ConnectorClassFinder ccf = createRARClassLoader(location, null, rarName, libraries);
                 classLoaders.add(ccf);
             }
         //    systemRARClassLoaders = classLoaders;
@@ -225,28 +218,6 @@ public class ConnectorsClassLoaderUtil {
         return classLoaders;
     }
 
-    public ClassLoader getCommonClassLoader() {
-        if (DeploymentUtils.useWarLibraries(DeploymentUtils.getCurrentDeploymentContext())) {
-            return warLibClassLoader.updateAndGet(currentValue -> {
-                if (currentValue == null) {
-                    CurrentBeforeParentClassLoader newValue = new CurrentBeforeParentClassLoader(InstalledLibrariesResolver.getWarLibraries()
-                            .stream().map(uri -> {
-                                try {
-                                    return uri.toUri().toURL();
-                                } catch (MalformedURLException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            })
-                            .toArray(URL[]::new), clh.getCommonClassLoader());
-                    newValue.enableCurrentBeforeParentUnconditional();
-                    return newValue;
-                }
-                return currentValue;
-            });
-        } else {
-            return clh.getCommonClassLoader();
-        }
-    }
 
     public ConnectorClassFinder getSystemRARClassLoader(String rarName) throws ConnectorRuntimeException {
         if (ConnectorsUtil.belongsToSystemRA(rarName)) {
