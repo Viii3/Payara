@@ -37,7 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2020] [Payara Foundation and/or its affiliates]
+
+// Portions Copyright [2018-2025] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.web;
 
@@ -140,6 +141,14 @@ public class WebDeployer extends JavaEEDeployer<WebContainer, WebApplication>{
             }
             if (contextRoot == null)
                 contextRoot = ((GenericHandler)dc.getArchiveHandler()).getDefaultApplicationNameFromArchiveName(dc.getOriginalSource());
+
+            if (params.properties != null && params.properties.getProperty("globalContextRoot") != null) {
+                String globalContextRoot = removeSlashes(params.properties.getProperty("globalContextRoot"));
+                if (!globalContextRoot.trim().isEmpty()) {
+                    contextRoot = removeSlashes(contextRoot);
+                    contextRoot = "/" + globalContextRoot + "/" + contextRoot;
+                }
+            }
 
             if (!contextRoot.startsWith("/")) {
                 contextRoot = "/" + contextRoot;
@@ -244,4 +253,9 @@ public class WebDeployer extends JavaEEDeployer<WebContainer, WebApplication>{
             throw de;
         }
     }
+
+    private String removeSlashes(String value) {
+        return value.replaceAll("[/]", "");
+    }
+
 }
