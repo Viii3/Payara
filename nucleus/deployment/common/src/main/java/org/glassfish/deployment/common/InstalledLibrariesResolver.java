@@ -37,11 +37,14 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2019] Payara Foundation and/or affiliates
+// Portions Copyright [2018-2025] Payara Foundation and/or affiliates
 
 package org.glassfish.deployment.common;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -49,6 +52,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.logging.*;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.glassfish.api.deployment.archive.ReadableArchive;
 
@@ -65,6 +70,7 @@ public class InstalledLibrariesResolver {
     // optional packages are stored in this map that is keyed by the extension
     // (accounts only for ext dir jars)
     private static Map<Extension, String> extDirsLibsStore = new HashMap<Extension, String>();
+    private static List<Path> warLibraries = new ArrayList<>();
 
     // Fully qualified names of all jar files in all ext dirs.  Note that
     // this will include even jars that do not explicitly declare the
@@ -128,8 +134,24 @@ public class InstalledLibrariesResolver {
      * @param libDir libraryDirectory
      */
     public static void initializeInstalledLibRegistry(String libDir ) {
+        try (Stream<Path> jarStream = Files.list(Paths.get(String.format("%s/warlibs", libDir)))
+                .filter(path -> (Files.isRegularFile(path) || Files.isSymbolicLink(path))
+                        && path.toString().endsWith(".jar"))){
+            warLibraries = jarStream.collect(Collectors.toList());
+        } catch (IOException e) {
+            deplLogger.fine("Error in opening package directory " + libDir + " due to exception: " + e.getMessage());
+        }
         initializeInstalledLibRegistryForExtDirs();
         initializeInstalledLibRegistryForApplibs(libDir);
+    }
+
+    /**
+     * These libraries will be included in non-internal WAR applications,
+     * to improve developer experience and not require all dependencies to be included in the WAR.
+     * @return list of libraries in <domain_root>/lib/warlibs
+     */
+    public static List<Path> getWarLibraries() {
+        return warLibraries;
     }
 
     private static void initializeInstalledLibRegistryForExtDirs() {
