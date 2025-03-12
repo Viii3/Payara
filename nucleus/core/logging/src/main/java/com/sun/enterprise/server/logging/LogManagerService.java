@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2025] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.server.logging;
 
@@ -151,6 +151,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
     String logToConsoleDetail = "";
     String rotationInTimeLimitInBytesDetail = "";
     String useSystemLoggingDetail = "";
+    String systemLoggingHostDetail = "";
     String fileHandlerCountDetail = "";
     String retainErrorsStaticticsDetail = "";
     String log4jVersionDetail = "";
@@ -187,6 +188,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
     private static final String LOGTOCONSOLE_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.logtoConsole";
     private static final String ROTATIONLIMITINBYTES_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.rotationLimitInBytes";
     private static final String USESYSTEMLOGGING_PROPERTY = "com.sun.enterprise.server.logging.SyslogHandler.useSystemLogging";
+    private static final String SYSTEMLOGGINGHOST_PROPERTY = "com.sun.enterprise.server.logging.SyslogHandler.host";
     private static final String FILEHANDLER_COUNT_PROPERTY = "java.util.logging.FileHandler.count";
     private static final String RETAINERRORSSTATICTICS_PROPERTY = "com.sun.enterprise.server.logging.GFFileHandler.retainErrorsStasticsForHours";
     private static final String LOG4J_VERSION_PROPERTY = "log4j.logger.org.hibernate.validator.util.Version";
@@ -642,12 +644,25 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
                                 } else if (a.equals(USESYSTEMLOGGING_PROPERTY)) {
                                     if (!val.equals(useSystemLoggingDetail)) {
                                         useSystemLoggingDetail = val;
-                                        SyslogHandler syslogHandler = null;
+                                        SyslogHandler syslogHandler;
                                         for (Handler handler : logMgr.getLogger("").getHandlers()) {
                                             // only get the GFFileHandler
                                             if (handler.getClass().equals(SyslogHandler.class)) {
                                                 syslogHandler = (SyslogHandler) handler;
-                                                syslogHandler.setSystemLogging(Boolean.parseBoolean(useSystemLoggingDetail));
+                                                syslogHandler.setSystemLogging(Boolean.parseBoolean(useSystemLoggingDetail), systemLoggingHostDetail);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } else if (a.equals(SYSTEMLOGGINGHOST_PROPERTY)) {
+                                    if (!val.equals(systemLoggingHostDetail)) {
+                                        systemLoggingHostDetail = val;
+                                        SyslogHandler syslogHandler;
+                                        for (Handler handler : logMgr.getLogger("").getHandlers()) {
+                                            // only get the GFFileHandler
+                                            if (handler.getClass().equals(SyslogHandler.class)) {
+                                                syslogHandler = (SyslogHandler) handler;
+                                                syslogHandler.setSystemLogging(Boolean.parseBoolean(useSystemLoggingDetail), systemLoggingHostDetail);
                                                 break;
                                             }
                                         }
@@ -981,6 +996,7 @@ public class LogManagerService implements PostConstruct, PreDestroy, org.glassfi
         logToConsoleDetail = props.get(LOGTOCONSOLE_PROPERTY);
         rotationInTimeLimitInBytesDetail = props.get(ROTATIONLIMITINBYTES_PROPERTY);
         useSystemLoggingDetail = props.get(USESYSTEMLOGGING_PROPERTY);
+        systemLoggingHostDetail = props.get(SYSTEMLOGGINGHOST_PROPERTY);
         fileHandlerCountDetail = props.get(FILEHANDLER_COUNT_PROPERTY);
         retainErrorsStaticticsDetail = props.get(RETAINERRORSSTATICTICS_PROPERTY);
         log4jVersionDetail = props.get(LOG4J_VERSION_PROPERTY);
