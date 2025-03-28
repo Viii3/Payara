@@ -37,27 +37,25 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2021] Payara Foundation and/or affiliates
+// Portions Copyright [2018-2025] Payara Foundation and/or affiliates
 
 package com.sun.enterprise.admin.servermgmt.cli;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.logging.Logger;
-
-import javax.inject.Inject;
 
 import com.sun.enterprise.admin.cli.CLICommand;
 import com.sun.enterprise.universal.i18n.LocalStringsImpl;
 import com.sun.enterprise.util.io.DomainDirs;
-
+import javax.inject.Inject;
 import org.glassfish.api.Param;
 import org.glassfish.api.admin.CommandException;
 import org.glassfish.hk2.api.PerLookup;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.jvnet.hk2.annotations.Service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The change-master-password command.
@@ -91,6 +89,9 @@ public class ChangeMasterPasswordCommand extends CLICommand {
 
     @Param(name = "savemasterpassword", optional = true, defaultValue = "false")
     private boolean savemp;
+
+    @Param(name = "masterpasswordlocation", optional = true)
+    private String mpLocation;
 
     @Param(name = "domain_name_or_node_name", primary = true, optional = true)
     private String domainNameOrNodeName;
@@ -130,12 +131,12 @@ public class ChangeMasterPasswordCommand extends CLICommand {
                 // nodeDir is not specified and domainNameOrNodeName is not a domain.
                 // It could be a node
                 // We add defaultNodeDir parameter to args
-                ArrayList arguments = new ArrayList<String>(Arrays.asList(argv));
+                List<String> arguments = new ArrayList<>(Arrays.asList(argv));
                 arguments.remove(argv.length -1);
                 arguments.add("--nodedir");
                 arguments.add(getDefaultNodesDirs().getAbsolutePath());
                 arguments.add(domainNameOrNodeName);
-                String[] newargs = (String[]) arguments.toArray(new String[arguments.size()]);
+                String[] newargs = arguments.toArray(new String[0]);
                 
                 command = CLICommand.getCommand(habitat,
                 CHANGE_MASTER_PASSWORD_NODE);

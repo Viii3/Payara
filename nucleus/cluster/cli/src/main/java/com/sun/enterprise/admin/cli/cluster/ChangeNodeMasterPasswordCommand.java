@@ -37,17 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright [2016-2025] [Payara Foundation and/or its affiliates]
 
 package com.sun.enterprise.admin.cli.cluster;
 
 import static com.sun.enterprise.admin.servermgmt.domain.DomainConstants.MASTERPASSWORD_FILE;
+import static com.sun.enterprise.admin.servermgmt.domain.DomainConstants.MASTERPASSWORD_LOCATION_FILE;
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +66,7 @@ import com.sun.enterprise.util.HostAndPort;
 import org.glassfish.api.Param;
 import org.glassfish.api.admin.CommandException;
 import org.glassfish.api.admin.CommandValidationException;
+import org.glassfish.grizzly.utils.Charsets;
 import org.glassfish.hk2.api.PerLookup;
 import org.glassfish.security.common.FileProtectionUtility;
 import org.jvnet.hk2.annotations.Service;
@@ -87,10 +90,13 @@ public class ChangeNodeMasterPasswordCommand extends LocalInstanceCommand {
     protected static final String NEW_PASSWORD_ALIAS = "AS_ADMIN_NEWMASTERPASSWORD";
 
     @Param(name = "node", primary = true)
-    protected String node;
+    protected String passwordNode;
 
     @Param(name = "savemasterpassword", optional = true)
     private boolean saveMasterPassword;
+
+    @Param(name = "masterpasswordlocation", optional = true)
+    private String mpLocation;
 
     protected File selectedNodeDir;
 
@@ -100,7 +106,7 @@ public class ChangeNodeMasterPasswordCommand extends LocalInstanceCommand {
     protected void inject() throws CommandException {
         super.inject();
 
-        selectedNodeDir = new File(nodeDir, node);
+        selectedNodeDir = new File(nodeDir, passwordNode);
     }
 
     @Override
@@ -153,11 +159,25 @@ public class ChangeNodeMasterPasswordCommand extends LocalInstanceCommand {
     @Override
     protected int executeCommand() throws CommandException {
         // Find the master password file
-        final File pwdFile = new File(this.getServerDirs().getAgentDir(), MASTERPASSWORD_FILE);
+        File mpLocation = new File(this.getServerDirs().getAgentDir(), MASTERPASSWORD_LOCATION_FILE);
+        File pwdFile;
+        if (mpLocation.canRead()) {
+            try {
+                String mpPath = new String(Files.readAllBytes(mpLocation.toPath()), Charsets.UTF8_CHARSET);
+                pwdFile = new File(mpPath);
+            } catch (IOException e) {
+                Logger.getAnonymousLogger().log(Level.WARNING,
+                    "Failed to read master-password-location file due error: " + e);
+                pwdFile = new File(this.getServerDirs().getAgentDir(), MASTERPASSWORD_FILE);
+            }
+        } else {
+            pwdFile = new File(this.getServerDirs().getAgentDir(), MASTERPASSWORD_FILE);
+        }
+
         try {
             // Write the master password file
             PasswordAdapter p = new PasswordAdapter(pwdFile.getAbsolutePath(), MASTERPASSWORD_FILE.toCharArray());
-            p.setPasswordForAlias(MASTERPASSWORD_FILE, newPassword.getBytes());
+            p.setPasswordForAlias(MASTERPASSWORD_FILE, newPassword.getBytes(StandardCharsets.UTF_8));
             FileProtectionUtility.chmod0600(pwdFile);
             return 0;
         } catch (Exception ex) {

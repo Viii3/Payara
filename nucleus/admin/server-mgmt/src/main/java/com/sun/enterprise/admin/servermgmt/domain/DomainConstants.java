@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2023-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.servermgmt.domain;
 
@@ -65,6 +66,9 @@ public class DomainConstants {
 
     /** Master password file name stores the password for secure key store.  */
     public static final String MASTERPASSWORD_FILE = "master-password";
+
+    /** File name for the file that contains the path to the master password.  */
+    public static final String MASTERPASSWORD_LOCATION_FILE = "master-password-location";
 
     /** Filename contains the trusted certificates, including public keys. */
     public static final String TRUSTSTORE_FILE = "cacerts.jks";
