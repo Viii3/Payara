@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2017-2020] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2017-2025 Payara Foundation and/or its affiliates
 
 package com.sun.gjc.spi;
 
@@ -1223,6 +1223,14 @@ public abstract class ManagedConnectionFactoryImpl implements javax.resource.spi
     
     public String getLogJdbcCalls() {
          return spec.getDetail(DataSourceSpec.LOGJDBCCALLS);       
+    }
+
+    public void setSkipClientInfoValidation(String enabled) {
+        spec.setDetail(DataSourceSpec.SKIPCLIENTINFOVALIDATION, enabled);
+    }
+
+    public String getSkipClientInfoValidation() {
+        return spec.getDetail(DataSourceSpec.SKIPCLIENTINFOVALIDATION);
     }
     
     /**
