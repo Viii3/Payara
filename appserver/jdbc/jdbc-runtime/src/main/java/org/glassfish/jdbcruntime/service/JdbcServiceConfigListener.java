@@ -39,8 +39,8 @@
  */
 package org.glassfish.jdbcruntime.service;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.inject.Inject;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.hk2.runlevel.RunLevel;
 import org.glassfish.jdbc.config.JdbcConnectionPool;
