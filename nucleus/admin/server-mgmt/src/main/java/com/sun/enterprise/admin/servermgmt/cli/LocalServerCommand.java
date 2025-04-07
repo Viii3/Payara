@@ -45,6 +45,7 @@ import com.sun.enterprise.admin.cli.CLICommand;
 import com.sun.enterprise.admin.cli.CLIConstants;
 import com.sun.enterprise.admin.cli.ProgramOptions;
 import com.sun.enterprise.admin.cli.remote.RemoteCLICommand;
+import com.sun.enterprise.admin.servermgmt.domain.DomainConstants;
 import com.sun.enterprise.security.store.PasswordAdapter;
 import com.sun.enterprise.universal.i18n.LocalStringsImpl;
 import com.sun.enterprise.universal.io.SmartFile;
@@ -59,7 +60,6 @@ import com.sun.enterprise.util.io.FileUtils;
 import com.sun.enterprise.util.io.ServerDirs;
 import org.glassfish.api.ActionReport;
 import org.glassfish.api.admin.CommandException;
-import org.glassfish.grizzly.utils.Charsets;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyStore;
 import java.util.Arrays;
@@ -86,6 +87,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static com.sun.enterprise.admin.servermgmt.domain.DomainConstants.MASTERPASSWORD_FILE;
 import static com.sun.enterprise.admin.servermgmt.domain.DomainConstants.MASTERPASSWORD_LOCATION_FILE;
@@ -410,21 +412,21 @@ public abstract class LocalServerCommand extends CLICommand {
         waitForRestart(oldServerPid, CLIConstants.WAIT_FOR_DAS_TIME_MS);
     }
 
-        /**
-         * Byron Nevins Says: We have quite a historical assortment of ways to determine
-         * if a server has restarted. There are little teeny timing issues with all of
-         * them. I'm confident that this new technique will clear them all up. Here we
-         * are just monitoring the PID of the new server and comparing it to the pid of
-         * the old server. The oldServerPid is guaranteed to be either the PID of the
-         * "old" server or -1 if we couldn't get it -- or it isn't running. If it is -1
-         * then we make the assumption that once we DO get a valid pid that the server
-         * has started. If the old pid is valid we simply poll until we get a different
-         * pid. Notice that we will never get a valid pid back unless the server is
-         * officially up and running and "STARTED" Created April 2013
-         *
-         * @param oldServerPid The pid of the server which is being restarted.
-         * @throws CommandException if we time out.
-         */
+    /**
+     * Byron Nevins Says: We have quite a historical assortment of ways to determine
+     * if a server has restarted. There are little teeny timing issues with all of
+     * them. I'm confident that this new technique will clear them all up. Here we
+     * are just monitoring the PID of the new server and comparing it to the pid of
+     * the old server. The oldServerPid is guaranteed to be either the PID of the
+     * "old" server or -1 if we couldn't get it -- or it isn't running. If it is -1
+     * then we make the assumption that once we DO get a valid pid that the server
+     * has started. If the old pid is valid we simply poll until we get a different
+     * pid. Notice that we will never get a valid pid back unless the server is
+     * officially up and running and "STARTED" Created April 2013
+     *
+     * @param oldServerPid The pid of the server which is being restarted.
+     * @throws CommandException if we time out.
+     */
     protected final void waitForRestart(final int oldServerPid, long timeout) throws CommandException {
         long end = getEndTime(timeout);
 
@@ -571,7 +573,7 @@ public abstract class LocalServerCommand extends CLICommand {
         File mpLocation = new File(serverDirs.getConfigDir(), MASTERPASSWORD_LOCATION_FILE);
         if (mpLocation.canRead()) {
             try {
-                String path = new String(Files.readAllBytes(mpLocation.toPath()), Charsets.UTF8_CHARSET);
+                String path = new String(Files.readAllBytes(mpLocation.toPath()), StandardCharsets.UTF_8);
                 mp = new File(path);
             }
             catch (IOException e) {
