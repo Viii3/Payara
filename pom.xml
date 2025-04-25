@@ -200,6 +200,17 @@
         </pluginRepository>
     </pluginRepositories>
 
+    <distributionManagement>
+        <repository>
+            <id>payara-nexus-enterprise-distributions</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise/</url>
+        </repository>
+        <snapshotRepository>
+            <id>payara-nexus-enterprise-snapshots</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise-snapshots-private/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <properties>
         <maven.clean.plugin.version>3.4.1</maven.clean.plugin.version>
         <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
@@ -447,29 +458,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <profile>
-            <id>deploy-internals</id>
-
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-
-            <properties>
-                <deploy.skip>false</deploy.skip>
-            </properties>
-
-            <distributionManagement>
-                <repository>
-                    <id>payara-nexus-enterprise-artifacts</id>
-                    <url>https://nexus.dev.payara.fish/repository/payara-enterprise-artifacts-private/</url>
-                </repository>
-                <snapshotRepository>
-                    <id>payara-nexus-enterprise-snapshots</id>
-                    <url>https://nexus.dev.payara.fish/repository/payara-enterprise-snapshots-private/</url>
-                </snapshotRepository>
-            </distributionManagement>
         </profile>
 
         <profile>
