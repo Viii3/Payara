@@ -123,28 +123,18 @@
             </snapshots>
         </repository>
         <repository>
-            <id>payara-nexus-snapshots</id>
-            <url>https://nexus.dev.payara.fish/repository/payara-snapshots</url>
+            <id>payara-nexus-enterprise-artifacts</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-enterprise-artifacts-private</url>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
             <id>payara-nexus-enterprise-distributions</id>
             <url>https://nexus.dev.payara.fish/repository/payara-enterprise</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>payara-nexus-enterprise-artifacts</id>
-            <url>https://nexus.dev.payara.fish/repository/payara-enterprise-artifacts-private</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -160,6 +150,26 @@
             </releases>
             <snapshots>
                 <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>payara-nexus-snapshots</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>payara-nexus-staging</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-staging</url>
+            <releases>
+                <enabled>${payara-nexus-staging.repo.releases.enabled}</enabled>
+            </releases>
+            <snapshots>
+                <enabled>${payara-nexus-staging.repo.snapshots.enabled}</enabled>
             </snapshots>
         </repository>
     </repositories>
@@ -208,6 +218,16 @@
                 <enabled>false</enabled>
             </snapshots>
         </pluginRepository>
+        <pluginRepository>
+            <id>payara-nexus-staging</id>
+            <url>https://nexus.dev.payara.fish/repository/payara-staging</url>
+            <releases>
+                <enabled>${payara-nexus-staging.repo.releases.enabled}</enabled>
+            </releases>
+            <snapshots>
+                <enabled>${payara-nexus-staging.repo.snapshots.enabled}</enabled>
+            </snapshots>
+        </pluginRepository>
     </pluginRepositories>
 
     <distributionManagement>
@@ -245,6 +265,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <javase.version>1.8</javase.version>
         <deploy.skip>true</deploy.skip>
+        <payara-nexus-staging.repo.releases.enabled>false</payara-nexus-staging.repo.releases.enabled>
+        <payara-nexus-staging.repo.snapshots.enabled>false</payara-nexus-staging.repo.snapshots.enabled>
 
         <!-- BOM-referenced versions -->
         <jakartaee.api.version>8.0.0</jakartaee.api.version>
@@ -473,30 +495,10 @@
 
         <profile>
             <id>payara-nexus-staging</id>
-            <repositories>
-                <repository>
-                    <id>payara-nexus-staging</id>
-                    <url>https://nexus.dev.payara.fish/repository/payara-staging</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>payara-nexus-staging</id>
-                    <url>https://nexus.dev.payara.fish/repository/payara-staging</url>
-                    <releases>
-                        <enabled>true</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </pluginRepository>
-            </pluginRepositories>
+            <properties>
+                <payara-nexus-staging.repo.releases.enabled>true</payara-nexus-staging.repo.releases.enabled>
+                <payara-nexus-staging.repo.snapshots.enabled>true</payara-nexus-staging.repo.snapshots.enabled>
+            </properties>
         </profile>
 
         <profile>
