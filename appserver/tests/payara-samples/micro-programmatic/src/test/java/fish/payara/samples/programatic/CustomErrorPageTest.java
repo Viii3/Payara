@@ -44,10 +44,11 @@ import fish.payara.micro.PayaraMicro;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 
 public class CustomErrorPageTest {
@@ -91,12 +92,37 @@ public class CustomErrorPageTest {
     }
 
     private String download() throws Exception {
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://" + CustomErrorPageTest.HOST_NAME + ":8080" + "/"))
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+        URL url = new URL("http://" + CustomErrorPageTest.HOST_NAME + ":8080/");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int responseCode = connection.getResponseCode();
+        InputStream inputStream;
+
+        // For 200-299 use getInputStream, otherwise getErrorStream
+        if (responseCode >= 200 && responseCode < 300) {
+            inputStream = connection.getInputStream();
+        } else {
+            inputStream = connection.getErrorStream();
+            if (inputStream == null) {
+                // In case the server sends no body with the error
+                return "No response body for HTTP error " + responseCode;
+            }
+        }
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        connection.disconnect();
+
+        System.out.println("HTTP response code: " + responseCode);
+        return response.toString();
     }
+
+
 
 }
