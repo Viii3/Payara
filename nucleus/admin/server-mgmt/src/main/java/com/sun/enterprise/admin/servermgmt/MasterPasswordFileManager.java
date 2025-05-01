@@ -54,7 +54,6 @@ import com.sun.enterprise.security.store.PasswordAdapter;
 import com.sun.enterprise.util.i18n.StringManager;
 import com.sun.enterprise.util.io.FileUtils;
 
-import jakarta.annotation.Nullable;
 import org.glassfish.security.common.FileProtectionUtility;
 
 
@@ -119,7 +118,7 @@ public class MasterPasswordFileManager extends KeystoreManager {
      * @param path The path to save the master password to.
      * @throws RepositoryException
      */
-    protected void createMasterPasswordFile(RepositoryConfig config, String masterPassword, @Nullable String path)
+    protected void createMasterPasswordFile(RepositoryConfig config, String masterPassword, String path)
         throws RepositoryException
     {
         final PEFileLayout layout = getFileLayout(config);
@@ -204,7 +203,7 @@ public class MasterPasswordFileManager extends KeystoreManager {
      * @throws RepositoryException
      */
     protected void changeMasterPasswordInMasterPasswordFile(RepositoryConfig config, String newPassword,
-        boolean saveMasterPassword, @Nullable String newMPLocation) throws RepositoryException
+        boolean saveMasterPassword, String newMPLocation) throws RepositoryException
     {
         deleteMasterPasswordFile(config);
         if (saveMasterPassword) {
