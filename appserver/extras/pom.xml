@@ -65,6 +65,7 @@
 
         <!-- Enterprise Extensions -->
         <module>certificate-management</module>
+        <module>diagnostics-tool</module>
     </modules>
 
     <build>
