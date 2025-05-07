@@ -64,6 +64,7 @@
         <module>integration-testing</module>
 
         <!-- Enterprise Extensions -->
+        <module>autoscale-groups</module>
         <module>certificate-management</module>
         <module>diagnostics-tool</module>
         <module>notifiers</module>
