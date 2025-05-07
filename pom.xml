@@ -228,6 +228,7 @@
         <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
         <maven.failsafe.plugin.version>3.5.2</maven.failsafe.plugin.version>
         <maven.site.plugin.version>3.21.0</maven.site.plugin.version>
+        <maven.flatten.plugin.version>1.7.0</maven.flatten.plugin.version>
         <dynamic.build.properties.version>0.0.1.a2</dynamic.build.properties.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -633,12 +634,13 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
-                    <version>1.7.0</version>
+                    <version>${maven.flatten.plugin.version}</version>
                     <configuration>
                         <flattenMode>ossrh</flattenMode>
                         <pomElements>
                             <developers>resolve</developers>
                             <build>remove</build>
+                            <properties>flatten</properties>
                         </pomElements>
                         <flattenedPomFilename>target/flattened-pom.xml</flattenedPomFilename>
                     </configuration>
