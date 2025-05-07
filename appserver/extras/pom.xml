@@ -113,17 +113,6 @@
                 <module>upgrade-tool</module>
             </modules>
         </profile>
-        <profile>
-            <id>BuildDiagnosticsTool</id>
-            <activation>
-                <property>
-                    <name>BuildDiagnosticsTool</name>
-                </property>
-            </activation>
-            <modules>
-                <module>diagnostics-tool</module>
-            </modules>
-        </profile>
         <!-- Profile to build all optional modules under extras -->
         <profile>
             <id>BuildExtras</id>
@@ -137,7 +126,6 @@
                 <module>docker-images</module>
                 <module>notifiers</module>
                 <module>upgrade-tool</module>
-                <module>diagnostics-tool</module>
             </modules>
         </profile>
     </profiles>
