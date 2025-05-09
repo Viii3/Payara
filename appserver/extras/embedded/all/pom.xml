@@ -116,6 +116,11 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
+                <configuration>
+                    <pomElements>
+                        <dependencies>remove</dependencies>
+                    </pomElements>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -518,12 +523,6 @@
                     <optional>true</optional>
                 </dependency>
             </dependencies>
-        </profile>
-        <profile>
-            <id>deploy-internals</id>
-            <properties>
-                <deploy.skip>true</deploy.skip>
-            </properties>
         </profile>
     </profiles>
 </project>
