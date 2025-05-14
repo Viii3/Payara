@@ -61,10 +61,6 @@
     <artifactId>nucleus-external</artifactId>
     <name>Repackaged nucleus external modules</name>
 
-    <properties>
-        <deploy.skip>false</deploy.skip>
-    </properties>
-
     <modules>
         <module>jmxremote_optional</module>
         <module>ldapbp</module>
@@ -103,13 +99,5 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
-            <id>deploy-internals</id>
-            <properties>
-                <deploy.skip>false</deploy.skip>
-            </properties>
-        </profile>
-    </profiles>
 </project>
 

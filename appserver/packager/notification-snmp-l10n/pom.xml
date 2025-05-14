@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- * Copyright (c) 2016-2021 Payara Foundation. All rights reserved.
+ * Copyright (c) 2016-2025 Payara Foundation. All rights reserved.
  *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
@@ -28,7 +28,6 @@
 
     <properties>
         <javadoc.skip>true</javadoc.skip>
-        <deploy.skip>true</deploy.skip>
     </properties>
 
     <build>
@@ -78,7 +77,7 @@
         <dependency>
             <groupId>fish.payara.extensions.notifiers</groupId>
             <artifactId>snmp-notifier-console-plugin-l10n</artifactId>
-            <version>${payara.notifiers.version}</version>
+            <version>${project.version}</version>
             <optional>true</optional>
         </dependency>
     </dependencies>

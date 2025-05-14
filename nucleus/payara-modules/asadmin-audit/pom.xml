@@ -67,7 +67,7 @@
         <dependency>
             <groupId>fish.payara.extensions.notifiers</groupId>
             <artifactId>notifier-backwards-compatibility-config</artifactId>
-            <version>${payara.notifiers.version}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
