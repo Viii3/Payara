@@ -433,6 +433,10 @@ public class CollectorService {
 
         boolean correctDomainRunning = correctDomainRunning();
         String instanceType = instanceWithType.get(currentTarget);
+        //instanceType will be empty when collecting domain logs for the first time if it is an empty domain
+        if (currentTarget.isEmpty()){
+            instanceType="CONFIG";
+        }
 
         if (targetType == TargetType.DOMAIN) {
             //The collectors inside this block, will copy the files with no folder
@@ -441,7 +445,7 @@ public class CollectorService {
                 activeCollectors.add(new DomainXmlCollector(domainXmlPath, obfuscateDomainXml, this));
             }
             if (serverLog) {
-                if (!serverIsOn) {
+                if (!serverIsOn || instanceType.equals("CONFIG")) {
                     Path serverLogPath = Paths.get((String) parameterMap.get(LOGS_PATH));
                     activeCollectors.add(new LocalLogCollector(serverLogPath, "server.log", this));
                     if (notificationLog){
