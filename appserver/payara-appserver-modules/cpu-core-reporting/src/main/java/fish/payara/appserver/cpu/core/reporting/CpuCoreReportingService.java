@@ -40,9 +40,6 @@
 package fish.payara.appserver.cpu.core.reporting;
 
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.inject.Inject;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.api.event.EventListener;
 import org.glassfish.api.event.EventTypes;
@@ -51,6 +48,9 @@ import org.glassfish.hk2.runlevel.RunLevel;
 import org.glassfish.server.ServerEnvironmentImpl;
 import org.jvnet.hk2.annotations.Service;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -111,7 +111,7 @@ public class CpuCoreReportingService implements EventListener {
                 } else {
                     rowHash = generateHash(content + "," + getLastHash(path.toFile()));
                 }
-                Files.writeString(path, content + "," + rowHash + "\n", StandardOpenOption.APPEND);
+                Files.write(path, (content + "," + rowHash + "\n").getBytes(), StandardOpenOption.APPEND);
                 logger.info("Running on " + availableProcessors + " cores. Signature: " + rowHash);
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Failed to capture CPU cores data", e);
