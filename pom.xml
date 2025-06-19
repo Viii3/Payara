@@ -296,7 +296,7 @@
         <woodstock-jsf-suntheme.version>4.0.2.10.payara-p21</woodstock-jsf-suntheme.version>
         <jakarta.activation-impl.version>1.2.2</jakarta.activation-impl.version>
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
-        <jline.version>3.29.0</jline.version>
+        <jline.version>3.30.4</jline.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <microprofile-release.version>4.1</microprofile-release.version>
         <payara-arquillian-container.version>2.4.2</payara-arquillian-container.version>
