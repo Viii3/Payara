@@ -312,7 +312,7 @@
         <osgi.dto.version>1.1.1</osgi.dto.version>
         <jakarta.security.enterprise.version>1.1-b01.payara-p6</jakarta.security.enterprise.version>
         <cdi-api.version>2.0.2</cdi-api.version>
-        <grizzly.version>2.4.4.payara-p11-SNAPSHOT</grizzly.version>
+        <grizzly.version>2.4.4.payara-p11</grizzly.version>
         <servlet-api.version>4.0.4</servlet-api.version>
         <jakarta.el-api.version>3.0.4.payara-p2</jakarta.el-api.version>
         <jakarta.el.version>3.0.4.payara-p2</jakarta.el.version>
