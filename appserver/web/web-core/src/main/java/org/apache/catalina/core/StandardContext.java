@@ -7259,7 +7259,8 @@ public class StandardContext
                                                 path, alternateDocBases);
             if (match != null) {
                 file = new File(match.getBasePath(), path);
-            } else {
+            }
+            if (file == null || !file.exists()) {
                 // None of the url patterns for alternate doc bases matched
                 file = new File(getBasePath(getDocBase()), path);
             }
