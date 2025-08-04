@@ -156,7 +156,7 @@
     </modules>
 
     <properties>
-        <commons-fileupload.version>1.5</commons-fileupload.version>
+        <commons-fileupload.version>1.6.0</commons-fileupload.version>
         <woodstock-dojo-ajax-nodemo.version>0.4.4</woodstock-dojo-ajax-nodemo.version>
         <woodstock-json.version>1.0</woodstock-json.version>
         <woodstock-prototype.version>1.7.3</woodstock-prototype.version>
