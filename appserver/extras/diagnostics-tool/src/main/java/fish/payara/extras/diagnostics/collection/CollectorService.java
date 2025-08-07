@@ -53,7 +53,6 @@ import fish.payara.extras.diagnostics.collection.collectors.HeapDumpCollector;
 import fish.payara.extras.diagnostics.collection.collectors.JVMCollector;
 import fish.payara.extras.diagnostics.collection.collectors.LocalLogCollector;
 import fish.payara.extras.diagnostics.collection.collectors.LogCollector;
-import fish.payara.extras.diagnostics.collection.collectors.FileCollector;
 import fish.payara.extras.diagnostics.util.DomainUtil;
 import fish.payara.extras.diagnostics.util.JvmCollectionType;
 import fish.payara.extras.diagnostics.util.TargetType;
@@ -78,14 +77,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static fish.payara.extras.diagnostics.util.ParamConstants.*;
+import static fish.payara.extras.diagnostics.util.ParamConstants.ACCESS_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DIR_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DOMAIN_XML_FILE_PATH;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DOMAIN_XML_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.HEAP_DUMP_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.JVM_REPORT_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.LOGS_PATH;
+import static fish.payara.extras.diagnostics.util.ParamConstants.NOTIFICATION_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.OBFUSCATE_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.SERVER_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.THREAD_DUMP_PARAM;
 
 public class CollectorService {
     private static final Logger LOGGER = Logger.getLogger(CollectorService.class.getName());
@@ -661,7 +675,7 @@ public class CollectorService {
         try (InputStream in = Files.newInputStream(loggingPropertiesPath)) {
             props.load(in);
             String customLogPath = props.getProperty("com.sun.enterprise.server.logging.GFFileHandler.file");
-            if (customLogPath != null) {
+            if (customLogPath != null && customLogPath.contains("${com.sun.aas.instanceRoot}")) {
                 // Resolve ${com.sun.aas.instanceRoot}
                 String instanceRoot = logsDir.getParent().toAbsolutePath().toString();
                 customLogPath = customLogPath.replace("${com.sun.aas.instanceRoot}", instanceRoot);
@@ -669,6 +683,12 @@ public class CollectorService {
                 if (Files.exists(resolved)) {
                     return resolved;
                 }
+            } else if (customLogPath != null) {
+                Path resolved = Paths.get(customLogPath);
+                if (Files.exists(resolved)) {
+                    return resolved;
+                }
+
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to resolve log file path: " + e.getMessage());
