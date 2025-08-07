@@ -683,12 +683,6 @@ public class CollectorService {
                 if (Files.exists(resolved)) {
                     return resolved;
                 }
-            } else if (customLogPath != null) {
-                Path resolved = Paths.get(customLogPath);
-                if (Files.exists(resolved)) {
-                    return resolved;
-                }
-
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to resolve log file path: " + e.getMessage());
