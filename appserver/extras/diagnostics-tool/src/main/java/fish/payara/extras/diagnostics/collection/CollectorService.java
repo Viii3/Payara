@@ -53,7 +53,6 @@ import fish.payara.extras.diagnostics.collection.collectors.HeapDumpCollector;
 import fish.payara.extras.diagnostics.collection.collectors.JVMCollector;
 import fish.payara.extras.diagnostics.collection.collectors.LocalLogCollector;
 import fish.payara.extras.diagnostics.collection.collectors.LogCollector;
-import fish.payara.extras.diagnostics.collection.collectors.FileCollector;
 import fish.payara.extras.diagnostics.util.DomainUtil;
 import fish.payara.extras.diagnostics.util.JvmCollectionType;
 import fish.payara.extras.diagnostics.util.TargetType;
@@ -68,6 +67,7 @@ import javax.json.JsonString;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -78,17 +78,28 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static fish.payara.extras.diagnostics.util.ParamConstants.*;
+import static fish.payara.extras.diagnostics.util.ParamConstants.ACCESS_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DIR_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DOMAIN_XML_FILE_PATH;
+import static fish.payara.extras.diagnostics.util.ParamConstants.DOMAIN_XML_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.HEAP_DUMP_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.JVM_REPORT_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.LOGS_PATH;
+import static fish.payara.extras.diagnostics.util.ParamConstants.NOTIFICATION_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.OBFUSCATE_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.SERVER_LOG_PARAM;
+import static fish.payara.extras.diagnostics.util.ParamConstants.THREAD_DUMP_PARAM;
 
 public class CollectorService {
     private static final Logger LOGGER = Logger.getLogger(CollectorService.class.getName());
@@ -448,7 +459,8 @@ public class CollectorService {
                 if (!serverIsOn || instanceType.equals("CONFIG")) {
                     Path serverLogPath = Paths.get((String) parameterMap.get(LOGS_PATH));
                     if (serverLog){
-                        activeCollectors.add(new LocalLogCollector(serverLogPath, "server.log", this));
+                        Path resolvedLogFile = resolveActualLogFile(serverLogPath, "server.log");
+                        activeCollectors.add(new LocalLogCollector(resolvedLogFile.getParent(), "server", "", resolvedLogFile.getFileName().toString(), this));
                     }
                     if (notificationLog){
                         activeCollectors.add(new LocalLogCollector(serverLogPath, "notification.log", this));
@@ -545,7 +557,8 @@ public class CollectorService {
 
             if (serverLog) {
                 if (!serverIsOn && instanceType.equals("CONFIG")) {
-                    activeCollectors.add(new LocalLogCollector(logPath, server.getName(), finalDirSuffix, "server.log",this));
+                    Path resolvedLogPath = resolveActualLogFile(logPath, "server.log");
+                    activeCollectors.add(new LocalLogCollector(resolvedLogPath.getParent(), server.getName(), finalDirSuffix, resolvedLogPath.getFileName().toString(), this));
                 } else if (serverIsOn){
                     activeCollectors.add(new LogCollector(server.getName(), finalDirSuffix, "server.log", this, environment, programOptions, "server", false));
                 }
@@ -656,6 +669,27 @@ public class CollectorService {
         return null;
     }
 
+    private Path resolveActualLogFile(Path logsDir, String defaultLogFile) {
+        Path loggingPropertiesPath = logsDir.getParent().resolve("config").resolve("logging.properties");
+        Properties props = new Properties();
+        try (InputStream in = Files.newInputStream(loggingPropertiesPath)) {
+            props.load(in);
+            String customLogPath = props.getProperty("com.sun.enterprise.server.logging.GFFileHandler.file");
+            if (customLogPath != null && customLogPath.contains("${com.sun.aas.instanceRoot}")) {
+                // Resolve ${com.sun.aas.instanceRoot}
+                String instanceRoot = logsDir.getParent().toAbsolutePath().toString();
+                customLogPath = customLogPath.replace("${com.sun.aas.instanceRoot}", instanceRoot);
+                Path resolved = Paths.get(customLogPath);
+                if (Files.exists(resolved)) {
+                    return resolved;
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.warning("Failed to resolve log file path: " + e.getMessage());
+        }
+        // Fallback to default
+        return logsDir.resolve(defaultLogFile);
+    }
 
 
     public String returnInstanceType(String instance) {
