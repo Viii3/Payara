@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2018-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.universal.xml;
 
@@ -516,23 +516,86 @@ public class MiniXmlParserTest {
 
     @Test
     public void versionedOptions() {
-       JvmOption opt = new JvmOption("[1.7|1.8]-XX:xxx");
-       assertEquals("1.7", opt.minVersion.get().toString());
-       assertEquals("1.8", opt.maxVersion.get().toString());
-       assertEquals("-XX:xxx", opt.option);
+        JvmOption opt = new JvmOption("[1.7|1.8]-XX:xxx");
+        assertEquals("1.7", opt.minVersion.get().toString());
+        assertEquals("1.8", opt.maxVersion.get().toString());
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertEquals("-XX:xxx", opt.option);
 
-       opt = new JvmOption("[|1.8]-XX:xxx");
-       assertFalse("Min Version Not Present", opt.minVersion.isPresent());
-       assertEquals("1.8", opt.maxVersion.get().toString());
-       assertEquals("-XX:xxx", opt.option);
+        opt = new JvmOption("[|1.8]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertEquals("1.8", opt.maxVersion.get().toString());
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertEquals("-XX:xxx", opt.option);
 
-       opt = new JvmOption("[1.7|]-XX:xxx");
-       assertEquals("1.7", opt.minVersion.get().toString());
-       assertFalse("Max Version Not Present", opt.maxVersion.isPresent());
-       assertEquals("-XX:xxx", opt.option);
+        opt = new JvmOption("[1.7|]-XX:xxx");
+        assertEquals("1.7", opt.minVersion.get().toString());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertEquals("-XX:xxx", opt.option);
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
 
-       opt = new JvmOption("-XX:xxx");
-       assertFalse("Min Version Not Present", opt.minVersion.isPresent());
-       assertFalse("Max Version Not Present", opt.maxVersion.isPresent());
+        opt = new JvmOption("-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+    }
+
+
+
+    @Test
+    public void cracFlaggedOptions() {
+        JvmOption opt = new JvmOption("[1.7|1.8|CRaC]-XX:xxx");
+        assertEquals("1.7", opt.minVersion.get().toString());
+        assertEquals("1.8", opt.maxVersion.get().toString());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[|1.8|CRaC]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertEquals("1.8", opt.maxVersion.get().toString());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[1.7||CRaC]-XX:xxx");
+        assertEquals("1.7", opt.minVersion.get().toString());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[||CRaC]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[1.7|1.8|]-XX:xxx");
+        assertEquals("1.7", opt.minVersion.get().toString());
+        assertEquals("1.8", opt.maxVersion.get().toString());
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[||Wibbles]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[||CRAC]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
+
+        opt = new JvmOption("[||crac]-XX:xxx");
+        assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
+        assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
+        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
+        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertEquals("-XX:xxx", opt.option);
     }
 }
