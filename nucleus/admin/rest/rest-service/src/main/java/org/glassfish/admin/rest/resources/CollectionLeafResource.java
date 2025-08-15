@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
 
 package org.glassfish.admin.rest.resources;
 
@@ -96,8 +96,9 @@ public abstract class CollectionLeafResource extends AbstractResource {
     public static final LocalStringManagerImpl localStrings = new LocalStringManagerImpl(CollectionLeafResource.class);
     
     private static final String MIN_VERSION = "minVersion";
-    private static final String MAX_VERISON = "maxVersion";
+    private static final String MAX_VERSION = "maxVersion";
     private static final String VENDOR = "vendor";
+    private static final String CRAC_ONLY = "cracOnly";
     private static final String JVM_OPTION = "jvmOption";
 
     /** Creates a new instance of xxxResource */
@@ -266,7 +267,12 @@ public abstract class CollectionLeafResource extends AbstractResource {
             baseMap.put(MIN_VERSION, option.minVersion.map(JDK.Version::toString).orElse(""));
         }
         
-        baseMap.put(MAX_VERISON, option.maxVersion.map(JDK.Version::toString).orElse(""));
+        baseMap.put(MAX_VERSION, option.maxVersion.map(JDK.Version::toString).orElse(""));
+
+        if (option.cracOnlyOption.isPresent() && option.cracOnlyOption.get()) {
+            baseMap.put(CRAC_ONLY, Boolean.TRUE.toString());
+        }
+
         baseMap.put(JVM_OPTION, option.option);
         
         return Collections.unmodifiableMap(baseMap);

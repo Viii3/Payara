@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.launcher;
 
@@ -883,7 +883,7 @@ public abstract class GFLauncher {
         Optional<JDK.Version> jdkVersion = getConfiguredJdkVersion(javaExe);
         List<String> rawJvmOptions = parser.getJvmOptions()
                 .stream()
-                .filter(fullOption -> JDK.isCorrectJDK(jdkVersion, fullOption.vendorOrVM, fullOption.minVersion, fullOption.maxVersion))
+                .filter(fullOption -> JDK.isCorrectJDK(jdkVersion, fullOption.vendorOrVM, fullOption.minVersion, fullOption.maxVersion, fullOption.cracOnlyOption))
                 .map(option -> option.option)
                 .collect(Collectors.toList());
         rawJvmOptions.addAll(getSpecialSystemProperties());
