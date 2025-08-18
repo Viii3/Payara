@@ -256,7 +256,7 @@ public class MiniXmlParser {
         public final Optional<String> vendorOrVM;
         public final Optional<JDK.Version> minVersion;
         public final Optional<JDK.Version> maxVersion;
-        public final Optional<Boolean> cracOnlyOption;
+        public final Optional<String> classifier;
 
         // splits the versioned JVM option pattern into four groups:
         //     Gr1  Gr2 Gr3 Gr4
@@ -282,24 +282,24 @@ public class MiniXmlParser {
                 }
 
                 this.maxVersion = Optional.ofNullable(JDK.getVersion(matcher.group(2)));
-                this.cracOnlyOption = Optional.ofNullable(matcher.group(3))
-                        .filter(groupValue -> groupValue.length() > 1 && groupValue.substring(1).equalsIgnoreCase("CRaC"))
-                        .map(g -> Boolean.TRUE);
+                this.classifier = Optional.ofNullable(matcher.group(3))
+                        .filter(groupValue -> groupValue.length() > 1)
+                        .map(groupValue -> groupValue.substring(1));
                 this.option = matcher.group(4);
             } else {
                 this.option = option;
                 this.vendorOrVM = Optional.empty();
                 this.minVersion = Optional.empty();
                 this.maxVersion = Optional.empty();
-                this.cracOnlyOption = Optional.empty();
+                this.classifier = Optional.empty();
             }
         }
 
         public JvmOption(String option, String minVersion, String maxVersion) {
-            this(option, minVersion, maxVersion, false);
+            this(option, minVersion, maxVersion, null);
         }
 
-        public JvmOption(String option, String minVersion, String maxVersion, boolean cracOnlyOption) {
+        public JvmOption(String option, String minVersion, String maxVersion, String classifier) {
             this.option = option;
             if (minVersion != null && minVersion.contains("-")) {
                 String[] parts = minVersion.split("-");
@@ -310,7 +310,7 @@ public class MiniXmlParser {
                 this.minVersion = Optional.ofNullable(JDK.getVersion(minVersion));
             }
             this.maxVersion = Optional.ofNullable(JDK.getVersion(maxVersion));
-            this.cracOnlyOption = Optional.of(cracOnlyOption);
+            this.classifier = Optional.ofNullable(classifier);
         }
 
         public static boolean hasVersionPattern(String option) {
@@ -341,11 +341,11 @@ public class MiniXmlParser {
 
         @Override
         public String toString() {
-            if (!minVersion.isPresent() && !maxVersion.isPresent() && !cracOnlyOption.isPresent()) {
+            if (!minVersion.isPresent() && !maxVersion.isPresent() && !classifier.isPresent()) {
                 return option;
             }
             return String.format("[%s%s|%s%s]%s", vendorOrVM.isPresent() ? vendorOrVM.get() + "-" : "", minVersion.isPresent() ? minVersion.get() : "",
-                    maxVersion.isPresent() ? maxVersion.get() : "", cracOnlyOption.isPresent() ? "|" + cracOnlyOption.get() : "", option);
+                    maxVersion.isPresent() ? maxVersion.get() : "", classifier.isPresent() ? "|" + classifier.get() : "", option);
         }
     }
 

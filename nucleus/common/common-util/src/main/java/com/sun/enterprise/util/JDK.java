@@ -266,8 +266,8 @@ public final class JDK {
         return new Version();
     }
 
-    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion, Optional<Boolean> cracOnlyOption) {
-        return isCorrectJDK(Optional.of(JDK_VERSION), Optional.empty(), minVersion, maxVersion, cracOnlyOption);
+    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion, Optional<String> classifier) {
+        return isCorrectJDK(Optional.of(JDK_VERSION), Optional.empty(), minVersion, maxVersion, classifier);
     }
 
     /**
@@ -277,10 +277,10 @@ public final class JDK {
      * @param vendorOrVM The inclusive JDK vendor or VM name.
      * @param minVersion The inclusive minimum version.
      * @param maxVersion The inclusive maximum version.
-     * @param cracOnlyOption Whether this option is only active when using a CRaC JDK
+     * @param classifier The JDK classifier which this option should only be active for e.g. CRaC.
      * @return true if within the version range, false otherwise
      */
-    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion, Optional<Boolean> cracOnlyOption) {
+    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion, Optional<String> classifier) {
         Version version = reference.orElse(JDK_VERSION);
         boolean correctJDK = true;
 
@@ -296,7 +296,7 @@ public final class JDK {
             correctJDK = version.olderOrEquals(maxVersion.get());
         }
 
-        if (correctJDK && cracOnlyOption.isPresent() && cracOnlyOption.get()) {
+        if (correctJDK && classifier.isPresent() && classifier.get().equalsIgnoreCase("CRaC")) {
             correctJDK = Optional.ofNullable(System.getProperty("java.home"))
                     .map(javaHome -> Path.of(javaHome, "lib", "criu"))
                     .map(Files::exists)

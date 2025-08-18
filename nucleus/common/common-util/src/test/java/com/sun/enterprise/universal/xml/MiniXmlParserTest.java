@@ -519,83 +519,84 @@ public class MiniXmlParserTest {
         JvmOption opt = new JvmOption("[1.7|1.8]-XX:xxx");
         assertEquals("1.7", opt.minVersion.get().toString());
         assertEquals("1.8", opt.maxVersion.get().toString());
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertFalse("Classifier is present but shouldn't be", opt.classifier.isPresent());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[|1.8]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertEquals("1.8", opt.maxVersion.get().toString());
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertFalse("Classifier is present but shouldn't be", opt.classifier.isPresent());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[1.7|]-XX:xxx");
         assertEquals("1.7", opt.minVersion.get().toString());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
         assertEquals("-XX:xxx", opt.option);
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertFalse("Classifier is present but shouldn't be", opt.classifier.isPresent());
 
         opt = new JvmOption("-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertFalse("Classifier is present but shouldn't be", opt.classifier.isPresent());
     }
 
 
 
     @Test
-    public void cracFlaggedOptions() {
+    public void classifiedOptions() {
         JvmOption opt = new JvmOption("[1.7|1.8|CRaC]-XX:xxx");
         assertEquals("1.7", opt.minVersion.get().toString());
         assertEquals("1.8", opt.maxVersion.get().toString());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("CRaC", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[|1.8|CRaC]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertEquals("1.8", opt.maxVersion.get().toString());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("CRaC", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[1.7||CRaC]-XX:xxx");
         assertEquals("1.7", opt.minVersion.get().toString());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("CRaC", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[||CRaC]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("CRaC", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[1.7|1.8|]-XX:xxx");
         assertEquals("1.7", opt.minVersion.get().toString());
         assertEquals("1.8", opt.maxVersion.get().toString());
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertFalse("Classifier is present but shouldn't be", opt.classifier.isPresent());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[||Wibbles]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertFalse("CRaC flag is present but shouldn't be", opt.cracOnlyOption.isPresent());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("Wibbles", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[||CRAC]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("CRAC", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
 
         opt = new JvmOption("[||crac]-XX:xxx");
         assertFalse("Min version is present but shouldn't be", opt.minVersion.isPresent());
         assertFalse("Max version is present but shouldn't be", opt.maxVersion.isPresent());
-        assertTrue("CRaC flag is not present but should be", opt.cracOnlyOption.isPresent());
-        assertTrue("CRaC flag is false but shouldn't be", opt.cracOnlyOption.get());
+        assertTrue("Classifier is not present but should be", opt.classifier.isPresent());
+        assertEquals("crac", opt.classifier.get());
         assertEquals("-XX:xxx", opt.option);
     }
 }

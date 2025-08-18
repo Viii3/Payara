@@ -143,15 +143,15 @@ public final class ListJvmOptions implements AdminCommand, AdminCommandSecurity.
                     sb.append(maxVersion);
                     sb.append(")");
                 });
-                option.cracOnlyOption.ifPresent(cracOnlyOption -> {
+                option.classifier.ifPresent(classifier -> {
                     if (option.minVersion.isPresent() || option.maxVersion.isPresent()) {
                         sb.append(", ");
                     }
-                    sb.append("cracOnly(");
-                    sb.append(cracOnlyOption);
+                    sb.append("classifier(");
+                    sb.append(classifier);
                     sb.append(")");
                 });
-                if (!JDK.isCorrectJDK(option.minVersion, option.maxVersion, option.cracOnlyOption)) {
+                if (!JDK.isCorrectJDK(option.minVersion, option.maxVersion, option.classifier)) {
                     sb.append(" (Inactive on this JDK)");
                 }
                 part.setMessage(sb.toString());
