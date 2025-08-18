@@ -98,7 +98,6 @@ public abstract class CollectionLeafResource extends AbstractResource {
     private static final String MIN_VERSION = "minVersion";
     private static final String MAX_VERSION = "maxVersion";
     private static final String VENDOR = "vendor";
-    private static final String CLASSIFIER = "classifier";
     private static final String JVM_OPTION = "jvmOption";
 
     /** Creates a new instance of xxxResource */
@@ -268,11 +267,6 @@ public abstract class CollectionLeafResource extends AbstractResource {
         }
         
         baseMap.put(MAX_VERSION, option.maxVersion.map(JDK.Version::toString).orElse(""));
-
-        if (option.classifier.isPresent()) {
-            baseMap.put(CLASSIFIER, option.classifier.get());
-        }
-
         baseMap.put(JVM_OPTION, option.option);
         
         return Collections.unmodifiableMap(baseMap);

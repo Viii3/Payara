@@ -266,8 +266,8 @@ public final class JDK {
         return new Version();
     }
 
-    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion, Optional<String> classifier) {
-        return isCorrectJDK(Optional.of(JDK_VERSION), Optional.empty(), minVersion, maxVersion, classifier);
+    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion, String jvmOption) {
+        return isCorrectJDK(Optional.of(JDK_VERSION), Optional.empty(), minVersion, maxVersion, jvmOption);
     }
 
     /**
@@ -277,10 +277,10 @@ public final class JDK {
      * @param vendorOrVM The inclusive JDK vendor or VM name.
      * @param minVersion The inclusive minimum version.
      * @param maxVersion The inclusive maximum version.
-     * @param classifier The JDK classifier which this option should only be active for e.g. CRaC.
+     * @param jvmOption The JVM option.
      * @return true if within the version range, false otherwise
      */
-    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion, Optional<String> classifier) {
+    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion, String jvmOption) {
         Version version = reference.orElse(JDK_VERSION);
         boolean correctJDK = true;
 
@@ -296,7 +296,9 @@ public final class JDK {
             correctJDK = version.olderOrEquals(maxVersion.get());
         }
 
-        if (correctJDK && classifier.isPresent() && classifier.get().equalsIgnoreCase("CRaC")) {
+        // Check if the option starts with -XX:CRaC, -XX:+CRaC, or -XX:-CRaC
+        if (correctJDK && Optional.ofNullable(jvmOption).filter(option -> option.matches("^-XX:[+-]?CRaC.*")).isPresent()) {
+            // If it does, only activate it if we're actually using a CRaC JDK
             correctJDK = Optional.ofNullable(System.getProperty("java.home"))
                     .map(javaHome -> Path.of(javaHome, "lib", "criu"))
                     .map(Files::exists)

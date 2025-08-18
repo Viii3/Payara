@@ -95,9 +95,6 @@ public final class CreateJvmOption implements AdminCommand, AdminCommandSecurity
     @Param(name = "max-jvm", optional = true)
     String maxJVM;
 
-    @Param(name = "jvm-classifier", optional = true)
-    String jvmClassifier;
-
     @Inject
     Target targetService;
 
@@ -264,7 +261,7 @@ public final class CreateJvmOption implements AdminCommand, AdminCommandSecurity
                 jvmopts.add(
                     MiniXmlParser.JvmOption.hasVersionPattern(option) ?
                         new MiniXmlParser.JvmOption(option).toString() :
-                        new MiniXmlParser.JvmOption(option, minJVM, maxJVM, jvmClassifier).toString()
+                        new MiniXmlParser.JvmOption(option, minJVM, maxJVM).toString()
                 );
                 bag1.setJvmOptions(jvmopts);
                 part.setMessage(lsm.getString("jvm.option.created", option));

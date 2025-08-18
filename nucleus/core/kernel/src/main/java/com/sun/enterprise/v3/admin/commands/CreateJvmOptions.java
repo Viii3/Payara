@@ -104,9 +104,6 @@ public final class CreateJvmOptions implements AdminCommand, AdminCommandSecurit
 
     @Param(name = "max-jvm", optional = true)
     String maxJVM;
-
-    @Param(name = "jvm-classifier", optional = true)
-    String jvmClassifier;
     
     @Inject
     Target targetService;
@@ -287,7 +284,7 @@ public final class CreateJvmOptions implements AdminCommand, AdminCommandSecurit
                 List<String> jvmopts = new ArrayList<>(bag.getJvmRawOptions());
                 int orig = jvmopts.size();
                 boolean added = jvmopts.addAll(newOpts.stream().map(option -> JvmOption.hasVersionPattern(option) ?
-                        new JvmOption(option) : new JvmOption(option, minJVM, maxJVM, jvmClassifier))
+                        new JvmOption(option) : new JvmOption(option, minJVM, maxJVM))
                         .map(JvmOption::toString).collect(Collectors.toList()));
                 bag.setJvmOptions(jvmopts);
                 int now = jvmopts.size();
