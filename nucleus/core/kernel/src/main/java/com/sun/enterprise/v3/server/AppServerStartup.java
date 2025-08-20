@@ -49,6 +49,7 @@ import com.sun.enterprise.module.ModuleState;
 import com.sun.enterprise.module.ModulesRegistry;
 import com.sun.enterprise.module.bootstrap.ModuleStartup;
 import com.sun.enterprise.module.bootstrap.StartupContext;
+import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.Result;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -468,18 +469,20 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         }
         pidWriter.writePidFile();
 
-        try {
-            Core.checkpointRestore();
-        } catch (CheckpointException e) {
-            logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
-            logger.log(Level.SEVERE, e.getMessage());
-            e.printStackTrace();
-            return false;
-        } catch (RestoreException e) {
-            logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
-            logger.log(Level.SEVERE, e.getMessage());
-            e.printStackTrace();
-            return false;
+        if (JDK.isCRaCJDK()) {
+            try {
+                Core.checkpointRestore();
+            } catch (CheckpointException e) {
+                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            } catch (RestoreException e) {
+                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
         }
 
         return true;
