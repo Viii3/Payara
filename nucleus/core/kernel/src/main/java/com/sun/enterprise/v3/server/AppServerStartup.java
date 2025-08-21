@@ -602,10 +602,12 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
                 logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
                 logger.log(Level.SEVERE, e.getMessage());
                 e.printStackTrace();
+                return false;
             } catch (RestoreException e) {
                 logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
                 logger.log(Level.SEVERE, e.getMessage());
                 e.printStackTrace();
+                return false;
             }
         }
 
