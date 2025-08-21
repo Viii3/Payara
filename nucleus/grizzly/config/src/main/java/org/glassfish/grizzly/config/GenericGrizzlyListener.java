@@ -1212,12 +1212,28 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         LOGGER.info("Before checkpoint!");
+
+        // Cache info
+        transportCache = transport;
+        workerExecutorServiceCache = workerExecutorService;
+        rootFilterChainCache = rootFilterChain;
+
         stop();
     }
+
+    private NIOTransport transportCache;
+    private ExecutorService workerExecutorServiceCache;
+    private FilterChain rootFilterChainCache;
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         LOGGER.info("After restore!");
+
+        // Restore cached info
+        transport = transportCache;
+        workerExecutorService = workerExecutorServiceCache;
+        rootFilterChain = rootFilterChainCache;
+
         start();
     }
 }
