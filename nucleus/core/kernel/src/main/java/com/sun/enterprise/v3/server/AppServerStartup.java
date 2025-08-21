@@ -469,20 +469,8 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         }
         pidWriter.writePidFile();
 
-        if (JDK.isCRaCJDK()) {
-            try {
-                Core.checkpointRestore();
-            } catch (CheckpointException e) {
-                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
-                return false;
-            } catch (RestoreException e) {
-                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
-                return false;
-            }
+        if (!checkpointRestore()) {
+            return false;
         }
 
         return true;
@@ -606,6 +594,23 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         return !masterListener.isForcedShutdown();
     }
 
+    private boolean checkpointRestore() {
+        if (JDK.isCRaCJDK()) {
+            try {
+                Core.checkpointRestore();
+            } catch (CheckpointException e) {
+                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+            } catch (RestoreException e) {
+                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        return true;
+    }
 
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
