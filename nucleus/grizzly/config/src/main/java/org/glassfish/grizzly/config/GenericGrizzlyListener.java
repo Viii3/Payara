@@ -36,33 +36,16 @@
  * and therefore, elected the GPL Version 2 license, then the option applies
  * only if the new code is made subject to such option by the copyright
  * holder.
- * 
- * 
- * Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
+ *
+ *
+ * Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
  */
 package org.glassfish.grizzly.config;
 
-import static java.util.logging.Level.WARNING;
-
-import java.beans.PropertyChangeEvent;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.grizzly.Connection;
-
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.PortRange;
@@ -84,6 +67,7 @@ import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
 import org.glassfish.grizzly.http.ContentEncoding;
 import org.glassfish.grizzly.http.GZipContentEncoding;
 import org.glassfish.grizzly.http.KeepAlive;
@@ -91,8 +75,6 @@ import org.glassfish.grizzly.http.LZMAContentEncoding;
 import org.glassfish.grizzly.http.server.AddOn;
 import org.glassfish.grizzly.http.server.BackendConfiguration;
 import org.glassfish.grizzly.http.server.CompressionEncodingFilter;
-import org.glassfish.grizzly.http.CompressionConfig.CompressionMode;
-import org.glassfish.grizzly.http.server.CompressionLevel;
 import org.glassfish.grizzly.http.server.FileCacheFilter;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServerFilter;
@@ -117,8 +99,8 @@ import org.glassfish.grizzly.portunif.finders.SSLProtocolFinder;
 import org.glassfish.grizzly.sni.SNIConfig;
 import org.glassfish.grizzly.sni.SNIFilter;
 import org.glassfish.grizzly.sni.SNIServerConfigResolver;
-import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLBaseFilter;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.DefaultWorkerThread;
 import org.glassfish.grizzly.threadpool.GrizzlyExecutorService;
@@ -128,13 +110,33 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
 import org.glassfish.hk2.api.ServiceLocator;
 import org.jvnet.hk2.config.ConfigBeanProxy;
 
+import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.WARNING;
+
 /**
  * Generic {@link GrizzlyListener} implementation, which is not HTTP dependent, and can support any Transport
  * configuration, based on {@link FilterChain}.
  *
  * @author Alexey Stashok
  */
-public class GenericGrizzlyListener implements GrizzlyListener {
+public class GenericGrizzlyListener implements GrizzlyListener, Resource {
     /**
      * The logger to use for logging messages.
      */
@@ -164,6 +166,10 @@ public class GenericGrizzlyListener implements GrizzlyListener {
     protected volatile boolean isWebSocketEnabled;
     // comet enabled flag
     protected volatile boolean isCometEnabled;
+
+    public GenericGrizzlyListener() {
+        Core.getGlobalContext().register(this);
+    }
 
     @Override
     public String getName() {
@@ -1201,5 +1207,17 @@ public class GenericGrizzlyListener implements GrizzlyListener {
                 LOGGER.severe("Compression Strategy had an unexpected value.");
                 throw new IllegalStateException("Unexpected value: " + compressionStrategy);
         }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        LOGGER.info("Before checkpoint!");
+        stop();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        LOGGER.info("After restore!");
+        start();
     }
 }
