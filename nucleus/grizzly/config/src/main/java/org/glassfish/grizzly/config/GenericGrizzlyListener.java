@@ -1209,6 +1209,10 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
         }
     }
 
+    private NIOTransport transportCache;
+    private ExecutorService workerExecutorServiceCache;
+    private FilterChain rootFilterChainCache;
+
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         LOGGER.info("Before checkpoint!");
@@ -1220,10 +1224,6 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
 
         stop();
     }
-
-    private NIOTransport transportCache;
-    private ExecutorService workerExecutorServiceCache;
-    private FilterChain rootFilterChainCache;
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
