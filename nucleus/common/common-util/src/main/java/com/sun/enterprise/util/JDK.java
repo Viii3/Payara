@@ -37,10 +37,12 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright 2018-2022 Payara Foundation and/or its affiliates
+// Portions Copyright 2018-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.util;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 /**
@@ -264,12 +266,8 @@ public final class JDK {
         return new Version();
     }
 
-    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion) {
-        return isCorrectJDK(Optional.of(JDK_VERSION), minVersion, maxVersion);
-    }
-
-    public static boolean isCorrectJDK(Optional<Version> reference, Optional<Version> minVersion, Optional<Version> maxVersion) {
-        return isCorrectJDK(reference, Optional.empty(), minVersion, maxVersion);
+    public static boolean isCorrectJDK(Optional<Version> minVersion, Optional<Version> maxVersion, String jvmOption) {
+        return isCorrectJDK(Optional.of(JDK_VERSION), Optional.empty(), minVersion, maxVersion, jvmOption);
     }
 
     /**
@@ -279,9 +277,10 @@ public final class JDK {
      * @param vendorOrVM The inclusive JDK vendor or VM name.
      * @param minVersion The inclusive minimum version.
      * @param maxVersion The inclusive maximum version.
+     * @param jvmOption The JVM option.
      * @return true if within the version range, false otherwise
      */
-    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion) {
+    public static boolean isCorrectJDK(Optional<Version> reference, Optional<String> vendorOrVM, Optional<Version> minVersion, Optional<Version> maxVersion, String jvmOption) {
         Version version = reference.orElse(JDK_VERSION);
         boolean correctJDK = true;
 
@@ -295,6 +294,15 @@ public final class JDK {
 
         if (correctJDK && maxVersion.isPresent()) {
             correctJDK = version.olderOrEquals(maxVersion.get());
+        }
+
+        // Check if the option starts with -XX:CRaC, -XX:+CRaC, or -XX:-CRaC
+        if (correctJDK && Optional.ofNullable(jvmOption).filter(option -> option.matches("^-XX:[+-]?CRaC.*")).isPresent()) {
+            // If it does, only activate it if we're actually using a CRaC JDK
+            correctJDK = Optional.ofNullable(System.getProperty("java.home"))
+                    .map(javaHome -> Path.of(javaHome, "lib", "criu"))
+                    .map(Files::exists)
+                    .orElse(false);
         }
 
         return correctJDK;

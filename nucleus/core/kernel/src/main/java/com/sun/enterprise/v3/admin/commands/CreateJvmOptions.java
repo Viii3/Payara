@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2018-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.v3.admin.commands;
 
@@ -90,18 +90,19 @@ import org.jvnet.hk2.config.TransactionFailure;
 @UnknownOptionsAreOperands()
 public final class CreateJvmOptions implements AdminCommand, AdminCommandSecurity.Preauthorization {
 
-    @Param(name="target", optional=true, defaultValue = SystemPropertyConstants.DEFAULT_SERVER_INSTANCE_NAME)
+    @Param(name = "target", optional=true, defaultValue = SystemPropertyConstants.DEFAULT_SERVER_INSTANCE_NAME)
     String target;
 
-    @Param(name="profiler", optional=true)
+    @Param(name = "profiler", optional=true)
     Boolean addToProfiler=false;
     
-    @Param(name="jvm_option_name", primary=true, separator=':')
+    @Param(name = "jvm_option_name", primary=true, separator=':')
     List<String> jvmOptions;
 
-    @Param(name="min-jvm", optional = true)
+    @Param(name = "min-jvm", optional = true)
     String minJVM;
-    @Param(name="max-jvm", optional = true)
+
+    @Param(name = "max-jvm", optional = true)
     String maxJVM;
     
     @Inject
@@ -282,7 +283,7 @@ public final class CreateJvmOptions implements AdminCommand, AdminCommandSecurit
                 newOpts.removeIf(option -> unversionedCurrentOptions.contains(new JvmOption(option).option));
                 List<String> jvmopts = new ArrayList<>(bag.getJvmRawOptions());
                 int orig = jvmopts.size();
-                boolean added = jvmopts.addAll(newOpts.stream().map(option -> JvmOption.hasVersionPattern(option)?
+                boolean added = jvmopts.addAll(newOpts.stream().map(option -> JvmOption.hasVersionPattern(option) ?
                         new JvmOption(option) : new JvmOption(option, minJVM, maxJVM))
                         .map(JvmOption::toString).collect(Collectors.toList()));
                 bag.setJvmOptions(jvmopts);
