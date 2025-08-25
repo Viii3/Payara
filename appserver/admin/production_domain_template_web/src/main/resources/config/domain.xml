@@ -246,6 +246,8 @@
         <jvm-options>-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
         <!-- allow asadmin command enable-monitoring -->
         <jvm-options>-Djdk.attach.allowAttachSelf=true</jvm-options>
+        <!-- CRaC options -->
+        <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
       </java-config>
       <availability-service>
         <web-container-availability />
@@ -452,6 +454,8 @@
         <jvm-options>-Dorg.jboss.weld.serialization.beanIdentifierIndexOptimization=false</jvm-options>
         <!-- Grizzly NPN Bootstrap compatible with used JDK version -->
         <jvm-options>-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
+        <!-- CRaC options -->
+        <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
       </java-config>
       <availability-service>
         <web-container-availability />
