@@ -299,13 +299,17 @@ public final class JDK {
         // Check if the option starts with -XX:CRaC, -XX:+CRaC, or -XX:-CRaC
         if (correctJDK && Optional.ofNullable(jvmOption).filter(option -> option.matches("^-XX:[+-]?CRaC.*")).isPresent()) {
             // If it does, only activate it if we're actually using a CRaC JDK
-            correctJDK = Optional.ofNullable(System.getProperty("java.home"))
-                    .map(javaHome -> Path.of(javaHome, "lib", "criu"))
-                    .map(Files::exists)
-                    .orElse(false);
+            correctJDK = isCRaCJDK();
         }
 
         return correctJDK;
+    }
+
+    public static boolean isCRaCJDK() {
+        return Optional.ofNullable(System.getProperty("java.home"))
+                .map(javaHome -> Path.of(javaHome, "lib", "criu"))
+                .map(Files::exists)
+                .orElse(false);
     }
 
     /**

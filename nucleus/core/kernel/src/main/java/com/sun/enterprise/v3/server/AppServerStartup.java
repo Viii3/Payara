@@ -49,6 +49,7 @@ import com.sun.enterprise.module.ModuleState;
 import com.sun.enterprise.module.ModulesRegistry;
 import com.sun.enterprise.module.bootstrap.ModuleStartup;
 import com.sun.enterprise.module.bootstrap.StartupContext;
+import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.Result;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,6 +65,11 @@ import java.util.logging.Logger;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
+import org.crac.CheckpointException;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
+import org.crac.RestoreException;
 
 import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
 import org.glassfish.api.FutureProvider;
@@ -110,7 +116,8 @@ import org.jvnet.hk2.annotations.Service;
  */
 @Service
 @Rank(Constants.DEFAULT_IMPLEMENTATION_RANK) // This should be the default impl if no name is specified
-public class AppServerStartup implements PostConstruct, ModuleStartup {
+public class AppServerStartup implements PostConstruct, ModuleStartup, Resource {
+
     enum State {
         INITIAL, STARTING, STARTED, SHUTDOWN_REQUESTED, SHUTTING_DOWN, SHUT_DOWN;
     }
@@ -219,7 +226,8 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
         else {
             logger.fine("Startup controller will use infinite threads");
         }
-        
+
+        Core.getGlobalContext().register(this);
     }
 
     @Override
@@ -388,7 +396,7 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
             }
             events.send(new Event(EventTypes.SERVER_READY), false);
         }
-        
+
         if (!proceedTo(PostStartupRunLevel.VAL)) {
             appInstanceListener.stopRecordingTimes();
             return false;
@@ -460,7 +468,11 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
             events.send(new Event(EventTypes.SERVER_READY), false);
         }
         pidWriter.writePidFile();
-        
+
+        if (!checkpointRestore()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -581,7 +593,37 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
         
         return !masterListener.isForcedShutdown();
     }
-    
+
+    private boolean checkpointRestore() {
+        if (JDK.isCRaCJDK()) {
+            try {
+                Core.checkpointRestore();
+            } catch (CheckpointException e) {
+                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            } catch (RestoreException e) {
+                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        logger.log(Level.INFO, "Checkpointing AppServerStartup");
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        logger.log(Level.INFO, "Restoring AppServerStartup");
+    }
+
     @Service
     public static class AppInstanceListener implements InstanceLifecycleListener {
         private static final Filter FILTER = new Filter() {
