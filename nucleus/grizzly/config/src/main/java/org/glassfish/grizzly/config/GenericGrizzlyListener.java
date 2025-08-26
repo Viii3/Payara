@@ -1218,9 +1218,15 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
         LOGGER.info("Before checkpoint!");
 
         // Cache info
-        transportCache = transport;
-        workerExecutorServiceCache = workerExecutorService;
-        rootFilterChainCache = rootFilterChain;
+        if (transport != null) {
+            transportCache = transport;
+        }
+        if (workerExecutorService != null) {
+            workerExecutorServiceCache = workerExecutorService;
+        }
+        if (rootFilterChain != null) {
+            rootFilterChainCache = rootFilterChain;
+        }
 
         stop();
     }
@@ -1230,9 +1236,15 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
         LOGGER.info("After restore!");
 
         // Restore cached info
-        transport = transportCache;
-        workerExecutorService = workerExecutorServiceCache;
-        rootFilterChain = rootFilterChainCache;
+        if (transport == null) {
+            transport = transportCache;
+        }
+        if (workerExecutorService == null) {
+            workerExecutorService = workerExecutorServiceCache;
+        }
+        if (rootFilterChain == null) {
+            rootFilterChain = rootFilterChainCache;
+        }
 
         start();
     }
