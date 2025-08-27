@@ -37,23 +37,17 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2023] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
 package com.sun.enterprise.v3.services.impl;
 
 import com.sun.appserv.server.util.Version;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.sun.enterprise.config.serverbeans.VirtualServer;
 import com.sun.enterprise.v3.services.impl.monitor.ConnectionMonitor;
 import com.sun.enterprise.v3.services.impl.monitor.FileCacheMonitor;
 import com.sun.enterprise.v3.services.impl.monitor.GrizzlyMonitoring;
 import com.sun.enterprise.v3.services.impl.monitor.KeepAliveMonitor;
 import com.sun.enterprise.v3.services.impl.monitor.ThreadPoolMonitor;
+import org.crac.Core;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.config.GenericGrizzlyListener;
 import org.glassfish.grizzly.config.dom.Http;
@@ -86,6 +80,13 @@ import org.glassfish.hk2.utilities.ServiceLocatorUtilities;
 import org.glassfish.internal.grizzly.V3Mapper;
 import org.jvnet.hk2.config.types.Property;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class GlassfishNetworkListener extends GenericGrizzlyListener {
     private final GrizzlyService grizzlyService;
     private final NetworkListener networkListener;
@@ -100,6 +101,8 @@ public class GlassfishNetworkListener extends GenericGrizzlyListener {
         this.grizzlyService = grizzlyService;
         this.networkListener = networkListener;
         this.logger = logger;
+
+        Core.getGlobalContext().register(this);
     }
 
     public NetworkListener getNetworkListener() {
