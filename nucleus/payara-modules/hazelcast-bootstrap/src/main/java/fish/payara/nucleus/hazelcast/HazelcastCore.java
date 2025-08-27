@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2016-2024 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -78,6 +78,9 @@ import fish.payara.nucleus.events.HazelcastEvents;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.api.admin.ServerEnvironment;
 import org.glassfish.api.admin.ServerEnvironment.Status;
@@ -139,7 +142,7 @@ import static java.lang.String.valueOf;
  */
 @Service(name = "hazelcast-core")
 @RunLevel(StartupRunLevel.VAL)
-public class HazelcastCore implements EventListener, ConfigListener {
+public class HazelcastCore implements EventListener, ConfigListener, Resource {
 
     public final static String INSTANCE_ATTRIBUTE_MAP = "payara-instance-map";
     public final static String INSTANCE_ATTRIBUTE = "GLASSFISH-INSTANCE";
@@ -215,6 +218,8 @@ public class HazelcastCore implements EventListener, ConfigListener {
         if (datagridEncryptionValue) {
             Logger.getLogger(HazelcastCore.class.getName()).log(Level.INFO, "Data grid encryption is enabled");
         }
+
+        Core.getGlobalContext().register(this);
     }
 
     /**
@@ -919,5 +924,17 @@ public class HazelcastCore implements EventListener, ConfigListener {
             };
             theInstance.getExecutorService(availabilityStructureName).executeOnMembers(fn, cpMembersToReset);
         }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        Logger.getLogger(HazelcastCore.class.getName()).info("Before checkpoint!");
+        shutdownHazelcast();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        Logger.getLogger(HazelcastCore.class.getName()).info("Before checkpoint!");
+        bootstrapHazelcast();
     }
 }
