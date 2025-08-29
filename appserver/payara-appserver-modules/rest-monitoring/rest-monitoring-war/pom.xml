@@ -43,7 +43,7 @@
     <parent>
         <groupId>fish.payara.server.internal.payara-appserver-modules</groupId>
         <artifactId>rest-monitoring-parent</artifactId>
-        <version>5.79.0-SNAPSHOT</version>
+        <version>5.80.0-SNAPSHOT</version>
     </parent>
     
     <artifactId>rest-monitoring-war</artifactId>
@@ -77,7 +77,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.27.3</version>
+            <version>3.27.4</version>
             <scope>test</scope>
         </dependency>
 
