@@ -285,7 +285,7 @@
         <mojarra.version>2.3.21.payara-p1</mojarra.version>
         <jaxb-extra-osgi.version>2.3.0</jaxb-extra-osgi.version>
         <yasson.version>1.0.11</yasson.version>
-        <eclipselink.version>2.7.15.payara-p2</eclipselink.version>
+        <eclipselink.version>2.7.16.payara-p1</eclipselink.version>
         <eclipselink.asm.version>9.8.0</eclipselink.asm.version>
         <openmq.version>5.1.4.payara-p5</openmq.version>
         <com.ibm.jbatch.container.version>1.0.3.payara-p3</com.ibm.jbatch.container.version>
