@@ -60,9 +60,9 @@ import org.glassfish.internal.data.ApplicationInfo;
 import org.glassfish.internal.data.ApplicationRegistry;
 import org.glassfish.internal.data.ModuleInfo;
 import org.glassfish.internal.deployment.Deployment;
+import org.jvnet.hk2.annotations.Optional;
 import org.jvnet.hk2.annotations.Service;
 
-import javax.batch.operations.JobOperator;
 import javax.batch.runtime.BatchRuntime;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -92,10 +92,15 @@ public class BatchRuntimeHelper
 
     public static final String PAYARA_TABLE_SUFFIX_PROPERTY = "payara.jbatch.table.suffix";
 
+    static final String DEFAULT_SCHEMA_NAME = "APP";
+    static final String DEFAULT_EXECUTOR_SERVICE_LOOKUP_NAME = "concurrent/__defaultManagedExecutorService";
+    static final String DEFAULT_TABLE_SUFFIX = "";
+    static final String DEFAULT_TABLE_PREFIX = "";
+
     @Inject
     ServiceLocator serviceLocator;
 
-    @Inject
+    @Inject @Optional
     @Named(ServerEnvironment.DEFAULT_INSTANCE_NAME)
     private BatchRuntimeConfiguration batchRuntimeConfiguration;
 
@@ -147,8 +152,8 @@ public class BatchRuntimeHelper
         batchSPIManager.registerPlatformMode(BatchSPIManager.PlatformMode.EE);
 
         Properties overrideProperties = new Properties();
-        overrideProperties.put(PAYARA_TABLE_PREFIX_PROPERTY, batchRuntimeConfiguration.getTablePrefix());
-        overrideProperties.put(PAYARA_TABLE_SUFFIX_PROPERTY, batchRuntimeConfiguration.getTableSuffix());
+        overrideProperties.put(PAYARA_TABLE_PREFIX_PROPERTY, batchRuntimeConfiguration != null ? batchRuntimeConfiguration.getTablePrefix() : DEFAULT_TABLE_PREFIX);
+        overrideProperties.put(PAYARA_TABLE_SUFFIX_PROPERTY, batchRuntimeConfiguration != null ? batchRuntimeConfiguration.getTableSuffix() : DEFAULT_TABLE_SUFFIX);
         overrideProperties.put(ServiceTypes.PERSISTENCE_MANAGEMENT_SERVICE, determinePersistenceManagerClass());
         overrideProperties.put(ServiceTypes.CONTAINER_ARTIFACT_FACTORY_SERVICE,"com.ibm.jbatch.container.services.impl.CDIBatchArtifactFactoryImpl" );
         overrideProperties.put(ServiceTypes.BATCH_THREADPOOL_SERVICE, "com.ibm.jbatch.container.services.impl.SPIDelegatingThreadPoolServiceImpl");
@@ -235,7 +240,7 @@ public class BatchRuntimeHelper
     }
 
     public String getDataSourceLookupName() {
-        String val = batchRuntimeConfiguration.getDataSourceLookupName();
+        String val = batchRuntimeConfiguration != null ? batchRuntimeConfiguration.getDataSourceLookupName() : null;
         if (val == null || val.trim().length() == 0) {
             val = serverContext.getInstanceName().equals("server")
                     ? "jdbc/__TimerPool" : "jdbc/__default";
@@ -249,11 +254,11 @@ public class BatchRuntimeHelper
     }
 
     private String getSchemaName() {
-        return batchRuntimeConfiguration.getSchemaName();
+        return batchRuntimeConfiguration != null ? batchRuntimeConfiguration.getSchemaName() : DEFAULT_SCHEMA_NAME;
     }
 
     public String getExecutorServiceLookupName() {
-        return batchRuntimeConfiguration.getExecutorServiceLookupName();
+        return batchRuntimeConfiguration != null ? batchRuntimeConfiguration.getExecutorServiceLookupName() : DEFAULT_EXECUTOR_SERVICE_LOOKUP_NAME;
     }
 
     private String determinePersistenceManagerClass() {
