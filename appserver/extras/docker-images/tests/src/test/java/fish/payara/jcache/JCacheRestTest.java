@@ -42,6 +42,8 @@ package fish.payara.jcache;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
@@ -58,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCacheRestTest {
 
+    private static final Logger LOG = LoggerFactory.getLogger(JCacheRestTest.class);
     private static final GenericContainer<?>[] nodes = new GenericContainer<?>[3];
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
@@ -88,62 +91,62 @@ public class JCacheRestTest {
 
     @Test
     public void testJCacheCluster() throws Exception {
-        System.out.println("STARTING JCACHE CLUSTER TEST...");
-        System.out.println("Initializing: Waiting for cluster to stabilize...");
+        LOG.info("STARTING JCACHE CLUSTER TEST...");
+        LOG.info("Initializing: Waiting for cluster to stabilize...");
 
         // Test 1: Store on node 1 and verify on all nodes
-        System.out.println("TEST 1: Single Node Write");
+        LOG.info("TEST 1: Single Node Write");
         String key1 = "foo";
         String value1 = "bar";
 
-        System.out.println("Storing: " + key1 + " = " + value1 + " on node 1");
+        LOG.info("Storing: " + key1 + " = " + value1 + " on node 1");
         put(nodes[0], key1, value1);
 
         // Verify on all nodes
-        System.out.println("Verifying: key '" + key1 + "' on all nodes");
+        LOG.info("Verifying: key '" + key1 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key1);
             boolean success = value1.equals(actualValue);
-            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key1 + " = " + actualValue + " (expected: " + value1 + ")");
+            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key1 + " = " + actualValue + " (expected: " + value1 + ")");
             assertEquals(actualValue, value1,
                     String.format("Value mismatch for key '%s' on %s", key1, nodeName));
         }
 
         // Test 2: Store on node 2 and verify on all nodes
-        System.out.println("TEST 2: Second Node Write");
+        LOG.info("TEST 2: Second Node Write");
         String key2 = "baz";
         String value2 = "qux";
 
-        System.out.println("Storing: " + key2 + " = " + value2 + " on node 2");
+        LOG.info("Storing: " + key2 + " = " + value2 + " on node 2");
         put(nodes[1], key2, value2);
 
         // Verify on all nodes
-        System.out.println("Verifying: key '" + key2 + "' on all nodes");
+        LOG.info("Verifying: key '" + key2 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key2);
             boolean success = value2.equals(actualValue);
-            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key2 + " = " + actualValue + " (expected: " + value2 + ")");
+            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key2 + " = " + actualValue + " (expected: " + value2 + ")");
             assertEquals(actualValue, value2,
                     String.format("Value mismatch for key '%s' on %s", key2, nodeName));
         }
 
         // Test 3: Store on node 3 and verify on all nodes
-        System.out.println("TEST 3: Third Node Write");
+        LOG.info("TEST 3: Third Node Write");
         String key3 = "hello";
         String value3 = "world";
 
-        System.out.println("Storing: " + key3 + " = " + value3 + " on node 3");
+        LOG.info("Storing: " + key3 + " = " + value3 + " on node 3");
         put(nodes[2], key3, value3);
 
         // Verify on all nodes
-        System.out.println("Verifying: key '" + key3 + "' on all nodes");
+        LOG.info("Verifying: key '" + key3 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key3);
             boolean success = value3.equals(actualValue);
-            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key3 + " = " + actualValue + " (expected: " + value3 + ")");
+            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key3 + " = " + actualValue + " (expected: " + value3 + ")");
             assertEquals(actualValue, value3,
                     String.format("Value mismatch for key '%s' on %s", key3, nodeName));
         }
@@ -151,7 +154,7 @@ public class JCacheRestTest {
 
     @AfterAll
     public static void tearDown() {
-        System.out.println("STOPPING DOWN JCACHE CLUSTER TEST...");
+        LOG.info("STOPPING DOWN JCACHE CLUSTER TEST...");
 
         for (GenericContainer<?> node : nodes) {
             if (node != null && node.isRunning()) {
@@ -170,7 +173,7 @@ public class JCacheRestTest {
 
     private static void put(GenericContainer<?> node, String key, String value) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
-        System.out.println("\n[PUT] Node: " + node.getContainerInfo().getName() +
+        LOG.info("\n[PUT] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
                 " | Key: " + key +
                 " | Value: " + value);
@@ -181,12 +184,12 @@ public class JCacheRestTest {
                 .PUT(HttpRequest.BodyPublishers.ofString("\"" + value + "\""))
                 .build();
         HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-        System.out.println("[PUT] Status: " + response.statusCode());
+        LOG.info("[PUT] Status: " + response.statusCode());
     }
 
     private static String get(GenericContainer<?> node, String key) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
-        System.out.println("\n[GET] Node: " + node.getContainerInfo().getName() +
+        LOG.info("\n[GET] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
                 " | Key: " + key);
 
@@ -204,7 +207,7 @@ public class JCacheRestTest {
             result = responseBody.substring(1, responseBody.length() - 1);
         }
 
-        System.out.println("[GET] Status: " + response.statusCode() +
+        LOG.info("[GET] Status: " + response.statusCode() +
                 " | Raw response: " + responseBody +
                 " | Parsed value: " + result);
         return result;
