@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2022-2025 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,11 +37,11 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package fish.payara;
+package fish.payara.jcache;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.utility.DockerImageName;
@@ -54,18 +54,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCacheRestTest {
 
-    private final GenericContainer<?>[] nodes = new GenericContainer<?>[3];
-    private final HttpClient client = HttpClient.newBuilder()
+    private static final GenericContainer<?>[] nodes = new GenericContainer<?>[3];
+    private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
-    private Network network;
+    private static Network network;
 
-    @BeforeClass
-    public void setUp() throws Exception {
+    @BeforeAll
+    public static void setUp() throws Exception {
         network = Network.newNetwork();
         String payaraVersion = System.getProperty("payara.version");
         DockerImageName payaraImg = DockerImageName.parse("payara/micro:" + payaraVersion);
@@ -149,26 +149,26 @@ public class JCacheRestTest {
         }
     }
 
-    @AfterClass(alwaysRun = true)
-    public void tearDown() {
+    @AfterAll
+    public static void tearDown() {
         System.out.println("STOPPING DOWN JCACHE CLUSTER TEST...");
 
         for (GenericContainer<?> node : nodes) {
             if (node != null && node.isRunning()) {
                 node.close();
             }
+        }
 
-            if (network != null) {
-                network.close();
-            }
+        if (network != null) {
+            network.close();
         }
     }
 
-    private String baseUrl(GenericContainer<?> node) {
+    private static String baseUrl(GenericContainer<?> node) {
         return "http://" + node.getHost() + ":" + node.getMappedPort(8080);
     }
 
-    private void put(GenericContainer<?> node, String key, String value) throws Exception {
+    private static void put(GenericContainer<?> node, String key, String value) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
         System.out.println("\n[PUT] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
@@ -184,7 +184,7 @@ public class JCacheRestTest {
         System.out.println("[PUT] Status: " + response.statusCode());
     }
 
-    private String get(GenericContainer<?> node, String key) throws Exception {
+    private static String get(GenericContainer<?> node, String key) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
         System.out.println("\n[GET] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
