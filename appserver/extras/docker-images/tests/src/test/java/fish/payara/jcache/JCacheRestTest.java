@@ -37,18 +37,18 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package fish.payara.jcache;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.output.OutputFrame;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -60,93 +60,134 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCacheRestTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JCacheRestTest.class);
-    private static final GenericContainer<?>[] nodes = new GenericContainer<?>[3];
-    private static final HttpClient client = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
+    private static HttpClient client;
+    private static GenericContainer<?>[] nodes = new GenericContainer<?>[3];
     private static Network network;
 
     @BeforeAll
     public static void setUp() throws Exception {
+        client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+
+        System.out.println("\n=== Starting Docker Network ===");
         network = Network.newNetwork();
-        String payaraVersion = System.getProperty("payara.version");
-        DockerImageName payaraImg = DockerImageName.parse("payara/micro:" + payaraVersion);
+        System.out.println("Created network with ID: " + network.getId());
+
+        DockerImageName payaraImg = DockerImageName.parse("payara/micro");
+        System.out.println("\n=== Starting Payara Micro Containers ===");
 
         for (int instanceIndex = 0; instanceIndex < 3; instanceIndex++) {
+            System.out.println("\n--- Starting Node " + instanceIndex + " ---");
+            System.out.println("Creating container with image: " + payaraImg);
+
+            // Create final copy of instanceIndex for use in lambda
+            final int nodeIndex = instanceIndex;
+
             nodes[instanceIndex] = new GenericContainer<>(payaraImg)
                     .withNetwork(network)
                     .withNetworkAliases("node" + instanceIndex)
                     .withExposedPorts(8080)
                     .withCopyFileToContainer(
                             MountableFile.forClasspathResource("jcache-rest.war"),
-                            "/opt/payara/deployments/jcache-rest.war" // just copy the WAR here
+                            "/opt/payara/deployments/jcache-rest.war"
                     )
-                    .withReuse(true)
-                    .waitingFor(Wait.forLogMessage(".*Payara Micro.+ ready.+\\n", 1));
+                    .withCommand(
+                            "--deploymentDir",
+                            "/opt/payara/deployments",
+                            "--autoBindHttp"
+                    )
+                    .waitingFor(
+                            Wait.forLogMessage(".*(Payara Micro.*ready|Deployed: jcache-rest).*\\n", 1)
+                                    .withStartupTimeout(Duration.ofMinutes(2))
+                    )
+                    .withLogConsumer(outputFrame -> {
+                        String logLine = outputFrame.getUtf8String().trim();
+                        System.out.println(String.format("[Container %d] %s", nodeIndex, logLine));
 
+                        // Log specific deployment messages
+                        if (logLine.contains("Deployed: jcache-rest") ||
+                            logLine.contains("jcache-rest.war") ||
+                            logLine.contains("Exception") ||
+                            logLine.contains("Error") ||
+                            logLine.contains("WARN") ||
+                            logLine.contains("deploy")) {
+                            System.out.println(String.format("[Container %d - DEPLOYMENT] %s", nodeIndex, logLine));
+                        }
+                    });
+
+            System.out.println("Starting container...");
             nodes[instanceIndex].start();
+
+            // Print container info
+            System.out.println("Container started with ID: " + nodes[instanceIndex].getContainerId());
+            System.out.println("HTTP Port: " + nodes[instanceIndex].getMappedPort(8080));
+            System.out.println("Node " + instanceIndex + " base URL: " + baseUrl(nodes[instanceIndex]));
         }
+
+        System.out.println("\n=== All containers started successfully ===");
+        System.out.println("Node 0: " + baseUrl(nodes[0]));
+        System.out.println("Node 1: " + baseUrl(nodes[1]));
+        System.out.println("Node 2: " + baseUrl(nodes[2]));
     }
 
     @Test
     public void testJCacheCluster() throws Exception {
-        LOG.info("STARTING JCACHE CLUSTER TEST...");
-        LOG.info("Initializing: Waiting for cluster to stabilize...");
+        System.out.println("STARTING JCACHE CLUSTER TEST...");
 
         // Test 1: Store on node 1 and verify on all nodes
-        LOG.info("TEST 1: Single Node Write");
+        System.out.println("TEST 1: Single Node Write");
         String key1 = "foo";
         String value1 = "bar";
 
-        LOG.info("Storing: " + key1 + " = " + value1 + " on node 1");
+        System.out.println("Storing: " + key1 + " = " + value1 + " on node 1");
         put(nodes[0], key1, value1);
 
         // Verify on all nodes
-        LOG.info("Verifying: key '" + key1 + "' on all nodes");
+        System.out.println("Verifying: key '" + key1 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key1);
             boolean success = value1.equals(actualValue);
-            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key1 + " = " + actualValue + " (expected: " + value1 + ")");
+            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key1 + " = " + actualValue + " (expected: " + value1 + ")");
             assertEquals(actualValue, value1,
                     String.format("Value mismatch for key '%s' on %s", key1, nodeName));
         }
 
         // Test 2: Store on node 2 and verify on all nodes
-        LOG.info("TEST 2: Second Node Write");
+        System.out.println("TEST 2: Second Node Write");
         String key2 = "baz";
         String value2 = "qux";
 
-        LOG.info("Storing: " + key2 + " = " + value2 + " on node 2");
+        System.out.println("Storing: " + key2 + " = " + value2 + " on node 2");
         put(nodes[1], key2, value2);
 
         // Verify on all nodes
-        LOG.info("Verifying: key '" + key2 + "' on all nodes");
+        System.out.println("Verifying: key '" + key2 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key2);
             boolean success = value2.equals(actualValue);
-            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key2 + " = " + actualValue + " (expected: " + value2 + ")");
+            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key2 + " = " + actualValue + " (expected: " + value2 + ")");
             assertEquals(actualValue, value2,
                     String.format("Value mismatch for key '%s' on %s", key2, nodeName));
         }
 
         // Test 3: Store on node 3 and verify on all nodes
-        LOG.info("TEST 3: Third Node Write");
+        System.out.println("TEST 3: Third Node Write");
         String key3 = "hello";
         String value3 = "world";
 
-        LOG.info("Storing: " + key3 + " = " + value3 + " on node 3");
+        System.out.println("Storing: " + key3 + " = " + value3 + " on node 3");
         put(nodes[2], key3, value3);
 
         // Verify on all nodes
-        LOG.info("Verifying: key '" + key3 + "' on all nodes");
+        System.out.println("Verifying: key '" + key3 + "' on all nodes");
         for (int instanceIndex = 0; instanceIndex < nodes.length; instanceIndex++) {
             String nodeName = String.format("Node %d", instanceIndex + 1);
             String actualValue = get(nodes[instanceIndex], key3);
             boolean success = value3.equals(actualValue);
-            LOG.info("  " + (success ? "✓" : "✗") + " Verified: " + key3 + " = " + actualValue + " (expected: " + value3 + ")");
+            System.out.println("  " + (success ? "✓" : "✗") + " Verified: " + key3 + " = " + actualValue + " (expected: " + value3 + ")");
             assertEquals(actualValue, value3,
                     String.format("Value mismatch for key '%s' on %s", key3, nodeName));
         }
@@ -154,7 +195,7 @@ public class JCacheRestTest {
 
     @AfterAll
     public static void tearDown() {
-        LOG.info("STOPPING DOWN JCACHE CLUSTER TEST...");
+        System.out.println("STOPPING DOWN JCACHE CLUSTER TEST...");
 
         for (GenericContainer<?> node : nodes) {
             if (node != null && node.isRunning()) {
@@ -173,7 +214,7 @@ public class JCacheRestTest {
 
     private static void put(GenericContainer<?> node, String key, String value) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
-        LOG.info("\n[PUT] Node: " + node.getContainerInfo().getName() +
+        System.out.println("\n[PUT] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
                 " | Key: " + key +
                 " | Value: " + value);
@@ -184,12 +225,12 @@ public class JCacheRestTest {
                 .PUT(HttpRequest.BodyPublishers.ofString("\"" + value + "\""))
                 .build();
         HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-        LOG.info("[PUT] Status: " + response.statusCode());
+        System.out.println("[PUT] Status: " + response.statusCode());
     }
 
     private static String get(GenericContainer<?> node, String key) throws Exception {
         String url = baseUrl(node) + "/jcache-rest/webresources/cache?key=" + key;
-        LOG.info("\n[GET] Node: " + node.getContainerInfo().getName() +
+        System.out.println("\n[GET] Node: " + node.getContainerInfo().getName() +
                 " | URL: " + url +
                 " | Key: " + key);
 
@@ -207,7 +248,7 @@ public class JCacheRestTest {
             result = responseBody.substring(1, responseBody.length() - 1);
         }
 
-        LOG.info("[GET] Status: " + response.statusCode() +
+        System.out.println("[GET] Status: " + response.statusCode() +
                 " | Raw response: " + responseBody +
                 " | Parsed value: " + result);
         return result;
