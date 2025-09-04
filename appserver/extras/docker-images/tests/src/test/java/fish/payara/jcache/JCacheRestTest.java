@@ -47,34 +47,34 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.wait.strategy.Wait;
+import java.time.Duration;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class JCacheRestTest {
 
-    private static HttpClient client;
     private static GenericContainer<?>[] nodes = new GenericContainer<?>[3];
     private static Network network;
 
     @BeforeAll
     public static void setUp() throws Exception {
-        client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
-
         System.out.println("\n=== Starting Docker Network ===");
         network = Network.newNetwork();
         System.out.println("Created network with ID: " + network.getId());
 
-        DockerImageName payaraImg = DockerImageName.parse("payara/micro");
+        DockerImageName payaraImg = DockerImageName.parse("payara/micro:5.2021.1");
         System.out.println("\n=== Starting Payara Micro Containers ===");
 
         for (int instanceIndex = 0; instanceIndex < 3; instanceIndex++) {
@@ -219,13 +219,27 @@ public class JCacheRestTest {
                 " | Key: " + key +
                 " | Value: " + value);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI(url))
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString("\"" + value + "\""))
-                .build();
-        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-        System.out.println("[PUT] Status: " + response.statusCode());
+        HttpURLConnection connection = null;
+        try {
+            URL requestUrl = new URL(url);
+            connection = (HttpURLConnection) requestUrl.openConnection();
+            connection.setRequestMethod("PUT");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+            
+            String jsonInput = "\"" + value + "\"";
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInput.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+            
+            int status = connection.getResponseCode();
+            System.out.println("[PUT] Status: " + status);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
     private static String get(GenericContainer<?> node, String key) throws Exception {
@@ -234,23 +248,39 @@ public class JCacheRestTest {
                 " | URL: " + url +
                 " | Key: " + key);
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI(url))
-                .GET()
-                .build();
+        HttpURLConnection connection = null;
+        try {
+            URL requestUrl = new URL(url);
+            connection = (HttpURLConnection) requestUrl.openConnection();
+            connection.setRequestMethod("GET");
+            
+            int status = connection.getResponseCode();
+            String responseBody;
+            
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                responseBody = response.toString();
+            }
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        String responseBody = response.body();
+            // Parse the JSON string to remove the extra quotes
+            String result = responseBody;
+            if (responseBody != null && responseBody.startsWith("\"") && responseBody.endsWith("\"")) {
+                result = responseBody.substring(1, responseBody.length() - 1);
+            }
 
-        // Parse the JSON string to remove the extra quotes
-        String result = responseBody;
-        if (responseBody != null && responseBody.startsWith("\"") && responseBody.endsWith("\"")) {
-            result = responseBody.substring(1, responseBody.length() - 1);
+            System.out.println("[GET] Status: " + status +
+                    " | Raw response: " + responseBody +
+                    " | Parsed value: " + result);
+            return result;
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
-
-        System.out.println("[GET] Status: " + response.statusCode() +
-                " | Raw response: " + responseBody +
-                " | Parsed value: " + result);
-        return result;
     }
 }
