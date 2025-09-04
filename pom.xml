@@ -321,7 +321,7 @@
         <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version>
         <jaxb-api.version>2.3.3</jaxb-api.version>
         <jersey.version>2.47.payara-p1</jersey.version>
-        <jackson.version>2.19.2</jackson.version>
+        <jackson.version>2.20.0</jackson.version>
         <jakarta.validation.version>2.0.2</jakarta.validation.version>
         <hibernate.validator.version>6.2.5.Final.payara-p1</hibernate.validator.version>
         <hibernate.validator-cdi.version>6.2.5.Final.payara-p1</hibernate.validator-cdi.version>
