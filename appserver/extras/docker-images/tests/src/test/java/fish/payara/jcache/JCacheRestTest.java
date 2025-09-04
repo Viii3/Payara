@@ -74,7 +74,7 @@ public class JCacheRestTest {
         network = Network.newNetwork();
         System.out.println("Created network with ID: " + network.getId());
 
-        DockerImageName payaraImg = DockerImageName.parse("payara/micro:5.2021.1");
+        DockerImageName payaraImg = DockerImageName.parse("payara/micro");
         System.out.println("\n=== Starting Payara Micro Containers ===");
 
         for (int instanceIndex = 0; instanceIndex < 3; instanceIndex++) {
