@@ -37,14 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016] [Payara Foundation] 
+// Portions Copyright [2016-2025] [Payara Foundation and/or its affiliates]
 package org.glassfish.batch.spi.impl;
 
 import org.glassfish.api.admin.config.ConfigExtension;
 import org.jvnet.hk2.config.Attribute;
 import org.jvnet.hk2.config.ConfigBeanProxy;
 import org.jvnet.hk2.config.Configured;
-import org.jvnet.hk2.config.Element;
 
 /**
  * @author Mahesh Kannan
@@ -57,16 +56,16 @@ public interface BatchRuntimeConfiguration
     @Attribute
     String getDataSourceLookupName();
 
-    @Attribute(defaultValue = "concurrent/__defaultManagedExecutorService")
+    @Attribute(defaultValue = BatchRuntimeHelper.DEFAULT_EXECUTOR_SERVICE_LOOKUP_NAME)
     String getExecutorServiceLookupName();
 
-    @Attribute(defaultValue = "APP")
+    @Attribute(defaultValue = BatchRuntimeHelper.DEFAULT_SCHEMA_NAME)
     String getSchemaName();
     
-    @Attribute(required = false,  defaultValue = "")
+    @Attribute(required = false,  defaultValue = BatchRuntimeHelper.DEFAULT_TABLE_PREFIX)
     String getTablePrefix();
 
-    @Attribute(required = false,  defaultValue = "")
+    @Attribute(required = false,  defaultValue = BatchRuntimeHelper.DEFAULT_TABLE_SUFFIX)
     String getTableSuffix();   
     
     public void setDataSourceLookupName(String value);
