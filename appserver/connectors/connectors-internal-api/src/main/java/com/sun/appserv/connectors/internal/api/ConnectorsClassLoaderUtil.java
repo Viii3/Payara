@@ -275,10 +275,12 @@ public class ConnectorsClassLoaderUtil implements Resource {
         try {
             DelegatingClassLoader delegatingClassLoader = clh.getConnectorClassLoader(null);
             if (delegatingClassLoader != null) {
-                for (DelegatingClassLoader.ClassFinder cf : delegatingClassLoader.getDelegates()) {
+                List<DelegatingClassLoader.ClassFinder> delegates = new ArrayList<>(delegatingClassLoader.getDelegates());
+                for (DelegatingClassLoader.ClassFinder cf : delegates) {
                     if (cf instanceof ConnectorClassFinder) {
                         try {
-                            ((ConnectorClassFinder) cf).done(); // closes JarFile/FDs
+                            ((ConnectorClassFinder) cf).done();// closes JarFile/FDs
+                            delegatingClassLoader.removeDelegate(cf);
                         } catch (Throwable t) {
                             _logger.log(Level.WARNING, "[CRaC] Error closing ConnectorClassFinder", t);
                         }
