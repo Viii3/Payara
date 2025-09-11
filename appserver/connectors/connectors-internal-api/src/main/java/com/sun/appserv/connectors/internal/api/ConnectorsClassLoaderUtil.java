@@ -37,9 +37,14 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2025 Payara Foundation and/or its affiliates
 
 package com.sun.appserv.connectors.internal.api;
 
+import jakarta.annotation.PostConstruct;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.internal.api.ClassLoaderHierarchy;
 import org.glassfish.internal.api.DelegatingClassLoader;
 import org.glassfish.api.admin.*;
@@ -56,6 +61,8 @@ import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
+import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Collection;
@@ -76,7 +83,7 @@ import jakarta.inject.Inject;
  */
 @Service
 @Singleton
-public class ConnectorsClassLoaderUtil {
+public class ConnectorsClassLoaderUtil implements Resource {
 
     @Inject
     private ClassLoaderHierarchy clh;
@@ -94,26 +101,26 @@ public class ConnectorsClassLoaderUtil {
     @Inject
     Events events;
 
-
     private volatile boolean rarsInitializedInEmbeddedServerMode;
+
+    private final AtomicBoolean checkpointing = new AtomicBoolean(false);
+
+
+    @PostConstruct
+    public void registerWithCrac() {
+        Core.getGlobalContext().register(this);
+        _logger.fine("[CRaC] Registered ConnectorsClassLoaderUtil");
+    }
 
     public ConnectorClassFinder createRARClassLoader(String moduleDir, ClassLoader deploymentParent,
                                                      String moduleName, List<URI> appLibs)
             throws ConnectorRuntimeException {
-
-        ClassLoader parent = null;
-
-        //For standalone rar :
-        //this is not a normal application and hence cannot use the provided parent during deployment.
-        //setting the parent to connector-class-loader's parent (common class-loader) as this is a .rar
-        //For embedded rar :
-        //use the deploymentParent as the class-finder created won't be part of connector class loader
-        //service hierarchy
-        if(deploymentParent == null){
-            parent = clh.getCommonClassLoader();
-        }else{
-            parent = deploymentParent;
+        if (checkpointing.get()) {
+            _logger.fine("[CRaC] Skipping createRARClassLoader during checkpoint");
+            // Return a no-op finder or throw; here we throw so callers don’t proceed.
+            throw new ConnectorRuntimeException("Checkpoint in progress");
         }
+        ClassLoader parent = (deploymentParent == null) ? clh.getCommonClassLoader() : deploymentParent;
         return createRARClassLoader(parent, moduleDir, moduleName, appLibs);
     }
 
@@ -136,6 +143,12 @@ public class ConnectorsClassLoaderUtil {
     private ConnectorClassFinder createRARClassLoader(final ClassLoader parent, String moduleDir,
                                                       final String moduleName, List<URI> appLibs)
             throws ConnectorRuntimeException{
+
+        if (checkpointing.get()) {
+            _logger.fine("[CRaC] Skipping createRARClassLoader during checkpoint");
+            throw new ConnectorRuntimeException("Checkpoint in progress");
+        }
+
         ConnectorClassFinder cl = null;
 
         try{
@@ -180,6 +193,10 @@ public class ConnectorsClassLoaderUtil {
     public Collection<ConnectorClassFinder> getSystemRARClassLoaders() throws ConnectorRuntimeException {
             //if (systemRARClassLoaders == null) {
 
+        if (checkpointing.get()) {
+            _logger.fine("[CRaC] Skipping getSystemRARClassLoaders during checkpoint");
+            return Collections.emptyList();
+        }
             if (processEnv.getProcessType().isEmbedded() && !rarsInitializedInEmbeddedServerMode) {
                 synchronized (ConnectorsClassLoaderUtil.class){
                     if(!rarsInitializedInEmbeddedServerMode){
@@ -234,6 +251,10 @@ public class ConnectorsClassLoaderUtil {
     }
 
     private void appendJars(File moduleDir, ASURLClassLoader cl) throws MalformedURLException {
+        if (checkpointing.get()) {
+            _logger.fine("[CRaC] Skipping appendJars during checkpoint");
+            return;
+        }
         //TODO for embedded rars -consider MANIFEST.MF's classpath attribute
         if (moduleDir.isDirectory()) {
             for (File file : moduleDir.listFiles()) {
@@ -244,5 +265,48 @@ public class ConnectorsClassLoaderUtil {
                 }
             }
         }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) {
+        checkpointing.set(true);
+        _logger.info("[CRaC] beforeCheckpoint: closing ConnectorClassFinders");
+
+        try {
+            DelegatingClassLoader delegatingClassLoader = clh.getConnectorClassLoader(null);
+            if (delegatingClassLoader != null) {
+                List<DelegatingClassLoader.ClassFinder> delegates = new ArrayList<>(delegatingClassLoader.getDelegates());
+                for (DelegatingClassLoader.ClassFinder cf : delegates) {
+                    if (cf instanceof ConnectorClassFinder) {
+                        try {
+                            ((ConnectorClassFinder) cf).done();// closes JarFile/FDs
+                            delegatingClassLoader.removeDelegate(cf);
+                        } catch (Throwable t) {
+                            _logger.log(Level.WARNING, "[CRaC] Error closing ConnectorClassFinder", t);
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            _logger.log(Level.SEVERE, "[CRaC] Failure during beforeCheckpoint", t);
+            throw t;
+        } finally {
+            checkpointing.set(false);
+        }
+
+        _logger.info("[CRaC] beforeCheckpoint complete");
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        _logger.info("[CRaC] afterRestore: rebuilding RAR classloaders");
+        try {
+            checkpointing.set(false);
+            getSystemRARClassLoaders();
+        } catch (Throwable t) {
+            _logger.log(Level.SEVERE, "[CRaC] Failure during afterRestore", t);
+            throw t;
+        }
+        _logger.info("[CRaC] afterRestore complete");
     }
 }
