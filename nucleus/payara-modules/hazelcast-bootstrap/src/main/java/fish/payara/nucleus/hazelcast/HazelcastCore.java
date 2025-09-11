@@ -73,6 +73,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.nio.serialization.Serializer;
 import com.hazelcast.nio.serialization.StreamSerializer;
 import com.hazelcast.spi.properties.ClusterProperty;
+import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.Utility;
 import fish.payara.nucleus.events.HazelcastEvents;
 import jakarta.annotation.PostConstruct;
@@ -464,6 +465,12 @@ public class HazelcastCore implements EventListener, ConfigListener, Resource {
             Logger.getLogger(HazelcastCore.class.getName()).log(Level.WARNING, "Hazelcast Core could not load configuration file " + hazelcastFilePath + " using default configuration", ex);
         } catch (TransactionFailure ex) {
             Logger.getLogger(HazelcastCore.class.getName()).log(Level.WARNING, "Hazelcast Configuration data could no be saved", ex);
+        }
+
+        if (JDK.isCRaCJDK()) {
+            if (System.getProperty("hazelcast.phone.home.enabled") == null && System.getenv("HZ_PHONE_HOME_ENABLED") == null) {
+                config.setProperty("hazelcast.phone.home.enabled", "false");
+            }
         }
         return config;
     }
