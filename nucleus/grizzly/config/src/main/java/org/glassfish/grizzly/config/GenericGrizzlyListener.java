@@ -49,7 +49,6 @@ import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.IOStrategy;
 import org.glassfish.grizzly.PortRange;
-import org.glassfish.grizzly.SocketBinder;
 import org.glassfish.grizzly.config.dom.Http;
 import org.glassfish.grizzly.config.dom.NetworkListener;
 import org.glassfish.grizzly.config.dom.PortUnification;
@@ -209,13 +208,12 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
 
     private void bindTransport() throws IOException {
         if (portRange != null && transport instanceof TCPNIOTransport) {
-            Connection<?> connection = ((SocketBinder) transport)
-                    .bind(address.getHostAddress(), portRange, false,
+            Connection<?> connection = transport.bind(address.getHostAddress(), portRange, false,
                             TCPNIOTransport.class.cast(transport).getServerConnectionBackLog());
             // Set the dynamic port value equal to the result of the autobind
             this.port = InetSocketAddress.class.cast(connection.getLocalAddress()).getPort();
         } else {
-            ((SocketBinder) transport).bind(new InetSocketAddress(address, port));
+            transport.bind(new InetSocketAddress(address, port));
         }
     }
 
@@ -1209,43 +1207,15 @@ public class GenericGrizzlyListener implements GrizzlyListener, Resource {
         }
     }
 
-    private NIOTransport transportCache;
-    private ExecutorService workerExecutorServiceCache;
-    private FilterChain rootFilterChainCache;
-
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         LOGGER.info("Before checkpoint!");
-
-        // Cache info
-        if (transport != null) {
-            transportCache = transport;
-        }
-        if (workerExecutorService != null) {
-            workerExecutorServiceCache = workerExecutorService;
-        }
-        if (rootFilterChain != null) {
-            rootFilterChainCache = rootFilterChain;
-        }
-
-        stop();
+        transport.unbindAll();
     }
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         LOGGER.info("After restore!");
-
-        // Restore cached info
-        if (transport == null) {
-            transport = transportCache;
-        }
-        if (workerExecutorService == null) {
-            workerExecutorService = workerExecutorServiceCache;
-        }
-        if (rootFilterChain == null) {
-            rootFilterChain = rootFilterChainCache;
-        }
-
-        start();
+        bindTransport();
     }
 }
