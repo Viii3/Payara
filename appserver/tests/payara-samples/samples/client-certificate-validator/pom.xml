@@ -53,9 +53,10 @@
     <artifactId>client-certificate-validator</artifactId>
     <name>Payara-Samples - Payara - Client Certificate Validator</name>
 
-    <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-    </properties>
-
+    <dependencies>
+        <dependency>
+            <groupId>fish.payara.samples</groupId>
+            <artifactId>samples-test-utils</artifactId>
+        </dependency>
+    </dependencies>
 </project>
