@@ -91,15 +91,6 @@
         <module>use-bundled-jsf-primefaces</module>
     </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>fish.payara.samples</groupId>
-            <artifactId>ejb-invoker-secure-endpoint</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
-        </dependency>
-    </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
