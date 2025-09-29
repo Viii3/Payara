@@ -936,12 +936,12 @@ public class HazelcastCore implements EventListener, ConfigListener, Resource {
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         Logger.getLogger(HazelcastCore.class.getName()).info("Before checkpoint!");
-        shutdownHazelcast();
+        setEnabled(false);
     }
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         Logger.getLogger(HazelcastCore.class.getName()).info("Before checkpoint!");
-        bootstrapHazelcast();
+        setEnabled(true);
     }
 }
