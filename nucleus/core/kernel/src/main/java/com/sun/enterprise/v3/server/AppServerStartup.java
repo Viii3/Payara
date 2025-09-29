@@ -396,7 +396,6 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
             }
             events.send(new Event(EventTypes.SERVER_READY), false);
         }
-
         if (!proceedTo(PostStartupRunLevel.VAL)) {
             appInstanceListener.stopRecordingTimes();
             return false;
