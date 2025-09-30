@@ -472,6 +472,8 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
             return false;
         }
 
+        events.send(new Event<>(EventTypes.SERVER_READY_AFTER_CHECKPOINT), false);
+
         return true;
     }
 

@@ -144,14 +144,7 @@ public class PhoneHomeCore implements EventListener {
      */
     @Override
     public void event(Event<?> event) {
-        if (event.is(EventTypes.SERVER_READY)) {
-            // If server is warming up, don't call phone home
-            Properties startUpArguments = env.getStartupContext().getArguments();
-            if (startUpArguments != null && startUpArguments.containsKey("-warmup")) {
-                if (Boolean.parseBoolean(startUpArguments.getProperty("-warmup", "false"))){
-                    return;
-                }
-            }
+        if (event.is(EventTypes.SERVER_READY_AFTER_CHECKPOINT)) {
             bootstrapPhoneHome();
         } else if (event.is(EventTypes.SERVER_SHUTDOWN)) {
             shutdownPhoneHome();
