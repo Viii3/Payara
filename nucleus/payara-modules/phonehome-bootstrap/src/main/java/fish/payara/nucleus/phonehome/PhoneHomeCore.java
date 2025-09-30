@@ -40,8 +40,10 @@
 package fish.payara.nucleus.phonehome;
 
 import com.sun.enterprise.config.serverbeans.Domain;
+import com.sun.enterprise.util.JDK;
 import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import java.beans.PropertyVetoException;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import jakarta.annotation.PostConstruct;
@@ -140,7 +142,15 @@ public class PhoneHomeCore implements EventListener {
      */
     @Override
     public void event(Event<?> event) {
-        if (event.is(EventTypes.SERVER_READY_AFTER_CHECKPOINT)) {
+        if (event.is(EventTypes.SERVER_READY)) {
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            if (startUpArguments != null && startUpArguments.containsKey("-warmup")) {
+                if (Boolean.parseBoolean(startUpArguments.getProperty("-warmup", "false"))){
+                    return;
+                }
+            }
+            bootstrapPhoneHome();
+        } else if (event.is(EventTypes.AFTER_RESTORE)) {
             bootstrapPhoneHome();
         } else if (event.is(EventTypes.SERVER_SHUTDOWN)) {
             shutdownPhoneHome();
