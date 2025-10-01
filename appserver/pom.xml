@@ -63,7 +63,7 @@
         <jsftemplating.version>2.1.4</jsftemplating.version>
         <jboss.classfilewriter.version>1.2.5.Final</jboss.classfilewriter.version>
         <apache.bcel.version>6.10.0</apache.bcel.version>
-        <jna.version>5.17.0</jna.version>
+        <jna.version>5.18.1</jna.version>
 
         <!-- Application Server / Implementation -->
         <product.name>Payara Server Enterprise</product.name>
