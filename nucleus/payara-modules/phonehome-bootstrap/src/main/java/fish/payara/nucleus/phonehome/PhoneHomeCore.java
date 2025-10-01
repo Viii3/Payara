@@ -40,7 +40,6 @@
 package fish.payara.nucleus.phonehome;
 
 import com.sun.enterprise.config.serverbeans.Domain;
-import com.sun.enterprise.util.JDK;
 import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import java.beans.PropertyVetoException;
 import java.util.Properties;
