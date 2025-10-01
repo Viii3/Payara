@@ -1049,6 +1049,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         try {
             gfruntime = GlassFishRuntime.bootstrap(bprops, Thread.currentThread().getContextClassLoader());
             GlassFishProperties gfproperties = new GlassFishProperties();
+            gfproperties.setProperty("-warmup", String.valueOf(warmup));
             gfproperties.setProperty("-type", "MICRO");
             gfproperties.setInstanceRoot(runtimeDir.getDirectory().getAbsolutePath());
             gfproperties.setConfigFileReadOnly(false);

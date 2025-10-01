@@ -621,6 +621,7 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
         logger.log(Level.INFO, "Restoring AppServerStartup");
+        events.send(new Event<>(EventTypes.AFTER_RESTORE), false);
     }
 
     @Service

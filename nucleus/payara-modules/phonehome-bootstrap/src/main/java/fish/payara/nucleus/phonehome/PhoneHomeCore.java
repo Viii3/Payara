@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- *    Copyright (c) [2016-2021] Payara Foundation and/or its affiliates. All rights reserved.
+ *    Copyright (c) [2016-2025] Payara Foundation and/or its affiliates. All rights reserved.
  * 
  *     The contents of this file are subject to the terms of either the GNU
  *     General Public License Version 2 only ("GPL") or the Common Development
@@ -42,10 +42,8 @@ package fish.payara.nucleus.phonehome;
 import com.sun.enterprise.config.serverbeans.Domain;
 import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import java.beans.PropertyVetoException;
+import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
@@ -142,8 +140,16 @@ public class PhoneHomeCore implements EventListener {
      * @param event
      */
     @Override
-    public void event(Event event) {
+    public void event(Event<?> event) {
         if (event.is(EventTypes.SERVER_READY)) {
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            if (startUpArguments != null && startUpArguments.containsKey("-warmup")) {
+                if (Boolean.parseBoolean(startUpArguments.getProperty("-warmup", "false"))){
+                    return;
+                }
+            }
+            bootstrapPhoneHome();
+        } else if (event.is(EventTypes.AFTER_RESTORE)) {
             bootstrapPhoneHome();
         } else if (event.is(EventTypes.SERVER_SHUTDOWN)) {
             shutdownPhoneHome();
