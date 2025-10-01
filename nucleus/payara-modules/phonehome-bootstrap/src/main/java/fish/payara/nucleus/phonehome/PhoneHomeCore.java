@@ -96,7 +96,6 @@ public class PhoneHomeCore implements EventListener {
         events.register(this);
 
         if (env.isDas()) {
-
             if (configuration == null) {
                 enabled = true;
                 phoneHomeId = UUID.randomUUID();
@@ -152,6 +151,12 @@ public class PhoneHomeCore implements EventListener {
             }
             bootstrapPhoneHome();
         } else if (event.is(EventTypes.AFTER_RESTORE)) {
+            // Regenerate ID to help prevent duplicates if the same checkpoint is used more than once e.g. Docker
+            phoneHomeId = UUID.randomUUID();
+            if (!env.isMicro()) {
+                writePhoneHomeUuid();
+            }
+
             bootstrapPhoneHome();
         }
     }
