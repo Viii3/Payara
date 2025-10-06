@@ -1469,7 +1469,7 @@ public class WebModule extends PwcWebModule implements Context {
         }
 
         if (getWebModuleConfig() != null && getWebModuleConfig().getDeploymentContext() != null) {
-            var appProperties = getWebModuleConfig().getDeploymentContext().getAppProps();
+            Properties appProperties = getWebModuleConfig().getDeploymentContext().getAppProps();
             String cacheTTL = appProperties.getProperty(CACHE_TTL_APP_PROPERTY);
             if (cacheTTL != null) {
                 configureProperty(vs, contextPath, CACHE_TTL_APP_PROPERTY, cacheTTL);
