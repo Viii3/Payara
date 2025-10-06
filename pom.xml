@@ -357,7 +357,7 @@
         <weld-api.version>3.1.SP4</weld-api.version>
         <tyrus.version>1.21.payara-p1</tyrus.version>
         <jsp-impl.version>2.3.4</jsp-impl.version>
-        <asm.version>9.8</asm.version>
+        <asm.version>9.9</asm.version>
         <monitoring-console-api.version>1.2</monitoring-console-api.version>
         <monitoring-console-process.version>1.8.1</monitoring-console-process.version>
         <monitoring-console-webapp.version>1.10</monitoring-console-webapp.version>
