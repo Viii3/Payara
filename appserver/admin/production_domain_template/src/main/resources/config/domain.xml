@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
- * Copyright (c) 2016-2023 Payara Foundation. All rights reserved.
+ * Copyright (c) 2016-2025 Payara Foundation. All rights reserved.
  *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
@@ -228,6 +228,7 @@
         <jvm-options>-Djdk.attach.allowAttachSelf=true</jvm-options>
         <!-- CRaC options -->
         <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+        <jvm-options>-XX:CRaCEngine=warp</jvm-options>
       </java-config>
       <availability-service>
         <web-container-availability />
@@ -447,6 +448,7 @@
         <jvm-options>-Xbootclasspath/a:${com.sun.aas.installRoot}/lib/grizzly-npn-api.jar</jvm-options>
         <!-- CRaC options -->
         <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+        <jvm-options>-XX:CRaCEngine=warp</jvm-options>
       </java-config>
       <availability-service>
         <web-container-availability />
