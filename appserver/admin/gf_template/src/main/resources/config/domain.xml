@@ -42,7 +42,7 @@
 
 -->
 
-<!-- Portions Copyright [2017-2023] [Payara Foundation and/or its affiliates] -->
+<!-- Portions Copyright 2017-2025 Payara Foundation and/or its affiliates -->
 
 <domain log-root="${com.sun.aas.instanceRoot}/logs" application-root="${com.sun.aas.instanceRoot}/applications" version="10.0">
     <hazelcast-runtime-configuration start-port="%%%HAZELCAST_START_PORT%%%" das-port="%%%HAZELCAST_DAS_PORT%%%" auto-increment-port="%%%HAZELCAST_AUTO_INCREMENT%%%"></hazelcast-runtime-configuration>
@@ -280,6 +280,7 @@
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-Xlog:redefine+class*=info</jvm-options>
                 <!-- CRaC options -->
                 <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+                <jvm-options>-XX:CRaCEngine=warp</jvm-options>
             </java-config>
             <availability-service>
                 <web-container-availability />
@@ -518,6 +519,7 @@
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-Xlog:redefine+class*=info</jvm-options>
                 <!-- CRaC options -->
                 <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+                <jvm-options>-XX:CRaCEngine=warp</jvm-options>
             </java-config>
             <availability-service>
                 <web-container-availability />
