@@ -1,11 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
-<<<<<<< HEAD
- * Copyright (c) [2016-2021] Payara Foundation and/or its affiliates. All rights reserved.
-=======
- * Copyright (c) [2016-2020] Payara Foundation and/or its affiliates. All rights reserved.
->>>>>>> a62d616b29 (Merge pull request #5012 from flowlogix/Fix-Clustered-Singleton-Bugs)
+ * Copyright (c) 2016-2021 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -17,7 +13,7 @@
  * language governing permissions and limitations under the License.
  *
  * When distributing the software, include this License Header Notice in each
- * file and include the License file at glassfish/legal/LICENSE.txt.
+ * file and include the License file at legal/OPEN-SOURCE-LICENSE.txt.
  *
  * GPL Classpath Exception:
  * The Payara Foundation designates this particular file as subject to the "Classpath"
