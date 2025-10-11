@@ -51,17 +51,7 @@ import com.sun.enterprise.module.bootstrap.ModuleStartup;
 import com.sun.enterprise.module.bootstrap.StartupContext;
 import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.Result;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
@@ -70,8 +60,6 @@ import org.crac.Context;
 import org.crac.Core;
 import org.crac.Resource;
 import org.crac.RestoreException;
-
-import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
 import org.glassfish.api.FutureProvider;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.api.admin.ProcessEnvironment;
@@ -104,6 +92,19 @@ import org.glassfish.internal.api.PostStartupRunLevel;
 import org.glassfish.kernel.KernelLoggerInfo;
 import org.glassfish.server.ServerEnvironmentImpl;
 import org.jvnet.hk2.annotations.Service;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -595,18 +596,21 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
 
     private boolean checkpointRestore() {
         if (JDK.isCRaCJDK()) {
-            try {
-                Core.checkpointRestore();
-            } catch (CheckpointException e) {
-                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
-                return false;
-            } catch (RestoreException e) {
-                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
-                return false;
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            if (startUpArguments != null && startUpArguments.getProperty("-warmup", "false").equals("true")) {
+                try {
+                    Core.checkpointRestore();
+                } catch (CheckpointException e) {
+                    logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
+                    logger.log(Level.SEVERE, e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                } catch (RestoreException e) {
+                    logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
+                    logger.log(Level.SEVERE, e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                }
             }
         }
 
