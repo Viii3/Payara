@@ -925,7 +925,7 @@ public class FileDirContext extends BaseDirContext {
                 canPath = normalize(file.toPath().toRealPath(LinkOption.NOFOLLOW_LINKS).toString());
             } catch (IOException e) {
             }
-            if (canPath == null || (!canPath.startsWith(canonicalBase) && !allowLinking)) {
+            if (canPath == null || canonicalBase == null || (!canPath.startsWith(canonicalBase) && !allowLinking)) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, LogFacade.FILE_RESOURCES_NULL_CANONICAL_PATH);
                 }
@@ -933,7 +933,7 @@ public class FileDirContext extends BaseDirContext {
             }
 
             // Check to see if going outside of the web application root
-            if ((!allowLinking) && (!canPath.startsWith(absoluteBase))) {
+            if ((!allowLinking) && (absoluteBase == null || !canPath.startsWith(absoluteBase))) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, LogFacade.FILE_RESOURCES_NOT_ALLOWED, new Object[]{allowLinking,canPath,absoluteBase});
                 }
