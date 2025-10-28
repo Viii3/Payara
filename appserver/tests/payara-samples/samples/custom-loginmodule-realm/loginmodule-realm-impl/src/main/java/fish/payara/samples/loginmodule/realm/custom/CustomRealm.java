@@ -39,64 +39,57 @@
  */
 package fish.payara.samples.loginmodule.realm.custom;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.enumeration;
-
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Properties;
-
-import org.jvnet.hk2.annotations.Service;
-
-import com.sun.enterprise.security.BaseRealm;
-import com.sun.enterprise.security.auth.realm.BadRealmException;
-import com.sun.enterprise.security.auth.realm.InvalidOperationException;
-import com.sun.enterprise.security.auth.realm.NoSuchRealmException;
-import com.sun.enterprise.security.auth.realm.NoSuchUserException;
-import com.sun.enterprise.security.auth.realm.Realm;
+import java.util.*;
 
 /**
  * Realm wrapper for supporting Custom authentication.
- *
  */
-@Service
-public final class CustomRealm extends BaseRealm {
+public final class CustomRealm {
 
     public static final String AUTH_TYPE = "custom";
 
-    @Override
-    public synchronized void init(Properties props) throws BadRealmException, NoSuchRealmException {
-        super.init(props);
-        
-        String jaasCtx = props.getProperty(Realm.JAAS_CONTEXT_PARAM);
-        if (jaasCtx == null) {
-            throw new BadRealmException("No jaas-context specified");
+    private Properties properties = new Properties();
+
+    /**
+     * Initializes realm configuration (JAAS context or other settings).
+     */
+    public synchronized void init(Properties props) {
+        this.properties.clear();
+        if (props != null) {
+            this.properties.putAll(props);
         }
 
-        setProperty(Realm.JAAS_CONTEXT_PARAM, jaasCtx);
+        String jaasCtx = props != null ? props.getProperty("jaas-context") : null;
+        if (jaasCtx == null) {
+            throw new IllegalArgumentException("No jaas-context specified");
+        }
     }
 
-    @Override
+    /**
+     * Returns the authentication type.
+     */
     public String getAuthType() {
         return AUTH_TYPE;
     }
-   
+
+    /**
+     * Performs authentication. Returns group names on success, or null on failure.
+     */
     public String[] authenticate(String username, char[] password) {
         if ("realmUser".equals(username) && Arrays.equals(password, "realmPassword".toCharArray())) {
-            return new String[] {"realmGroup"};
+            return new String[]{"realmGroup"};
         }
-        
         return null;
     }
-    
-    @Override
-    public Enumeration<String> getGroupNames(String username) throws InvalidOperationException, NoSuchUserException {
-        if ("realmUser".equals(username)) {
-            return enumeration(asList("realmGroup"));
-        }
-        
-        return enumeration(emptyList());
-    }
 
+    /**
+     * Returns all groups for a given user.
+     */
+    public Enumeration<String> getGroupNames(String username) {
+        if ("realmUser".equals(username)) {
+            return Collections.enumeration(Collections.singletonList("realmGroup"));
+        }
+        return Collections.enumeration(Collections.emptyList());
+    }
 }
+
