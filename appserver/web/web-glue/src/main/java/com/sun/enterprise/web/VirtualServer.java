@@ -561,29 +561,46 @@ public class VirtualServer extends StandardHost implements org.glassfish.embedda
 
         String defaultWebModuleId = getDefaultWebModuleID();
         if (defaultWebModuleId != null) {
-            
+
             // Check if the default-web-module is part of an ee-application
             webModuleConfig = findWebModuleInJ2eeApp(domain.getApplications(), defaultWebModuleId, appRegistry);
             if (webModuleConfig == null) {
                 String contextRoot = null;
                 String location = null;
-                
-                ConfigBeansUtilities configBeansUtilities = getConfigBeansUtilities();
-                if (configBeansUtilities != null) {
-                    contextRoot = configBeansUtilities.getContextRoot(defaultWebModuleId);
-                    location = configBeansUtilities.getLocation(defaultWebModuleId);
+
+                // First try to get the location from ApplicationRegistry (works for all scenarios including deployment groups)
+                ApplicationInfo appInfo = appRegistry.get(defaultWebModuleId);
+                if (appInfo != null && appInfo.getSource() != null) {
+                    location = appInfo.getSource().getURI().getPath();
+                    // Get context root from the application metadata
+                    Application app = appInfo.getMetaData(Application.class);
+                    if (app != null && app.isVirtual()) {
+                        com.sun.enterprise.deployment.BundleDescriptor bd = app.getStandaloneBundleDescriptor();
+                        if (bd instanceof com.sun.enterprise.deployment.WebBundleDescriptor) {
+                            contextRoot = ((com.sun.enterprise.deployment.WebBundleDescriptor) bd).getContextRoot();
+                        }
+                    }
+                }
+
+                // Fallback to ConfigBeansUtilities if ApplicationRegistry doesn't have the info
+                if (location == null) {
+                    ConfigBeansUtilities configBeansUtilities = getConfigBeansUtilities();
+                    if (configBeansUtilities != null) {
+                        contextRoot = configBeansUtilities.getContextRoot(defaultWebModuleId);
+                        location = configBeansUtilities.getLocation(defaultWebModuleId);
+                    }
                 }
 
                 if (contextRoot != null && location != null) {
                     WebBundleDescriptorImpl webBundleDescriptorImpl = webArchivist.getDefaultWebXmlBundleDescriptor();
                     webBundleDescriptorImpl.setName(DEFAULT_WEB_MODULE_NAME);
                     webBundleDescriptorImpl.setContextRoot(contextRoot);
-                    
+
                     webModuleConfig = new WebModuleConfig();
                     webModuleConfig.setLocation(new File(location));
                     webModuleConfig.setDescriptor(webBundleDescriptorImpl);
                     webModuleConfig.setParentLoader(EmbeddedWebContainer.class.getClassLoader());
-                    webModuleConfig.setAppClassLoader(privileged(() -> 
+                    webModuleConfig.setAppClassLoader(privileged(() ->
                         new WebappClassLoader(EmbeddedWebContainer.class.getClassLoader(), webBundleDescriptorImpl.getApplication())));
                 }
             }
