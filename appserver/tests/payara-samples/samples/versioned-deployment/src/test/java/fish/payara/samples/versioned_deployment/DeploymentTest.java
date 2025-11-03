@@ -111,7 +111,7 @@ public class DeploymentTest {
 
         Assert.assertEquals(200, response.getStatus());
 
-        return response.readEntity(String.class).strip();
+        return response.readEntity(String.class).trim();
 
     }
 }
