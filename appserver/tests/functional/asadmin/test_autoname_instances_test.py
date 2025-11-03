@@ -5,10 +5,11 @@ Test for auto-naming Payara instances with conflict resolution.
 """
 
 import os
+import subprocess
 import sys
 import logging
 import argparse
-import subprocess
+import socket
 from typing import Tuple
 
 # Configure logging
@@ -82,9 +83,9 @@ class AutoNameInstancesTest:
         success, output, _ = self._run_asadmin('list-nodes')
         if not success:
             return []
-        
+
         # Skip header line and empty lines
-        return [line.split()[0] for line in output.splitlines() 
+        return [line.split()[0] for line in output.splitlines()
                 if line.strip() and not line.startswith(('Node', 'Command'))]
 
     def _get_domain_name(self) -> str:
@@ -115,18 +116,20 @@ class AutoNameInstancesTest:
     def setup(self):
         """Set up the test environment."""
         logger.info("Setting up test environment...")
-        
+
         # Get available nodes
         available_nodes = self._get_available_nodes()
         logger.debug(f"Available nodes: {available_nodes}")
-        
+
         # If no nodes available, create a local node
         if not available_nodes:
             logger.info("No nodes found, creating a local node")
-            success, _, error = self._run_asadmin('create-local-instance', '--node', 'localhost-$(hostname)-local')
+            hostname = socket.gethostname()
+            node_name = f'localhost-{hostname}-local'
+            success, _, error = self._run_asadmin('create-local-instance', '--node', node_name)
             if not success:
                 raise AsadminCommandError(f"Failed to create local node: {error}")
-            self.node_name = 'localhost-$(hostname)-local'
+            self.node_name = node_name
         else:
             # Use the first available node
             self.node_name = available_nodes[0]
