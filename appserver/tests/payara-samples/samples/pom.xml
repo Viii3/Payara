@@ -89,6 +89,7 @@
         <module>resources</module>
         <module>reproducers</module>
         <module>use-bundled-jsf-primefaces</module>
+        <module>versioned-deployment</module>
     </modules>
 
     <dependencyManagement>
