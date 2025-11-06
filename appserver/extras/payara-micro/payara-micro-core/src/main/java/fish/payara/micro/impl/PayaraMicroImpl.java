@@ -88,6 +88,9 @@ import com.sun.enterprise.server.logging.ODLLogFormatter;
 
 import fish.payara.deployment.util.JavaArchiveUtils;
 import fish.payara.deployment.util.URIUtils;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.embeddable.BootstrapProperties;
 import org.glassfish.embeddable.CommandRunner;
 import org.glassfish.embeddable.Deployer;
@@ -1017,8 +1020,13 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         if (isRunning()) {
             throw new IllegalStateException("Payara Micro is already running, calling bootstrap now is meaningless");
         }
-
-        long start = System.currentTimeMillis();
+        
+        CheckpointedTimer timer = new CheckpointedTimer();
+        timer.startTimer();
+        
+        if (JDK.isCRaCJDK()) {
+            Core.getGlobalContext().register(timer);
+        }
 
         // Build the runtime directory
         try {
@@ -1103,9 +1111,9 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 LOGGER.log(Level.SEVERE, "Unable to load command file", ex);
             }
             postDeployCommands.executeCommands(gf.getCommandRunner());
-
-            long end = System.currentTimeMillis();
-            dumpFinalStatus(end - start);
+            
+            timer.stopTimer();
+            dumpFinalStatus(timer.getDuration() / 1000000);
             return runtime;
         } catch (Exception ex) {
             try {
@@ -2867,5 +2875,46 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         checkNotRunning();
         postBootHandler = handler;
         return this;
+    }
+    
+    private static class CheckpointedTimer implements Resource {
+        private static final long SECOND = 1000000000;
+        
+        private long preCheckpointStart;
+        private long preCheckpointEnd;
+        private long postCheckpointStart;
+        private long postCheckpointEnd;
+        
+        private void startTimer() {
+            this.preCheckpointStart = System.nanoTime();
+        }
+        
+        private void stopTimer() {
+            if (this.preCheckpointEnd == 0) {
+                this.preCheckpointEnd = System.nanoTime();
+            } else {
+                this.postCheckpointEnd = System.nanoTime();
+            }
+        }
+        
+        private long getDuration() {
+            return this.preCheckpointEnd - this.preCheckpointStart + this.postCheckpointEnd - this.postCheckpointStart;
+        }
+
+        @Override
+        public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+            this.preCheckpointEnd = System.nanoTime();
+        }
+
+        @Override
+        public void afterRestore(Context<? extends Resource> context) throws Exception {
+            this.postCheckpointStart = System.nanoTime();
+            
+            // Both callbacks trigger in the first run when the checkpoint is set.
+            if (this.postCheckpointStart - this.preCheckpointEnd > SECOND) {
+                this.preCheckpointStart = 0;
+                this.preCheckpointEnd = 0;
+            }
+        }
     }
 }
