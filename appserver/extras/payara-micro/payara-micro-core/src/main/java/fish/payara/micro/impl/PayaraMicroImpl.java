@@ -1113,7 +1113,7 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             postDeployCommands.executeCommands(gf.getCommandRunner());
             
             timer.stopTimer();
-            dumpFinalStatus(timer.getDuration() / 1000000);
+            dumpFinalStatus(timer.getDurationMillis());
             return runtime;
         } catch (Exception ex) {
             try {
@@ -2897,8 +2897,9 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             }
         }
         
-        private long getDuration() {
-            return this.preCheckpointEnd - this.preCheckpointStart + this.postCheckpointEnd - this.postCheckpointStart;
+        private long getDurationMillis() {
+            return (this.preCheckpointEnd - this.preCheckpointStart +
+                this.postCheckpointEnd - this.postCheckpointStart) / 1000000;
         }
 
         @Override
