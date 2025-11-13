@@ -60,6 +60,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>fish.payara.server.internal.common</groupId>
+            <artifactId>common-util</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>fish.payara.samples</groupId>
             <artifactId>samples-test-utils</artifactId>
         </dependency>

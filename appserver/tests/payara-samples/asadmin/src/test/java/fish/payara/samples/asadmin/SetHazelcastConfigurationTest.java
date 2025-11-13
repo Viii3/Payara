@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2021 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019-2020 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,18 +37,51 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package fish.payara.samples.corba.read.timeout;
+package fish.payara.samples.asadmin;
 
-import javax.ejb.Stateless;
+import fish.payara.nucleus.hazelcast.HazelcastRuntimeConfiguration;
+import fish.payara.samples.Unstable;
 
-@Stateless
-public class TimeoutTestServiceBean implements TimeoutTestService {
-    public byte[] getBytes(int size) {
-        byte[] bytes = new byte[size];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = 0x42;
-        }
+import org.glassfish.embeddable.CommandResult;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-        return bytes;
+/**
+ * Verifies the correctness of the {@code SetHazelcastConfiguration} command.
+ */
+@Category(Unstable.class)
+// Fails from two reasons:
+// 1) Requires completely new domain. Side effects of other tests break this one.
+// 2) On JDK8 fails because of usage of @Category annotation which has problems with
+//    this bug: https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8209742 (fixed in JDK11)
+public class SetHazelcastConfigurationTest extends AsadminTest {
+
+    private HazelcastRuntimeConfiguration config;
+
+    @Before
+    public void setUp() {
+        config = getDomainExtensionByType(HazelcastRuntimeConfiguration.class);
+    }
+
+
+    @Test
+    public void autoIncrementPort() {
+        CommandResult result = asadmin("set-hazelcast-configuration", "--autoIncrementPort", "true");
+        assertSuccess(result);
+        assertTrue(config.getAutoIncrementPort());
+        result = asadmin("set-hazelcast-configuration", "--autoIncrementPort", "false");
+        assertSuccess(result);
+        assertFalse(config.getAutoIncrementPort());
+    }
+
+
+    @Test
+    public void dataGridEncryptionWarning() {
+        CommandResult result = asadmin("set-hazelcast-configuration", "--encryptdatagrid", "true");
+        assertWarning(result);
+        assertContains("Could not find datagrid-key", result.getOutput());
+        result = asadmin("set-hazelcast-configuration", "--encryptdatagrid", "false");
+        assertSuccess(result);
     }
 }
