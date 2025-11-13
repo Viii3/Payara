@@ -83,6 +83,7 @@
         can only be serially executed - they change configuration
         that other modules depend on
         -->
+        <module>asadmin</module>
         <module>ejb-invoker-secure-endpoint</module>
         <!-- Can be executed in parallel -->
         <module>samples</module>
@@ -366,6 +367,18 @@
                 </exclusions>
             </dependency>
 
+            <dependency>
+                <groupId>fish.payara.server.internal.extras</groupId>
+                <artifactId>payara-micro-boot</artifactId>
+                <version>${payara.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>fish.payara.server.internal.payara-modules</groupId>
+                <artifactId>notification-core</artifactId>
+                <version>${payara.version}</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>net.sourceforge.htmlunit</groupId>
                 <artifactId>htmlunit</artifactId>

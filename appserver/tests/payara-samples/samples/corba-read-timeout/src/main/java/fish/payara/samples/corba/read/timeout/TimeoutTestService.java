@@ -39,7 +39,7 @@
  */
 package fish.payara.samples.corba.read.timeout;
 
-import jakarta.ejb.Remote;
+import javax.ejb.Remote;
 
 @Remote
 public interface TimeoutTestService {

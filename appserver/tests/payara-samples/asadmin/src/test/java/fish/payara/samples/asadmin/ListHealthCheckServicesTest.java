@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2021 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,18 +37,29 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package fish.payara.samples.corba.read.timeout;
+package fish.payara.samples.asadmin;
 
-import javax.ejb.Stateless;
+import org.glassfish.embeddable.CommandResult;
+import org.junit.Test;
 
-@Stateless
-public class TimeoutTestServiceBean implements TimeoutTestService {
-    public byte[] getBytes(int size) {
-        byte[] bytes = new byte[size];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = 0x42;
-        }
+/**
+ * Verifies the correctness of the {@code ListHealthCheckServices} command.
+ */
+public class ListHealthCheckServicesTest extends AsadminTest {
 
-        return bytes;
+    @Test
+    public void listHealthCheckServices() {
+        CommandResult result = asadmin("list-healthcheck-services");
+        assertSuccess(result);
+        String description = result.getOutput();
+        assertContains("Available Health Check Services:", description);
+        assertContains("healthcheck-mp", description);
+        assertContains("healthcheck-cpu", description);
+        assertContains("healthcheck-gc", description);
+        assertContains("healthcheck-heap", description);
+        assertContains("healthcheck-threads", description);
+        assertContains("healthcheck-machinemem", description);
+        assertContains("healthcheck-cpool", description);
+        assertContains("healthcheck-stuck", description);
     }
 }

@@ -37,37 +37,60 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package fish.payara.samples.loginmodule.realm.custom;
+package fish.payara.samples.asadmin;
 
-import javax.security.auth.login.LoginException;
+import fish.payara.samples.NotMicroCompatible;
+import fish.payara.samples.ServerOperations;
+import fish.payara.samples.SincePayara;
 
-import com.sun.enterprise.security.BasePasswordLoginModule;
+import org.glassfish.embeddable.CommandResult;
+import org.junit.Test;
 
-/**
- * This class implement a Custom Login module for Payara.
- *
- */
-public class CustomLoginModule extends BasePasswordLoginModule {
-
-    /**
-     * Perform authentication. Delegates to CustomRealm.
-     *
-     * @throws LoginException If login fails
-     */
-    @Override
-    protected void authenticateUser() throws LoginException {
-        CustomRealm customRealm = getRealm(CustomRealm.class, "Realm not found");
-        
-        if (_username == null || _username.length() == 0) {
-            throw new LoginException("No username set");
+@SincePayara("5.193")
+@NotMicroCompatible("This asadmin command is not supported on Micro")
+public class AutoNameInstancesTest extends AsadminTest {
+    @Test
+    public void testInstanceNameConflict() {
+        String domainName = ServerOperations.getDomainName();
+        String conflictInstanceName = "Scrumptious-Swordfish";
+        // Create expected conflict if it doesn't already exist.
+        CommandResult result = asadmin("list-instances", "-t", "--nostatus");
+        if (!result.getOutput().contains(conflictInstanceName)) {
+            asadmin("create-instance",
+                    "--node", "localhost-" + domainName,
+                    conflictInstanceName);
         }
 
-        String[] groups = customRealm.authenticate(_username, getPasswordChar());
-
-        if (groups == null) { // JAAS behavior
-            throw new LoginException("Login failed for " + _username);
+        result = asadmin("create-instance",
+                "--autoname", "true",
+                "--node", "localhost-" + domainName,
+                "-T",
+                conflictInstanceName);
+        try {
+            assertSuccess(result);
+        } finally {
+            // Cleanup
+            String generatedInstanceName = result.getOutput();
+            asadmin("delete-instance", conflictInstanceName);
+            asadmin("delete-instance", generatedInstanceName);
         }
-
-        commitUserAuthentication(groups);
     }
+
+    @Test
+    public void testGenerateInstanceName() {
+        String domainName = ServerOperations.getDomainName();
+        CommandResult result = asadmin("create-instance",
+                "-a",
+                "--node", "localhost-" + domainName,
+                "--extraTerse", "true");
+
+        try {
+            assertSuccess(result);
+        } finally {
+            // Cleanup
+            String generatedInstanceName = result.getOutput();
+            asadmin("delete-instance", generatedInstanceName);
+        }
+    }
+
 }
