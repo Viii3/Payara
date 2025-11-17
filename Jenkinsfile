@@ -573,7 +573,7 @@ pipeline {
                     }
                     post {
                         always {
-                            processReportAndStopDomain()
+                            stopDomain()
                         }
                         cleanup {
                             processReport()
