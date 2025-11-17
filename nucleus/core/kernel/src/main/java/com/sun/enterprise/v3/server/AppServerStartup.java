@@ -164,6 +164,7 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
     private long platformInitTime;
 
     private String platform = System.getProperty("GlassFish_Platform");
+    private static final String CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY = "fish.payara.crac.checkpointAfterDeployment";
 
     /**
      * A keep alive thread that keeps the server JVM from going down
@@ -408,6 +409,10 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
             logger.log(level, "PostStartup level done in " +
                 (postStartupFinishTime - startupFinishTime) + " ms");
         }
+
+        if (Boolean.parseBoolean(System.getProperty(CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
+            checkpointRestore();
+        }
         return true;
     }
 
@@ -469,10 +474,9 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         }
         pidWriter.writePidFile();
 
-        if (!checkpointRestore()) {
-            return false;
+        if (!Boolean.parseBoolean(System.getProperty(CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
+            return checkpointRestore();
         }
-
         return true;
     }
 
