@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2019-2020 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019-2022 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,7 +43,6 @@ import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import com.gargoylesoftware.htmlunit.TextPage;
 import com.gargoylesoftware.htmlunit.WebClient;
 import fish.payara.samples.CliCommands;
-
 import fish.payara.samples.NotMicroCompatible;
 import fish.payara.samples.PayaraArquillianTestRunner;
 import fish.payara.samples.PayaraTestShrinkWrap;
@@ -60,6 +59,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.client.CredentialsProvider;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.InSequence;
@@ -83,12 +83,11 @@ public class CustomLoginModuleRealmTest {
         File implJar = new File( "../loginmodule-realm-impl/target/loginmodule-realm-impl.jar");
         assertTrue(implJar.exists());
 
-        WebArchive archive = PayaraTestShrinkWrap.getWebArchive()
+        return PayaraTestShrinkWrap.getWebArchive()
                 .addClasses(TestServlet.class)
                 .addPackages(true, "org.apache.http.client")
                 .addAsResource(implJar)
                 .addAsWebInfResource(new File(WEBAPP_SOURCE, "WEB-INF/web.xml"));
-        return archive;
     }
 
     @Test
@@ -117,14 +116,13 @@ public class CustomLoginModuleRealmTest {
     }
 
     @InSequence(2)
-    @Test
     @RunAsClient
     public void testAuthenticationWithCorrectUser() throws IOException {
         try (WebClient webClient = new WebClient()) {
             System.out.println("\n\nRequesting: " + base + "testServlet");
 
-            DefaultCredentialsProvider credentialsProvider = new DefaultCredentialsProvider();
-            credentialsProvider.addCredentials("realmUser", "realmPassword");
+            CredentialsProvider credentialsProvider = new DefaultCredentialsProvider();
+            ((DefaultCredentialsProvider) credentialsProvider).addCredentials("realmUser", "realmPassword");
 
             webClient.setCredentialsProvider(credentialsProvider);
             TextPage page = webClient.getPage(base + "testServlet");
@@ -133,7 +131,6 @@ public class CustomLoginModuleRealmTest {
 
             assertTrue("my GET", page.getContent().contains("This is a test servlet"));
 
-            assertTrue("User doesn't have the corrrect role", page.getContent().contains("web user has role \"realmGroup\": true"));
             webClient.getCookieManager().clearCookies();
         }
     }

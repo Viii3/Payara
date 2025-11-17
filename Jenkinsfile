@@ -564,11 +564,20 @@ pipeline {
                         -Dsurefire.rerunFailingTestsCount=2 \
                         -Dfailsafe.rerunFailingTestsCount=2 \
                         -f appserver/tests/functional/embeddedtest """
+
+                        echo '*#*#*#*#*#*#*#*#*#*#*#*#  Running asadmin tests  *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#'
+                        setupDomain()
+                        sh """python3 appserver/tests/functional/asadmin/run_all_tests.py \
+                        --asadmin ${pwd()}/appserver/distributions/payara/target/stage/payara5/bin/asadmin"""
                         echo '*#*#*#*#*#*#*#*#*#*#*#*#  Ran test  *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#'
                     }
                     post {
+                        always {
+                            processReportAndStopDomain()
+                        }
                         cleanup {
                             processReport()
+                            saveLogsAndCleanup 'asadmin-log.zip'
                         }
                     }
                 }
