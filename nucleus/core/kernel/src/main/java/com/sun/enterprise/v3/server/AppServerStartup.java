@@ -49,17 +49,15 @@ import com.sun.enterprise.module.ModuleState;
 import com.sun.enterprise.module.ModulesRegistry;
 import com.sun.enterprise.module.bootstrap.ModuleStartup;
 import com.sun.enterprise.module.bootstrap.StartupContext;
-import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.Result;
+import fish.payara.crac.CracUtil;
 import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
-import org.crac.CheckpointException;
 import org.crac.Context;
 import org.crac.Core;
 import org.crac.Resource;
-import org.crac.RestoreException;
 import org.glassfish.api.FutureProvider;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.api.admin.ProcessEnvironment;
@@ -164,7 +162,6 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
     private long platformInitTime;
 
     private String platform = System.getProperty("GlassFish_Platform");
-    private static final String CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY = "fish.payara.crac.checkpointAfterDeployment";
 
     /**
      * A keep alive thread that keeps the server JVM from going down
@@ -409,10 +406,6 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
             logger.log(level, "PostStartup level done in " +
                 (postStartupFinishTime - startupFinishTime) + " ms");
         }
-
-        if (Boolean.parseBoolean(System.getProperty(CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
-            checkpointRestore();
-        }
         return true;
     }
 
@@ -474,8 +467,9 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         }
         pidWriter.writePidFile();
 
-        if (!Boolean.parseBoolean(System.getProperty(CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
-            return checkpointRestore();
+        if (!Boolean.parseBoolean(System.getProperty(CracUtil.CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            return CracUtil.checkpointRestore(startUpArguments != null && startUpArguments.getProperty("-warmup", "false").equals("true"));
         }
         return true;
     }
@@ -596,29 +590,6 @@ public class AppServerStartup implements PostConstruct, ModuleStartup, Resource 
         }
         
         return !masterListener.isForcedShutdown();
-    }
-
-    private boolean checkpointRestore() {
-        if (JDK.isCRaCJDK()) {
-            Properties startUpArguments = env.getStartupContext().getArguments();
-            if (startUpArguments != null && startUpArguments.getProperty("-warmup", "false").equals("true")) {
-                try {
-                    Core.checkpointRestore();
-                } catch (CheckpointException e) {
-                    logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
-                    logger.log(Level.SEVERE, e.getMessage());
-                    e.printStackTrace();
-                    return false;
-                } catch (RestoreException e) {
-                    logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
-                    logger.log(Level.SEVERE, e.getMessage());
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     @Override
