@@ -2,7 +2,7 @@
 #
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 #
-# Copyright (c) 2021-2023 Payara Foundation and/or its affiliates. All rights reserved.
+# Copyright (c) 2021-2025 Payara Foundation and/or its affiliates. All rights reserved.
 #
 # The contents of this file are subject to the terms of either the GNU
 # General Public License Version 2 only ("GPL") or the Common Development
@@ -38,6 +38,25 @@
 # only if the new code is made subject to such option by the copyright
 # holder.
 #
+
+check_move_error() {
+    local exit_code="$1"
+    local path="$2"
+    local message="$3"
+
+    if [ "$exit_code" -ne 0 ]; then
+      local ignored_patterns=("mq" "h2db" "LICENSE.txt" "legal" "../legal")
+
+      for pattern in "${ignored_patterns[@]}"; do
+          if [[ "$path" == *"$pattern"* ]]; then
+              echo "$message:$path"
+              return 0
+          fi
+      done
+
+      WARN=true
+    fi
+}
 
 AS_INSTALL_PARENT=`dirname "$0"`
 AS_INSTALL=`realpath --relative-to . $AS_INSTALL_PARENT/..`
@@ -77,63 +96,19 @@ do
     echo "Moving ${i} to old"
     if [ -d "${AS_INSTALL}/${i}" ]; then
         mv ${AS_INSTALL}/${i}/ ${AS_INSTALL}/${i}.old/
-        if [ ! $? -eq 0 ]; then
-            # Check if the warning was an empty MQ or h2db directory
-            if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"h2db"* ]]; then
-                    WARN=true
-                else
-                    echo "Ignoring error moving empty h2db directory to old, assuming this is a distribution without the duplicate directory"
-                fi
-            else
-                echo "Ignoring error moving empty MQ directory to old, assuming this is a leftover empty directory from a previous payara distribution"
-            fi
-        fi
+        check_move_error $? "${i}" "Ignoring error moving empty directory or file to old"
     else
         mv ${AS_INSTALL}/${i} ${AS_INSTALL}/${i}.old
-        if [ ! $? -eq 0 ]; then
-            # Check if the warning was a missing MQ or h2db directory
-            if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"h2db"* ]]; then
-                    WARN=true
-                else
-                    echo "Ignoring error moving missing h2db directory to old, assuming this is a distribution without the duplicate directory"
-                fi
-            else
-                echo "Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution"
-            fi
-        fi
+        check_move_error $? "${i}" "Ignoring error moving empty directory or file to old"
     fi
 
     echo "Moving staged ${i} to expected location"
     if [ -d "${AS_INSTALL}/${i}.new" ]; then
         mv ${AS_INSTALL}/${i}.new ${AS_INSTALL}/${i}/
-        if [ ! $? -eq 0 ]; then
-            # Check if the warning was an empty MQ directory or h2db directory
-            if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"h2db"* ]]; then
-                    WARN=true
-                else
-                    echo "Ignoring error moving empty staged h2db directory to old, assuming this is a distribution without the duplicate directory"
-                fi
-            else
-                echo "Ignoring error moving empty staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
-            fi
-        fi
+        check_move_error $? "${i}" "Ignoring error moving empty staged directory or file to expected location"
     else
         mv ${AS_INSTALL}/${i}.new ${AS_INSTALL}/${i}
-        if [ ! $? -eq 0 ]; then
-            # Check if the warning was a missing MQ directory or h2db directory
-            if [[ ! "${i}" == *"mq"* ]]; then
-                if [[ ! "${i}" == *"h2db"* ]]; then
-                    WARN=true
-                else
-                    echo "Ignoring error moving missing staged h2db directory to old, assuming this is a distribution without the duplicate directory"
-                fi
-            else
-                echo "Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution"
-            fi
-        fi
+        check_move_error $? "${i}" "Ignoring error moving empty staged directory or file to expected location"
     fi
 done
 
