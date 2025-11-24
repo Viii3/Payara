@@ -37,7 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] Payara Foundation and/or affiliates
+// Portions Copyright 2019-2025 Payara Foundation and/or its affiliates
+// Payara Foundation and/or its affiliates elects to include this software in this distribution under the GPL Version 2 license
 
 package org.glassfish.appclient.common;
 
@@ -47,11 +48,23 @@ import org.glassfish.deployment.common.ModuleDescriptor;
 import org.glassfish.deployment.common.RootDeploymentDescriptor;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
 
 /**
  *Implements several stateless utility methods.
@@ -73,6 +86,14 @@ public class Util {
 
     /** size of buffer used to load resources */
     private static final int BUFFER_SIZE = 1024;
+
+    private static final Function<Path, URL> TO_URL = p -> {
+        try {
+            return p.toUri().toURL();
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Could not convert path to url: " + p, e);
+        }
+    };
 
     /** Creates a new instance of Util */
     public Util() {
@@ -296,5 +317,65 @@ public class Util {
             result = classPathElement.getProtocol() + ":" + classPathElement.toURI().getPath();
         }
         return result;
+    }
+
+    public static String getMainClass(File clientJarFile) {
+        try (JarFile jarFile = new JarFile(clientJarFile)) {
+            Manifest manifest = jarFile.getManifest();
+            if (manifest == null) {
+                return null;
+            }
+            Attributes mainAttributes = manifest.getMainAttributes();
+            return mainAttributes.getValue("Main-Class");
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not detect the main class from the manifest of " + clientJarFile, e);
+        }
+    }
+
+    public static String getClassPathForGfClient(String clientJarPath) {
+        URL[] classpath = getJavaClassPathForAppClient();
+        if (classpath.length == 0) {
+            return clientJarPath;
+        }
+        return clientJarPath + File.pathSeparator + Stream.of(classpath).map(Util::convertToString)
+                .distinct().collect(Collectors.joining(File.pathSeparator));
+    }
+
+    private static URL[] getJavaClassPathForAppClient() {
+        final List<Path> paths = convertClassPathToPaths(System.getProperty("java.class.path"));
+        final List<URL> result = new ArrayList<>();
+        for (Path path : paths) {
+            result.add(TO_URL.apply(path));
+        }
+        result.addAll(convertClassPathToURLs(System.getenv("APPCPATH")));
+        return result.toArray(new URL[result.size()]);
+    }
+
+    private static List<URL> convertClassPathToURLs(final String classPath) {
+        return convertClassPathToPaths(classPath).stream().map(TO_URL).collect(Collectors.toList());
+    }
+
+    private static List<Path> convertClassPathToPaths(final String classPath) {
+        if (classPath == null || classPath.isEmpty()) {
+            return emptyList();
+        }
+        try {
+            String[] paths = classPath.split(File.pathSeparator);
+            final List<Path> result = new ArrayList<>(paths.length);
+            for (String classPathElement : paths) {
+                result.add(new File(classPathElement.trim()).toPath().normalize());
+            }
+            return result;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Could not parse the classpath: " + classPath, e);
+        }
+    }
+
+    private static String convertToString(URL url) {
+        try {
+            return new File(url.toURI()).toPath().toAbsolutePath().normalize().toFile().getAbsolutePath();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Cannot convert to URI string: " + url, e);
+        }
     }
 }
