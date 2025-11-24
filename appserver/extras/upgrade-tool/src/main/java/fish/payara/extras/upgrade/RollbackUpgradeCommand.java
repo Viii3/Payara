@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2020-2023 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020-2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -128,6 +128,18 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
                         continue;
                     }
 
+                    if (nsfe.getMessage().contains("glassfish/legal")) {
+                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/legal directory under the " +
+                                "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
+                        continue;
+                    }
+
+                    if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
+                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt file under the " +
+                                "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
+                        continue;
+                    }
+
                     throw nsfe;
                 }
             }
@@ -177,6 +189,12 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
                     if (nsfe.getMessage().contains("glassfish/h2db")) {
                         logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/h2db directory under the " +
                                 "assumption this is a distribution without the duplicate directory. Continuing to move files...");
+                        continue;
+                    }
+
+                    if (nsfe.getMessage().contains("legal")) {
+                        logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under the " +
+                                "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
                         continue;
                     }
 

@@ -2,7 +2,7 @@
 REM
 REM  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 REM
-REM  Copyright (c) 2021-2023 Payara Foundation and/or its affiliates. All rights reserved.
+REM  Copyright (c) 2021-2025 Payara Foundation and/or its affiliates. All rights reserved.
 REM
 REM  The contents of this file are subject to the terms of either the GNU
 REM  General Public License Version 2 only ("GPL") or the Common Development
@@ -83,37 +83,13 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
     echo Moving %%a to new
     move %~dp0..\%%a %~dp0..\%%a.new
     if ERRORLEVEL 1 (
-        if %%a=="mq" (
-            echo Ignoring error moving MQ directory to staged location, assuming you're rolling back a payara-web distribution
-        ) else (
-            if %%a=="..\mq" (
-                echo Ignoring error moving MQ directory to staged location, assuming you're rolling back a payara-web distribution
-            ) else (
-                if %%a=="h2db" (
-                    echo Ignoring error moving glassfish\h2db directory to staged location, assuming you're rolling back a distribution without the duplicate directory
-                ) else (
-                    set WARN=true
-                )
-            )
-        )
+        call :check_move_error "%%a" "Ignoring error moving %%a to staged location"
     )
 
     echo Moving old %%a to expected location
     move %~dp0..\%%a.old %~dp0..\%%a
     if ERRORLEVEL 1 (
-        if %%a=="mq" (
-            echo Ignoring error moving old MQ directory to expected location, assuming you're rolling back to a payara-web distribution
-        ) else (
-            if %%a=="..\mq" (
-                echo Ignoring error moving old MQ directory to expected location, assuming you're rolling back to a payara-web distribution
-            ) else (
-                if %%a=="h2db" (
-                    echo Ignoring error moving old glassfish\h2db directory to expected location, assuming you're rolling back to a distribution without the duplicate directory
-                ) else (
-                    set WARN=true
-                )
-            )
-        )
+        call :check_move_error "%%a" "Ignoring error moving old %%a to expected location"
     )
 )
 
@@ -134,4 +110,24 @@ if "%WARN%"=="true" (
     echo Please use the restore-domain ASadmin command to restore your desired domains.
 )
 
+goto :eof
+
+:check_move_error
+setlocal EnableDelayedExpansion
+
+set "target_path=%~1"
+set "message=%~2"
+set "ignored_patterns=mq ..\mq h2db legal ..\legal ..\LICENSE.txt"
+
+for %%P in (%ignored_patterns%) do (
+    echo !target_path! | findstr /I /C:"%%P" >nul
+    if !errorlevel! EQU 0 (
+        echo %message%
+        endlocal
+        goto :eof
+    )
+)
+
+endlocal & set "WARN=true"
+goto :eof
 
