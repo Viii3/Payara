@@ -39,10 +39,12 @@
  */
 package fish.payara.samples;
 
+
+import org.eclipse.microprofile.auth.LoginConfig;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import org.eclipse.microprofile.auth.LoginConfig;
 
 @ApplicationScoped
 @ApplicationPath("/")
