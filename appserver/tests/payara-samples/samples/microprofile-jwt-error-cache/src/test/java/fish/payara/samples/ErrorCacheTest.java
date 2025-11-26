@@ -93,8 +93,9 @@ public class ErrorCacheTest {
 
     @Test
     @RunAsClient
-    public void testAuthentication(){
-        try(Client client = ClientBuilder.newClient()) {
+    public void testAuthentication() {
+        try {
+            Client client = ClientBuilder.newClient();
             Assert.assertEquals("This is a public resource", client.target(uri + "resource/public").request().get(String.class));
             Assert.assertEquals(401, client.target(uri + "resource/protected").request().get().getStatus());
             Assert.assertEquals(200, client.target(uri + "resource/protected").request().header("Authorization", BEARER_TOKEN).get().getStatus());

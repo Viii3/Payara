@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) [2017-2021] Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017-2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -275,9 +275,9 @@ public class JwtTokenParser {
      * @return if the JWT has expired
      */
     private boolean checkNotExpired(Map<String, JsonValue> presentedClaims) {
-        final int currentTime = (int) (System.currentTimeMillis() / 1000);
-        final int expiredTime = ((JsonNumber) presentedClaims.get(exp.name())).intValue();
-        final int issueTime = ((JsonNumber) presentedClaims.get(iat.name())).intValue();
+        final long currentTime = System.currentTimeMillis() / 1000;
+        final long expiredTime = ((JsonNumber) presentedClaims.get(exp.name())).longValue();
+        final long issueTime = ((JsonNumber) presentedClaims.get(iat.name())).longValue();
 
         return currentTime < expiredTime && issueTime < expiredTime;
     }
