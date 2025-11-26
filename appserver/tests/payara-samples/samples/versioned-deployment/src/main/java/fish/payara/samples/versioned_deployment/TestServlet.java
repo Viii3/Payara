@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2019 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -13,7 +13,7 @@
  * language governing permissions and limitations under the License.
  *
  * When distributing the software, include this License Header Notice in each
- * file and include the License file at glassfish/legal/LICENSE.txt.
+ * file and include the License file at legal/OPEN-SOURCE-LICENSE.txt.
  *
  * GPL Classpath Exception:
  * The Payara Foundation designates this particular file as subject to the "Classpath"
@@ -37,29 +37,23 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package fish.payara.samples.asadmin;
+package fish.payara.samples.versioned_deployment;
 
-import org.glassfish.embeddable.CommandResult;
-import org.junit.Test;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Verifies the correctness of the {@code ListHealthCheckServices} command.
- */
-public class ListHealthCheckServicesTest extends AsadminTest {
+import java.io.IOException;
 
-    @Test
-    public void listHealthCheckServices() {
-        CommandResult result = asadmin("list-healthcheck-services");
-        assertSuccess(result);
-        String description = result.getOutput();
-        assertContains("Available Health Check Services:", description);
-        assertContains("healthcheck-mp", description);
-        assertContains("healthcheck-cpu", description);
-        assertContains("healthcheck-gc", description);
-        assertContains("healthcheck-heap", description);
-        assertContains("healthcheck-threads", description);
-        assertContains("healthcheck-machinemem", description);
-        assertContains("healthcheck-cpool", description);
-        assertContains("healthcheck-stuck", description);
+@WebServlet("")
+public class TestServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        resp.setContentType("text/plain");
+        resp.getWriter().println("Hello from version 1.0.0");
     }
+
 }

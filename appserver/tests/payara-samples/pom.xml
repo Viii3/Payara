@@ -14,7 +14,7 @@
  *    language governing permissions and limitations under the License.
  *
  *    When distributing the software, include this License Header Notice in each
- *    file and include the License file at glassfish/legal/LICENSE.txt.
+ *    file and include the License file at legal/OPEN-SOURCE-LICENSE.txt.
  *
  *    GPL Classpath Exception:
  *    The Payara Foundation designates this particular file as subject to the "Classpath"
@@ -46,7 +46,7 @@
     <parent>
         <groupId>fish.payara.server.internal.tests</groupId>
         <artifactId>payara-tests</artifactId>
-        <version>6.31.0-SNAPSHOT</version>
+        <version>6.33.0-SNAPSHOT</version>
     </parent>
 
     <groupId>fish.payara.samples</groupId>
@@ -83,7 +83,6 @@
         can only be serially executed - they change configuration
         that other modules depend on
         -->
-        <module>asadmin</module>
         <module>ejb-invoker-secure-endpoint</module>
         <!-- Can be executed in parallel -->
         <module>samples</module>
@@ -368,18 +367,6 @@
             </dependency>
 
             <dependency>
-                <groupId>fish.payara.server.internal.extras</groupId>
-                <artifactId>payara-micro-boot</artifactId>
-                <version>${payara.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>fish.payara.server.internal.payara-modules</groupId>
-                <artifactId>notification-core</artifactId>
-                <version>${payara.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>net.sourceforge.htmlunit</groupId>
                 <artifactId>htmlunit</artifactId>
                 <version>2.35.0</version>
@@ -388,7 +375,7 @@
             <dependency>
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
-                <version>3.27.4</version>
+                <version>3.27.6</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -494,7 +481,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
