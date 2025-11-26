@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2024] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.server.logging;
 
@@ -71,6 +71,9 @@ import java.util.logging.StreamHandler;
 import java.util.zip.GZIPOutputStream;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.api.logging.Task;
 import org.glassfish.config.support.TranslatedConfigView;
 import org.glassfish.hk2.api.PostConstruct;
@@ -96,7 +99,7 @@ import org.glassfish.internal.api.Globals;
         LogEventBroadcaster.class, LoggingRuntime.class}
 )
 public class GFFileHandler extends StreamHandler implements
-    PostConstruct, PreDestroy, LogEventBroadcaster, LoggingRuntime {
+    PostConstruct, PreDestroy, LogEventBroadcaster, LoggingRuntime, Resource {
 
     private static final int DEFAULT_ROTATION_LIMIT_BYTES = 2000000;
     public static final int DISABLE_LOG_FILE_ROTATION_VALUE = 0;
@@ -179,6 +182,8 @@ public class GFFileHandler extends StreamHandler implements
     private final String className = getClass().getName();
     private static final String GF_FILE_HANDLER = GFFileHandler.class.getCanonicalName() ;
     private LogRecord logRecord = new LogRecord(Level.INFO, LogFacade.GF_VERSION_INFO);
+
+    private File lastLogFile;
 
     @Override
     public void postConstruct() {
@@ -325,6 +330,7 @@ public class GFFileHandler extends StreamHandler implements
         multiLineMode = Boolean.parseBoolean(manager.getProperty(LogManagerService.MULTI_LINE_MODE_PROPERTY));
         configureLogFormatter(formatterName, excludeFields, multiLineMode);
 
+        Core.getGlobalContext().register(this);
     }
 
     private void configureLogFormatter(String formatterName, String excludeFields, boolean multiLineMode) {
@@ -780,6 +786,7 @@ public class GFFileHandler extends StreamHandler implements
         BufferedOutputStream bout = new BufferedOutputStream(fout);
         meter = new MeteredStream(bout, file.length());
         setOutputStream(meter);
+        lastLogFile = file;
     }
 
     /**
@@ -1155,6 +1162,20 @@ public class GFFileHandler extends StreamHandler implements
         } else {
             System.setOut(oStdOutBackup);
             System.setErr(oStdErrBackup);
+        }
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        if (meter != null) {
+            meter.close();
+        }
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        if (lastLogFile != null) {
+            openFile(lastLogFile);
         }
     }
 }

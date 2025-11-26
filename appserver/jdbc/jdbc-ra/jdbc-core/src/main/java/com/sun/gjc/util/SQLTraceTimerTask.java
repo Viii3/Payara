@@ -37,10 +37,16 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2025 Payara Foundation and/or its affiliates
 
 package com.sun.gjc.util;
 
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
+
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Sql Tracing Timer task used to preform a purgeEntries of the cache of objects
@@ -48,12 +54,14 @@ import java.util.TimerTask;
  *
  * @author Shalini M
  */
-public class SQLTraceTimerTask extends TimerTask {
+public class SQLTraceTimerTask extends TimerTask implements Resource {
 
     private SQLTraceCache cache;
+    private final AtomicBoolean checkpointing = new AtomicBoolean(false);
 
     SQLTraceTimerTask(SQLTraceCache cache) {
         this.cache = cache;
+        Core.getGlobalContext().register(this);
     }
 
     /**
@@ -62,7 +70,18 @@ public class SQLTraceTimerTask extends TimerTask {
     @Override
     public void run() {
         //Redirecting the purge operation of the cache to the cache factory
-        cache.purgeEntries();
+        if (!checkpointing.get()) {
+            cache.purgeEntries();
+        }
     }
 
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        checkpointing.set(true);
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        checkpointing.set(false);
+    }
 }

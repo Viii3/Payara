@@ -86,6 +86,7 @@ import com.sun.enterprise.glassfish.bootstrap.Constants;
 import com.sun.enterprise.glassfish.bootstrap.GlassFishImpl;
 import com.sun.enterprise.server.logging.ODLLogFormatter;
 
+import fish.payara.crac.CracUtil;
 import fish.payara.deployment.util.JavaArchiveUtils;
 import fish.payara.deployment.util.URIUtils;
 import org.crac.Context;
@@ -1111,7 +1112,9 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
                 LOGGER.log(Level.SEVERE, "Unable to load command file", ex);
             }
             postDeployCommands.executeCommands(gf.getCommandRunner());
-            
+            if (Boolean.parseBoolean(System.getProperty(CracUtil.CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
+                CracUtil.checkpointRestore(warmup);
+            }
             timer.stopTimer();
             dumpFinalStatus(timer.getDurationMillis());
             return runtime;

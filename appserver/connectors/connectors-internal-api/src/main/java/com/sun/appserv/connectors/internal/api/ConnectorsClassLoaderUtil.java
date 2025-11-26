@@ -270,7 +270,7 @@ public class ConnectorsClassLoaderUtil implements Resource {
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) {
         checkpointing.set(true);
-        _logger.info("[CRaC] beforeCheckpoint: closing ConnectorClassFinders");
+        _logger.info("[CRaC] beforeCheckpoint: closing JAR file handles");
 
         try {
             DelegatingClassLoader delegatingClassLoader = clh.getConnectorClassLoader(null);
@@ -279,10 +279,13 @@ public class ConnectorsClassLoaderUtil implements Resource {
                 for (DelegatingClassLoader.ClassFinder cf : delegates) {
                     if (cf instanceof ConnectorClassFinder) {
                         try {
-                            ((ConnectorClassFinder) cf).done();// closes JarFile/FDs
-                            delegatingClassLoader.removeDelegate(cf);
+                            ConnectorClassFinder ccf = (ConnectorClassFinder) cf;
+                            _logger.fine("[CRaC] Closing JAR handles for: " + ccf.getResourceAdapterName());
+
+                            ccf.closeJarHandles();
+
                         } catch (Throwable t) {
-                            _logger.log(Level.WARNING, "[CRaC] Error closing ConnectorClassFinder", t);
+                            _logger.log(Level.WARNING, "[CRaC] Error closing JAR handles", t);
                         }
                     }
                 }
@@ -299,10 +302,25 @@ public class ConnectorsClassLoaderUtil implements Resource {
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
-        _logger.info("[CRaC] afterRestore: rebuilding RAR classloaders");
+        _logger.info("[CRaC] afterRestore: reopening JAR file handles");
         try {
             checkpointing.set(false);
-            getSystemRARClassLoaders();
+
+            DelegatingClassLoader delegatingClassLoader = clh.getConnectorClassLoader(null);
+            if (delegatingClassLoader != null) {
+                List<DelegatingClassLoader.ClassFinder> delegates = new ArrayList<>(delegatingClassLoader.getDelegates());
+                for (DelegatingClassLoader.ClassFinder cf : delegates) {
+                    if (cf instanceof ConnectorClassFinder) {
+                        try {
+                            ConnectorClassFinder ccf = (ConnectorClassFinder) cf;
+                            _logger.fine("[CRaC] Reopening JAR handles for: " + ccf.getResourceAdapterName());
+                            ccf.reopenJarHandles();
+                        } catch (Throwable t) {
+                            _logger.log(Level.WARNING, "[CRaC] Error reopening JAR handles", t);
+                        }
+                    }
+                }
+            }
         } catch (Throwable t) {
             _logger.log(Level.SEVERE, "[CRaC] Failure during afterRestore", t);
             throw t;
