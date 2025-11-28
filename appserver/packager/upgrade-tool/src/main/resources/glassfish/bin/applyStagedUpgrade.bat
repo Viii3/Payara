@@ -2,7 +2,7 @@
 REM
 REM  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 REM
-REM  Copyright (c) 2021-2023 Payara Foundation and/or its affiliates. All rights reserved.
+REM  Copyright (c) 2021-2025 Payara Foundation and/or its affiliates. All rights reserved.
 REM
 REM  The contents of this file are subject to the terms of either the GNU
 REM  General Public License Version 2 only ("GPL") or the Common Development
@@ -83,37 +83,13 @@ for %%a in ("%PAYARA_UPGRADE_DIRS:,=" "%") do (
     echo Moving %%a to old
     move %~dp0..\%%a %~dp0..\%%a.old
     if ERRORLEVEL 1 (
-        if %%a=="mq" (
-            echo Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution
-        ) else (
-            if %%a=="..\mq" (
-                echo Ignoring error moving missing MQ directory to old, assuming you're upgrading a payara-web distribution
-            ) else (
-                if %%a=="h2db" (
-                    echo Ignoring error moving missing glassfish\h2db directory to old, assuming you're upgrading a distribution without the duplicate directory
-                ) else (
-                    set WARN=true
-                )
-            )
-        )
+        call :check_move_error "%%a" "Ignoring error moving %%a to old"
     )
 
     echo Moving staged %%a to expected location
     move %~dp0..\%%a.new %~dp0..\%%a
     if ERRORLEVEL 1 (
-        if %%a=="mq" (
-            echo Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution
-        ) else (
-            if %%a=="..\mq" (
-                echo Ignoring error moving missing staged MQ directory to expected location, assuming you're upgrading to a payara-web distribution
-            ) else (
-                if %%a=="h2db" (
-                    echo Ignoring error moving missing staged glassfish\h2db directory to expected location, assuming you're upgrading to a distribution without the duplicate directory
-                ) else (
-                    set WARN=true
-                )
-            )
-        )
+        call :check_move_error "%%a" "Ignoring error moving staged %%a to expected location"
     )
 )
 
@@ -131,3 +107,24 @@ if "%WARN%"=="true" (
     echo A command didn't complete successfully! Check the logs and run the rollbackUpgrade script if desired.
     exit /B 1
 )
+
+goto :eof
+
+:check_move_error
+setlocal EnableDelayedExpansion
+
+set "target_path=%~1"
+set "message=%~2"
+set "ignored_patterns=mq ..\mq h2db legal ..\legal ..\LICENSE.txt"
+
+for %%P in (%ignored_patterns%) do (
+    echo !target_path! | findstr /I /C:"%%P" >nul
+    if !errorlevel! EQU 0 (
+        echo %message%
+        endlocal
+        goto :eof
+    )
+)
+
+endlocal & set "WARN=true"
+goto :eof
