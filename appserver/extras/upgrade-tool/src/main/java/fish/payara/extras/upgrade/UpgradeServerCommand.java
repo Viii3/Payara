@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2020-2023 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020-2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -719,9 +719,16 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
         }
 
         if (stage) {
-            logger.log(Level.INFO,
-                    "Upgrade successfully staged, please run the applyStagedUpgrade script to apply the upgrade. " +
-                            "It can be found under payara" + getCurrentMajorVersion() + "/glassfish/bin.");
+            if (OS.isWindows()) {
+                logger.log(Level.INFO,
+                        "Upgrade successfully staged, please run applyStagedUpgrade.bat to apply the upgrade. " +
+                                "It can be found under payara" + getCurrentMajorVersion() + "\\glassfish\\bin.new " +
+                                "Please copy it to payara" + getCurrentMajorVersion() + "\\glassfish\\bin before running it");
+            } else {
+                logger.log(Level.INFO,
+                        "Upgrade successfully staged, please run the applyStagedUpgrade script to apply the upgrade. " +
+                                "It can be found under payara" + getCurrentMajorVersion() + "/glassfish/bin.new");
+            }
         }
 
         return SUCCESS;
@@ -821,6 +828,11 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                     } else if (nsfe.getMessage().contains("glassfish" + File.separator + "h2db")) {
                         logger.log(Level.FINE, "Ignoring NoSuchFileException for h2db directory under assumption " +
                                 "this is a distribution without the duplicate directory...");
+                    } else if (nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "legal")
+                            || nsfe.getMessage().contains("glassfish" + File.separator + "legal")
+                            || nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "LICENSE.txt")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under assumption " +
+                                    "this is a new payara version. Continuing to move files...");
                     } else {
                         throw nsfe;
                     }
@@ -857,6 +869,13 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                             sourcePath.toString());
                     continue;
                 }
+
+                if (sourcePath.endsWith("glassfish" + File.separator + "legal") || sourcePath.endsWith("glassfish" + File.separator + ".." + File.separator + "LICENSE.txt")) {
+                    logger.log(Level.FINER,
+                            "Source path {0} doesn't exist, skipping under assumption this is a version from 6.32.0 / 5.82.0",
+                            sourcePath.toString());
+                    continue;
+                }
             }
 
             Path targetPath = Paths.get(glassfishDir, folder);
@@ -875,7 +894,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
             }
 
             // osgi-cache directory doesn't exist in a new Payara install so can't be copied and should be ignored.
-            if (!folder.contains("osgi-cache")) {
+            if (!folder.contains("osgi-cache") && !folder.equals("../LICENSE.txt")) {
                 CopyFileVisitor visitor = new CopyFileVisitor(sourcePath, targetPath);
                 Files.walkFileTree(sourcePath, visitor);
             }
@@ -1032,6 +1051,20 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                 logger.log(Level.FINE,
                         "Ignoring NoSuchFileException for glassfish/h2db directory under assumption this is a " +
                                 "distribution without this duplicate directory. Continuing fixing of permissions...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            // glassfish/legal directory doesn't exist from 6.32.0 / 5.82.0 ref FISH-12137
+            if (exc instanceof NoSuchFileException && exc.getMessage().contains("glassfish/legal")) {
+                logger.log(Level.FINE,
+                        "Ignoring NoSuchFileException for glassfish/legal directory under assumption this is a " +
+                                "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            // ../LICENSE.txt doesn't exist from 6.32.0 / 5.82.0 ref FISH-12137
+            if (exc instanceof NoSuchFileException && exc.getMessage().contains("../LICENSE.txt")) {
+                logger.log(Level.FINE,
+                        "Ignoring NoSuchFileException for ../LICENSE.txt directory under assumption this is a " +
+                                "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
 
