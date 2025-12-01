@@ -500,6 +500,12 @@ public abstract class BaseUpgradeCommand extends LocalDomainCommand {
                         "this is a payara-web distribution. Continuing copy...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
+            // likewise for new legal directory if they are upgrading older distributions....
+            if (arg1 instanceof NoSuchFileException && arg1.getMessage().contains(".." + File.separator + "legal")) {
+                logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under assumption " +
+                        "this is a version before 6.33.0 / 5.83.0. Continuing copy...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
 
             logger.log(Level.SEVERE, "File could not visited: {0}", arg0.toString());
             throw arg1;

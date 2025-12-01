@@ -894,7 +894,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
             }
 
             // osgi-cache directory doesn't exist in a new Payara install so can't be copied and should be ignored.
-            if (!folder.contains("osgi-cache") && !folder.equals("../LICENSE.txt")) {
+            if (!folder.contains("osgi-cache")) {
                 CopyFileVisitor visitor = new CopyFileVisitor(sourcePath, targetPath);
                 Files.walkFileTree(sourcePath, visitor);
             }
@@ -1065,6 +1065,13 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                 logger.log(Level.FINE,
                         "Ignoring NoSuchFileException for ../LICENSE.txt directory under assumption this is a " +
                                 "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            // ../legal
+            if (exc instanceof NoSuchFileException && exc.getMessage().contains("../legal")) {
+                logger.log(Level.FINE,
+                        "Ignoring NoSuchFileException for ../legal directory under assumption this is a " +
+                                "version before 6.33.0 / 5.83.0. Continuing fixing of permissions...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
 
