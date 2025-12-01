@@ -278,6 +278,9 @@
                 <!-- Hotswap Agent -->
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-XX:HotswapAgent=core</jvm-options>
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-Xlog:redefine+class*=info</jvm-options>
+                <!-- CRaC options -->
+                <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+                <jvm-options>-XX:CRaCEngine=warp</jvm-options>
             </java-config>
             <availability-service>
                 <web-container-availability />
@@ -514,6 +517,9 @@
                 <!-- Hotswap Agent -->
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-XX:HotswapAgent=core</jvm-options>
                 <jvm-options>[Dynamic Code Evolution-11.0.10|]-Xlog:redefine+class*=info</jvm-options>
+                <!-- CRaC options -->
+                <jvm-options>-XX:CRaCCheckpointTo=${com.sun.aas.instanceRoot}/checkpoints</jvm-options>
+                <jvm-options>-XX:CRaCEngine=warp</jvm-options>
             </java-config>
             <availability-service>
                 <web-container-availability />

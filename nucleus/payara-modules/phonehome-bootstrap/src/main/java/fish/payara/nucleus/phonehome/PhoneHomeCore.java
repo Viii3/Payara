@@ -40,6 +40,7 @@
 package fish.payara.nucleus.phonehome;
 
 import com.sun.enterprise.config.serverbeans.Domain;
+import com.sun.enterprise.util.JDK;
 import fish.payara.nucleus.executorservice.PayaraExecutorService;
 import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
@@ -55,6 +56,7 @@ import org.jvnet.hk2.config.ConfigSupport;
 import org.jvnet.hk2.config.SingleConfigCode;
 import org.jvnet.hk2.config.TransactionFailure;
 
+import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -94,33 +96,43 @@ public class PhoneHomeCore implements EventListener {
         events.register(this);
 
         if (env.isDas()) {
-
             if (configuration == null) {
                 enabled = true;
                 phoneHomeId = UUID.randomUUID();
             } else {
                 enabled = Boolean.valueOf(configuration.getEnabled());
-
-                // Get the UUID from the config if one is present, otherwise use a randomly generated one
-                try {
-                    phoneHomeId = UUID.fromString(configuration.getPhoneHomeId());
-                } catch (NullPointerException ex) {
-                    phoneHomeId = UUID.randomUUID();
-                    //PAYARA-2249 don't bother updating domain.xml in micro as likely a waste of time
-                    if (!env.isMicro()) {
-                        try {
-                            ConfigSupport.apply((SingleConfigCode<PhoneHomeRuntimeConfiguration>) configurationProxy -> {
-                                configurationProxy.setPhoneHomeId(phoneHomeId.toString());
-                                return configurationProxy;
-                            }, configuration);
-                        } catch (TransactionFailure e) {
-                            // Ignore and just don't write the ID to the config file
-                        }
-                    }
-                }
+                configurePhoneHomeId();
             }
         } else {
             enabled = false;
+        }
+    }
+
+    private void configurePhoneHomeId() {
+        if (configuration.getPhoneHomeId() != null) {
+            phoneHomeId = UUID.fromString(configuration.getPhoneHomeId());
+        } else {
+            phoneHomeId = UUID.randomUUID();
+            // PAYARA-2249 don't bother updating domain.xml in micro as likely a waste of time
+            // Also don't bother if using CRaC and warming up since we will need to regenerate the ID on restore anyway
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            if (!env.isMicro()) {
+                if (startUpArguments == null
+                        || !(startUpArguments.getProperty("-warmup", "false").equals("true") && JDK.isCRaCJDK())) {
+                    writePhoneHomeUuid();
+                }
+            }
+        }
+    }
+
+    private void writePhoneHomeUuid() {
+        try {
+            ConfigSupport.apply((SingleConfigCode<PhoneHomeRuntimeConfiguration>) configurationProxy -> {
+                configurationProxy.setPhoneHomeId(phoneHomeId.toString());
+                return configurationProxy;
+            }, configuration);
+        } catch (TransactionFailure e) {
+            // Ignore and just don't write the ID to the config file
         }
     }
 
@@ -129,8 +141,22 @@ public class PhoneHomeCore implements EventListener {
      * @param event
      */
     @Override
-    public void event(Event event) {
+    public void event(Event<?> event) {
         if (event.is(EventTypes.SERVER_READY)) {
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            if (startUpArguments != null && startUpArguments.containsKey("-warmup")) {
+                if (Boolean.parseBoolean(startUpArguments.getProperty("-warmup", "false"))){
+                    return;
+                }
+            }
+            bootstrapPhoneHome();
+        } else if (event.is(EventTypes.AFTER_RESTORE)) {
+            // Regenerate ID to help prevent duplicates if the same checkpoint is used more than once e.g. Docker
+            phoneHomeId = UUID.randomUUID();
+            if (!env.isMicro()) {
+                writePhoneHomeUuid();
+            }
+
             bootstrapPhoneHome();
         }
     }

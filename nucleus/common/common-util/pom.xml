@@ -134,5 +134,10 @@
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.crac</groupId>
+            <artifactId>crac</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

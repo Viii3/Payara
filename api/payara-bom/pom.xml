@@ -975,6 +975,12 @@
                 <artifactId>fish.payara.transformer.payara</artifactId>
                 <version>${payara.transformer.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.crac</groupId>
+                <artifactId>crac</artifactId>
+                <version>${crac.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

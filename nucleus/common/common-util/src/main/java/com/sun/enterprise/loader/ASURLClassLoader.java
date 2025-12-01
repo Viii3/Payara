@@ -881,6 +881,55 @@ public class ASURLClassLoader extends CurrentBeforeParentClassLoader
         return stream;
     }
 
+    public synchronized void closeJarHandles() {
+        if (doneCalled) {
+            _logger.log(Level.FINE, "Classloader already done, skipping closeJarHandles");
+            return;
+        }
+
+        _logger.log(Level.FINE, "Closing JAR handles for classloader: {0}", this);
+
+        for (URLEntry entry : this.urlSet) {
+            if (entry.zip != null) {
+                try {
+                    entry.zip.reallyClose();
+                    _logger.log(Level.FINE, "Closed JAR file: {0}", entry.source);
+                } catch (IOException ioe) {
+                    _logger.log(Level.WARNING,
+                            CULoggerInfo.getString(CULoggerInfo.exceptionClosingURLEntry, entry.source),
+                            ioe);
+                }
+            }
+        }
+
+        // Also close any open streams
+        closeOpenStreams();
+    }
+    
+    public synchronized void reopenJarHandles() throws IOException {
+        if (doneCalled) {
+            _logger.log(Level.WARNING, "Cannot reopen JAR handles - classloader is done");
+            return;
+        }
+
+        _logger.log(Level.FINE, "Reopening JAR handles for classloader: {0}", this);
+
+        for (URLEntry entry : this.urlSet) {
+            if (entry.isJar && entry.file != null && entry.file.exists()) {
+                try {
+                    // Reopen the JAR file
+                    entry.zip = new ProtectedJarFile(entry.file);
+                    _logger.log(Level.FINE, "Reopened JAR file: {0}", entry.source);
+                } catch (IOException ioe) {
+                    _logger.log(Level.SEVERE,
+                            "Failed to reopen JAR file: " + entry.source,
+                            ioe);
+                    throw ioe;
+                }
+            }
+        }
+    }
+
     /**
      * The JarFile objects loaded in the classloader may get exposed to the
      * application code (e.g. EJBs) through calls of

@@ -127,6 +127,11 @@
             <optional>true</optional>
         </dependency>
 
+        <dependency>
+            <groupId>org.crac</groupId>
+            <artifactId>crac</artifactId>
+        </dependency>
+
         <!-- test deps -->
         <dependency>
             <groupId>jakarta.servlet</groupId>

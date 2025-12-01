@@ -37,6 +37,7 @@
 # only if the new code is made subject to such option by the copyright
 # holder.
 #
+# Portions Copyright 2025 Payara Foundation and/or its affiliates
 
 Bundle-Activator: org.glassfish.common.util.CommonUtilsActivator
 -exportcontents: \
@@ -76,5 +77,6 @@ Bundle-Activator: org.glassfish.common.util.CommonUtilsActivator
                         org.glassfish.common.util.timer; \
                         org.glassfish.security.common; \
                         com.sun.logging.enterprise.system.core; \
-                        org.glassfish.server; version=${project.osgi.version}
+                        org.glassfish.server; \
+                        fish.payara.crac; version=${project.osgi.version}
 

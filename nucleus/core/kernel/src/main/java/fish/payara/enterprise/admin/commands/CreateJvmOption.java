@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2024 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024-2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -80,18 +80,19 @@ import java.util.regex.Pattern;
 @UnknownOptionsAreOperands()
 public final class CreateJvmOption implements AdminCommand, AdminCommandSecurity.Preauthorization {
 
-    @Param(name="target", optional=true, defaultValue = SystemPropertyConstants.DEFAULT_SERVER_INSTANCE_NAME)
+    @Param(name = "target", optional=true, defaultValue = SystemPropertyConstants.DEFAULT_SERVER_INSTANCE_NAME)
     String target;
 
-    @Param(name="profiler", optional=true)
-    Boolean addToProfiler=false;
+    @Param(name = "profiler", optional=true)
+    Boolean addToProfiler = false;
 
     @Param(name="assignment", primary=true)
     String jvmAssignment;
 
-    @Param(name="min-jvm", optional = true)
+    @Param(name = "min-jvm", optional = true)
     String minJVM;
-    @Param(name="max-jvm", optional = true)
+
+    @Param(name = "max-jvm", optional = true)
     String maxJVM;
 
     @Inject

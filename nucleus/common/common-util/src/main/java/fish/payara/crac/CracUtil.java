@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -13,11 +13,11 @@
  * language governing permissions and limitations under the License.
  *
  * When distributing the software, include this License Header Notice in each
- * file and include the License file at legal/OPEN-SOURCE-LICENSE.txt.
+ * file and include the License file at glassfish/legal/LICENSE.txt.
  *
  * GPL Classpath Exception:
- * Oracle designates this particular file as subject to the "Classpath"
- * exception as provided by Oracle in the GPL Version 2 section of the License
+ * The Payara Foundation designates this particular file as subject to the "Classpath"
+ * exception as provided by the Payara Foundation in the GPL Version 2 section of the License
  * file that accompanied this code.
  *
  * Modifications:
@@ -37,51 +37,41 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright 2025 Payara Foundation and/or its affiliates
+package fish.payara.crac;
 
-package com.sun.gjc.util;
-
-import org.crac.Context;
+import com.sun.enterprise.util.JDK;
+import org.crac.CheckpointException;
 import org.crac.Core;
-import org.crac.Resource;
+import org.crac.RestoreException;
 
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- * Sql Tracing Timer task used to preform a purgeEntries of the cache of objects
- * maintained by the sql tracing mechanism.
- *
- * @author Shalini M
- */
-public class SQLTraceTimerTask extends TimerTask implements Resource {
+public class CracUtil {
 
-    private SQLTraceCache cache;
-    private final AtomicBoolean checkpointing = new AtomicBoolean(false);
+    public static final String CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY = "fish.payara.crac.checkpointAfterDeployment";
 
-    SQLTraceTimerTask(SQLTraceCache cache) {
-        this.cache = cache;
-        Core.getGlobalContext().register(this);
-    }
+    private static final Logger logger = Logger.getLogger(CracUtil.class.getName());
 
-    /**
-     * Sql Tracing timer task to clean up the sql trace cache
-     */
-    @Override
-    public void run() {
-        //Redirecting the purge operation of the cache to the cache factory
-        if (!checkpointing.get()) {
-            cache.purgeEntries();
+    public static boolean checkpointRestore(boolean warmup) {
+        if (!warmup) {
+            return true;
         }
-    }
-
-    @Override
-    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
-        checkpointing.set(true);
-    }
-
-    @Override
-    public void afterRestore(Context<? extends Resource> context) throws Exception {
-        checkpointing.set(false);
+        if (JDK.isCRaCJDK()) {
+            try {
+                Core.checkpointRestore();
+            } catch (CheckpointException e) {
+                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            } catch (RestoreException e) {
+                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
+                logger.log(Level.SEVERE, e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2017-2024] Payara Foundation and/or Affiliates
+// Portions Copyright 2017-2025 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.servermgmt.cli;
 
@@ -61,6 +61,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.sun.enterprise.universal.process.ProcessState;
+import com.sun.enterprise.util.JDK;
 import org.glassfish.api.admin.CommandException;
 
 import com.sun.enterprise.admin.cli.CLIConstants;
@@ -279,7 +280,7 @@ public class StartServerHelper {
         if (debugPort >= 0) {
             logger.info(STRINGS.get("ServerStart.DebuggerMessage", "" + debugPort));
         }
-        if (isWarmup) {
+        if (isWarmup && !JDK.isCRaCJDK()) {
             logger.info(STRINGS.get("ServerStart.SuccessWithWarmupEnabled"));
         }
     }

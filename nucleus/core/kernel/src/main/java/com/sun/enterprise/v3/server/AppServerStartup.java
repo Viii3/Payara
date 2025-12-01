@@ -50,22 +50,14 @@ import com.sun.enterprise.module.ModulesRegistry;
 import com.sun.enterprise.module.bootstrap.ModuleStartup;
 import com.sun.enterprise.module.bootstrap.StartupContext;
 import com.sun.enterprise.util.Result;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import fish.payara.crac.CracUtil;
+import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
 import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
-
-import fish.payara.internal.api.DeployPreviousApplicationsRunLevel;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 import org.glassfish.api.FutureProvider;
 import org.glassfish.api.StartupRunLevel;
 import org.glassfish.api.admin.ProcessEnvironment;
@@ -99,6 +91,19 @@ import org.glassfish.kernel.KernelLoggerInfo;
 import org.glassfish.server.ServerEnvironmentImpl;
 import org.jvnet.hk2.annotations.Service;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
  * Main class for Glassfish startup
@@ -110,7 +115,8 @@ import org.jvnet.hk2.annotations.Service;
  */
 @Service
 @Rank(Constants.DEFAULT_IMPLEMENTATION_RANK) // This should be the default impl if no name is specified
-public class AppServerStartup implements PostConstruct, ModuleStartup {
+public class AppServerStartup implements PostConstruct, ModuleStartup, Resource {
+
     enum State {
         INITIAL, STARTING, STARTED, SHUTDOWN_REQUESTED, SHUTTING_DOWN, SHUT_DOWN;
     }
@@ -219,7 +225,8 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
         else {
             logger.fine("Startup controller will use infinite threads");
         }
-        
+
+        Core.getGlobalContext().register(this);
     }
 
     @Override
@@ -388,7 +395,6 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
             }
             events.send(new Event(EventTypes.SERVER_READY), false);
         }
-        
         if (!proceedTo(PostStartupRunLevel.VAL)) {
             appInstanceListener.stopRecordingTimes();
             return false;
@@ -460,7 +466,11 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
             events.send(new Event(EventTypes.SERVER_READY), false);
         }
         pidWriter.writePidFile();
-        
+
+        if (!Boolean.parseBoolean(System.getProperty(CracUtil.CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
+            Properties startUpArguments = env.getStartupContext().getArguments();
+            return CracUtil.checkpointRestore(startUpArguments != null && startUpArguments.getProperty("-warmup", "false").equals("true"));
+        }
         return true;
     }
 
@@ -581,7 +591,18 @@ public class AppServerStartup implements PostConstruct, ModuleStartup {
         
         return !masterListener.isForcedShutdown();
     }
-    
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        logger.log(Level.INFO, "Checkpointing AppServerStartup");
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        logger.log(Level.INFO, "Restoring AppServerStartup");
+        events.send(new Event<>(EventTypes.AFTER_RESTORE), false);
+    }
+
     @Service
     public static class AppInstanceListener implements InstanceLifecycleListener {
         private static final Filter FILTER = new Filter() {

@@ -95,5 +95,9 @@
             <groupId>fish.payara.monitoring-console</groupId>
             <artifactId>monitoring-console-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.crac</groupId>
+            <artifactId>crac</artifactId>
+        </dependency>
     </dependencies>
 </project>

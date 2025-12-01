@@ -37,20 +37,20 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2025 Payara Foundation and/or its affiliates
 package com.sun.enterprise.v3.services.impl;
 
-import java.util.logging.Logger;
+import org.crac.Core;
 import org.glassfish.grizzly.config.dom.NetworkListener;
-
 import org.glassfish.grizzly.config.dom.Protocol;
 import org.glassfish.grizzly.config.dom.ThreadPool;
 import org.glassfish.grizzly.config.dom.Transport;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
-import org.glassfish.grizzly.threadpool.GrizzlyExecutorService;
-import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 import org.glassfish.hk2.api.ServiceLocator;
+
+import java.util.logging.Logger;
 
 /**
  * This class extends Grizzly's GrizzlyServiceListener class to customize it for GlassFish and enable a single listener
@@ -70,6 +70,8 @@ public class ServiceInitializerListener extends org.glassfish.grizzly.config.Gen
         this.grizzlyService = grizzlyService;
         this.networkListener = networkListener;
         this.logger = logger;
+
+        Core.getGlobalContext().register(this);
     }
 
     public NetworkListener getNetworkListener() {
