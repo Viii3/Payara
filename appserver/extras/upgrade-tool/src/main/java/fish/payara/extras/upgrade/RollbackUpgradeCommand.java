@@ -140,6 +140,18 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
                         continue;
                     }
 
+                    if (nsfe.getMessage().contains("glassfish/../legal")) {
+                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../legal directory under the " +
+                                "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
+                        continue;
+                    }
+
+                    if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
+                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt directory under the " +
+                                "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
+                        continue;
+                    }
+
                     throw nsfe;
                 }
             }
