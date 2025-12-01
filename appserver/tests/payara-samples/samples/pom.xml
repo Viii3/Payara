@@ -90,6 +90,7 @@
         <module>reproducers</module>
         <module>use-bundled-jsf-primefaces</module>
         <module>versioned-deployment</module>
+        <module>microprofile-jwt-error-cache</module>
     </modules>
 
     <dependencyManagement>
