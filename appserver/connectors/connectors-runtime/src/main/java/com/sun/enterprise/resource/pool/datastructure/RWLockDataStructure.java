@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2021] Payara Foundation and/or affiliates
+// Portions Copyright 2021-2025 Payara Foundation and/or affiliates
 
 package com.sun.enterprise.resource.pool.datastructure;
 
@@ -46,12 +46,14 @@ import com.sun.enterprise.resource.ResourceHandle;
 import com.sun.enterprise.resource.allocator.ResourceAllocator;
 import com.sun.enterprise.resource.pool.ResourceHandler;
 import com.sun.logging.LogDomains;
+import org.crac.Context;
+import org.crac.Core;
+import org.crac.Resource;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -63,7 +65,7 @@ import java.util.logging.Logger;
  * ReadWriteLock based datastructure for pool
  * @author Jagadish Ramu
  */
-public class RWLockDataStructure implements DataStructure {
+public class RWLockDataStructure implements DataStructure, Resource {
 
     private final ResourceHandler handler;
     private int maxSize;
@@ -88,6 +90,7 @@ public class RWLockDataStructure implements DataStructure {
         if(_logger.isLoggable(Level.FINEST)) {
             _logger.log(Level.FINEST, "pool.datastructure.rwlockds.init");
         }
+        Core.getGlobalContext().register(this);
     }
 
     /**
@@ -229,4 +232,27 @@ public class RWLockDataStructure implements DataStructure {
         }
     }
 
+    private final List<ResourceHandle> removedResources = new ArrayList<>();
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        doLockSecured(() -> {
+            removedResources.addAll(allResources);
+            freeResources.clear();
+            allResources.clear();
+            remainingCapacity.set(maxSize);
+        }, writeLock);
+        for (ResourceHandle resourceHandle : removedResources) {
+            handler.deleteResource(resourceHandle);
+        }
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        for (ResourceHandle resourceHandle : removedResources) {
+            addResource(resourceHandle.getResourceAllocator(), 1);
+        }
+
+        doLockSecured(removedResources::clear, writeLock);
+    }
 }
