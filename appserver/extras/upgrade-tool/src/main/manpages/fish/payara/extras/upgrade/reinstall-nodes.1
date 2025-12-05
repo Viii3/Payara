@@ -6,7 +6,7 @@ NAME
 SYNOPSIS
            reinstall-nodes [--help]
            [--domaindir domain-dir]
-
+           [--nodes nodes]
 
 DESCRIPTION
        The reinstall-nodes subcommand reinstalls the Payara Server SSH
@@ -26,7 +26,11 @@ OPTIONS
 
            The default value is as-install/domains.
 
+       --nodes
+           Specifies the nodes to reinstall if you want to selectively
+           reinstall certain nodes.
 
+           The default value is all nodes in the cluster.
 EXAMPLES
        Example 1, Reinstalling Payara Server Nodes
            In this example, the SSH nodes of all Payara Server domains
