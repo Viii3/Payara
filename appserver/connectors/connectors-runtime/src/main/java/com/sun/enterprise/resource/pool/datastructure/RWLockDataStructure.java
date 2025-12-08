@@ -72,6 +72,7 @@ public class RWLockDataStructure implements DataStructure, Resource {
 
     private final List<ResourceHandle> allResources;
     private final Deque<ResourceHandle> freeResources;
+    private final List<ResourceHandle> cracResources = new ArrayList<>();
 
     private final ReentrantReadWriteLock reentrantLock = new ReentrantReadWriteLock();
     private final ReentrantReadWriteLock.ReadLock readLock = reentrantLock.readLock();
@@ -232,27 +233,25 @@ public class RWLockDataStructure implements DataStructure, Resource {
         }
     }
 
-    private final List<ResourceHandle> removedResources = new ArrayList<>();
-
     @Override
     public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
         doLockSecured(() -> {
-            removedResources.addAll(allResources);
+            cracResources.addAll(allResources);
             freeResources.clear();
             allResources.clear();
             remainingCapacity.set(maxSize);
         }, writeLock);
-        for (ResourceHandle resourceHandle : removedResources) {
+        for (ResourceHandle resourceHandle : cracResources) {
             handler.deleteResource(resourceHandle);
         }
     }
 
     @Override
     public void afterRestore(Context<? extends Resource> context) throws Exception {
-        for (ResourceHandle resourceHandle : removedResources) {
+        for (ResourceHandle resourceHandle : cracResources) {
             addResource(resourceHandle.getResourceAllocator(), 1);
         }
 
-        doLockSecured(removedResources::clear, writeLock);
+        doLockSecured(cracResources::clear, writeLock);
     }
 }
