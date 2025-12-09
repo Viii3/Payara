@@ -61,14 +61,10 @@ public class CracUtil {
             try {
                 Core.checkpointRestore();
             } catch (CheckpointException e) {
-                logger.log(Level.SEVERE, "CHECKPOINT EXCEPTION - PANIC!", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "An error occurred during the checkpointing process", e);
                 return false;
             } catch (RestoreException e) {
-                logger.log(Level.SEVERE, "RESTORE EXCEPTION - PANIC! ", e.getCause());
-                logger.log(Level.SEVERE, e.getMessage());
-                e.printStackTrace();
+                logger.log(Level.SEVERE, "An error occurred during the restoration process", e.getCause());
                 return false;
             }
         }
