@@ -162,14 +162,6 @@ updates:
       - dependency-name: "fish.payara"
         versions:
           - "5.2020.*"  # This ignores any upgrades to Payara Community versions (5.2020.x)
-      
-  - package-ecosystem: "gitsubmodule"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    ignore:
-    - dependency-name: "*"
-    target-branch: "main"
 
   - package-ecosystem: "maven"
     directory: "/" # Location of package manifests
