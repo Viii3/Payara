@@ -306,6 +306,18 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
             if (myCurrentID == null) {
                 // Hazelcast has been shutdown / never started before.
                 descriptor = lazyHolder(this::initialiseInstanceDescriptor);
+
+                for (String appName : appRegistry.getAllApplicationNames()) {
+                    descriptor.get().addApplication(new ApplicationDescriptorImpl(appRegistry.get(appName)));
+                }
+
+                executor.scheduleAtFixedRate(() -> {
+                    descriptor.get().setLastHeartBeat(System.currentTimeMillis());
+                    if (myCurrentID != null) {
+                        cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
+                    }
+                }, 0, 5, TimeUnit.SECONDS);
+
             }
             descriptor.get();
             logger.log(Level.FINE, "Hz Bootstrap Complete, Enabled: {0}, my ID: {1}", new Object[] { hazelcast.isEnabled(), myCurrentID });
