@@ -107,21 +107,9 @@
         </sun:tableColumn>
         <sun:tableColumn headerText="$resource{i18ncm.certificateManagement.usedBy}"
                          rowHeader="$boolean{true}" id="col3">
-            <event>
-                <!beforeEncode
-                    py.convertUsedByCsvToList(usedByString="#{td.value.usedBy}" result="#{usedByList}");
-                />
-            </event>
             "<table border="1">
-                <foreach key="usedBy" list="#{requestScope.usedByList}">
-                    <event>
-                        <!beforeEncode
-                            py.getUsedByLink(usedBy="#{usedBy}"
-                                    usedByLinks="#{requestScope.trustEntriesUsedByLinks}"
-                                    usedByLink="#{usedByLink}");
-                        />
-                    </event>
-                    <sun:hyperlink id="usedByLinkId" url="#{usedByLink}" text="#{usedBy}" />
+                <foreach key="usedBy" list="#{td.value.usedBy}">
+                    <sun:hyperlink id="usedByLinkId" url="#{usedBy.url}" text="#{usedBy.text}" />
                     "<br />
                 </foreach>
                 "</table>
