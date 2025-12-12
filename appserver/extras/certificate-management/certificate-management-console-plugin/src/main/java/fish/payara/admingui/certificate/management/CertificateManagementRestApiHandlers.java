@@ -59,6 +59,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The Handler method and associated helper methods for the Certificate Management pages.
@@ -119,11 +121,49 @@ public class CertificateManagementRestApiHandlers {
             // Merge lists
             addListenerStoreEntries(storeEntries, listenerStoreEntries);
 
-            handlerCtx.setOutputValue("certificates", storeEntries);
-            handlerCtx.setOutputValue("usedByLinks", usedByLinks);
+            handlerCtx.setOutputValue("certificates", buildUsedByLinks(storeEntries, usedByLinks));
         } catch (Exception ex) {
             GuiUtil.handleException(handlerCtx, ex);
         }
+    }
+
+    /**
+     * Transforms the {@code usedBy} field of each store entry from a comma-delimited
+     * {@link String} into a structured list of link objects.
+     * <p>
+     * Each input store entry is copied and its {@code "usedBy"} value (if present)
+     * is split on commas. For each resulting value, a map is created containing:
+     * <ul>
+     *   <li>{@code "text"} – the original {@code usedBy} value</li>
+     *   <li>{@code "url"} – the corresponding URL from {@code usedByLinks},
+     *       or an empty string if no mapping exists</li>
+     * </ul>
+     * The transformed list replaces the original {@code "usedBy"} value in the
+     * returned store entry.
+     * <p>
+     * All other fields in each store entry are preserved unchanged.
+     *
+     * @param storeEntries a list of store entry maps containing a {@code "usedBy"}
+     *                     key with a comma-delimited string value
+     * @param usedByLinks  a mapping of {@code usedBy} values to their corresponding URLs
+     * @return a new list of store entry maps where {@code "usedBy"} is replaced by
+     *         a list of maps with {@code "text"} and {@code "url"} keys
+     */
+    private static List<Map<String, Object>> buildUsedByLinks(List<Map<String, String>> storeEntries, Map<String, String> usedByLinks) {
+        return storeEntries.stream()
+                .map(storeEntry -> {
+                    List<Map<String, String>> usedByLinksMap =
+                            Arrays.stream(Optional.ofNullable(storeEntry.get("usedBy")).orElse("")
+                                .split("\\s*,\\s*"))
+                                .filter(s -> !s.isBlank())
+                                .map(usedBy -> Map.of("text", usedBy, "url", usedByLinks.getOrDefault(usedBy, "")))
+                                .collect(Collectors.toList());
+
+                    Map<String, Object> newStoreEntry = new HashMap<>(storeEntry);
+                    newStoreEntry.put("usedBy", usedByLinksMap);
+                    return newStoreEntry;
+                })
+                .collect(Collectors.toList());
     }
 
     /**
@@ -282,45 +322,6 @@ public class CertificateManagementRestApiHandlers {
                 }
             }
         }
-    }
-
-    /**
-     * Handler that converts the comma separated usedBy string into a list to iterate over.
-     * @param handlerCtx The handler context
-     */
-    @Handler(id = "py.convertUsedByCsvToList",
-            input = {
-                    @HandlerInput(name = "usedByString", type = String.class, required = true)
-            },
-            output = {
-                    @HandlerOutput(name = "result", type = List.class)
-            })
-    public static void convertUsedByCsvToList(HandlerContext handlerCtx) {
-        String usedByString = (String) handlerCtx.getInputValue("usedByString");
-
-        String[] splitString = usedByString.split(",");
-        List<String> usedByList = Arrays.asList(splitString);
-
-        handlerCtx.setOutputValue("result", usedByList);
-    }
-
-    /**
-     * Handler to get the link from the map of usedByLinks, since this cannot be done on the JSF page itself.
-     * @param handlerCtx The handler context
-     */
-    @Handler(id = "py.getUsedByLink",
-            input = {
-                    @HandlerInput(name = "usedBy", type = String.class, required = true),
-                    @HandlerInput(name = "usedByLinks", type = Map.class, required = true)
-            },
-            output = {
-                    @HandlerOutput(name = "usedByLink", type = String.class)
-            })
-    public static void getUsedByLink(HandlerContext handlerCtx) {
-        String usedBy = (String) handlerCtx.getInputValue("usedBy");
-        Map<String, String> usedByLinks = (Map) handlerCtx.getInputValue("usedByLinks");
-
-        handlerCtx.setOutputValue("usedByLink", usedByLinks.get(usedBy));
     }
 
     /**
