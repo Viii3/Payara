@@ -1113,7 +1113,9 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
             }
             postDeployCommands.executeCommands(gf.getCommandRunner());
             if (Boolean.parseBoolean(System.getProperty(CracUtil.CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY, "false"))) {
-                CracUtil.checkpointRestore(warmup);
+                if (!CracUtil.checkpointRestore(warmup)) {
+                    System.exit(1);
+                }
             }
             timer.stopTimer();
             dumpFinalStatus(timer.getDurationMillis());
