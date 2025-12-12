@@ -62,7 +62,6 @@ public class CracUtil {
                 Core.checkpointRestore();
             } catch (CheckpointException e) {
                 logger.log(Level.SEVERE, "An error occurred during the checkpointing process and will exit", e);
-                System.exit(1);
                 return false;
             } catch (RestoreException e) {
                 logger.log(Level.SEVERE, "An error occurred during the restoration process", e.getCause());
