@@ -252,6 +252,18 @@ public class InstallNodeSshCommand extends InstallNodeBaseCommand {
                 logger.info(Strings.get("fix.permissions.failed", host, sshInstallDir));
                 throw new IOException(ioe);
             }
+
+            if (sftpClient.exists(sshInstallDir + "/" + SystemPropertyConstants.getComponentName() + "/lib.new/nadmin")) {
+                logger.log(Level.INFO, "Fixing file permissions for nadmin file under {0}:{1}/{2}/lib.new", new Object[]{host, sshInstallDir, SystemPropertyConstants.getComponentName()});
+                try {
+                    sftpClient.chmod((sshInstallDir + "/" + SystemPropertyConstants.getComponentName() + "/lib.new/nadmin"), 0755);
+                    if (logger.isLoggable(Level.FINER))
+                        logger.log(Level.FINER, "Fixed file permission for nadmin under {0}:{1}/{2}/lib.new/nadmin", new Object[]{host, sshInstallDir, SystemPropertyConstants.getComponentName()});
+                } catch (IOException ioe) {
+                    logger.info(Strings.get("fix.permissions.failed", host, sshInstallDir));
+                    throw new IOException(ioe);
+                }
+            }
             sftpClient.close();
         }
     }
