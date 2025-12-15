@@ -11,6 +11,7 @@ SYNOPSIS
            [--stage={true|false}]
            [--domaindir domain-dir]
            [--usedownloaded distribution.zip]
+           [--nodes nodes]
 
 DESCRIPTION
        The upgrade-server subcommand upgrades Payara Server to the specified
@@ -71,6 +72,26 @@ EXAMPLES
                asadmin> upgrade-server --username example-user --verson 5.26.1 --stage
                Upgrade successfully staged, please run the applyStagedUpgrade script to apply the upgrade.
                Command upgrade-server executed successfully
+
+       Example 3, Payara Server Upgrade and upgrading DAS & 2 remote nodes
+           In this example, start with a Payara Server domain upgrade to version 6.33.0 along with remote node1
+           Followed by the same upgrade to remote node2 at a later point
+
+               asadmin> upgrade-server --username example-user --verson 6.33.0 --nodes localhost-domain1,remotehost1-node1
+               Reinstalling nodes for domain domain1
+               Reinstalling SSH node remotehost1-node1
+               Command install-node-ssh executed successfully.
+               Skipping domain1 domain node remotehost2-node2 due to not matching supplied nodes: [localhost-domain1, remotehost1-node1]
+               Command upgrade-server executed successfully.
+
+               asadmin> upgrade-server --username example-user --verson 6.33.0 --nodes remotehost2-node2
+               No local nodes found, skipping local changes
+               Reinstalling nodes for domain domain1
+               Skipping domain1 domain node localhost-domain1 due to not matching supplied nodes: [remotehost2-node2]
+               Skipping domain1 domain node remotehost1-node1 due to not matching supplied nodes: [remotehost2-node2]
+               Reinstalling SSH node remotehost2-node2
+               Command install-node-ssh executed successfully.
+               Command upgrade-server executed successfully.
 
 EXIT STATUS
        0
