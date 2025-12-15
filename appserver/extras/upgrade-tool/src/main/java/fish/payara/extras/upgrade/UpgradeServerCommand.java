@@ -45,8 +45,6 @@ import com.sun.enterprise.universal.i18n.LocalStringsImpl;
 import com.sun.enterprise.util.JDK;
 import com.sun.enterprise.util.OS;
 import com.sun.enterprise.util.StringUtils;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.glassfish.api.ExecutionContext;
 import org.glassfish.api.Param;
 import org.glassfish.api.ParamDefaultCalculator;
@@ -76,10 +74,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -312,10 +317,6 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
         if (isPayara6Upgrade) {
             validateJavaVersion();
         }
-
-        // Create property files
-        createPropertiesFile();
-        createBatFile();
     }
 
     /**
@@ -388,7 +389,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                 && !(minorSelectedVersion > minorCurrentVersion)
                 && (updateSelectedVersion < updatedCurrentVersion)) {
             throwCommandValidationException(buildCurrentVersion.toString(), selectedVersion);
-        } else if (selectedVersion.equalsIgnoreCase(buildCurrentVersion.toString())) {
+        } else if (selectedVersion.equalsIgnoreCase(buildCurrentVersion.toString()) && nodes == null) {
             String message = String
                     .format("It was selected the same version: selected version %s and current version %s" +
                                     ", please verify and try again",
@@ -479,7 +480,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
      */
     private void createPropertiesFile() throws CommandValidationException {
         // Perform file separator substitution for Linux if required
-        String[] folders = Arrays.copyOf(moveFolders, moveFolders.length);
+        String[] folders = buildFolders();
         if (OS.isWindows()) {
             for (int i = 0; i < folders.length; i++) {
                 folders[i] = folders[i].replace("\\", "/");
@@ -528,7 +529,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
      */
     private void createBatFile() throws CommandValidationException {
         // Perform file separator substitution for Windows if required
-        String[] folders = Arrays.copyOf(moveFolders, moveFolders.length);
+        String[] folders = buildFolders();
         if (!OS.isWindows()) {
             for (int i = 0; i < folders.length; i++) {
                 folders[i] = folders[i].replace("/", "\\");
@@ -565,6 +566,28 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                     ioException);
         }
         logger.log(Level.FINER, "Finished creating upgrade-tool.bat file: {0}", upgradeToolBatPath.toString());
+    }
+
+    private String[] buildFolders() {
+        String[] folders = Arrays.copyOf(moveFolders, moveFolders.length);
+        boolean rebuildFolders = false;
+        if (getUpgradeMajorVersion().equals("6") && Integer.parseInt(getUpgradeMinorVersion()) < 33) {
+            rebuildFolders = true;
+            logger.log(Level.FINER, "Version being upgraded to is < 6.33.0 omitting new legal directory from properties file");
+        } else if (getUpgradeMajorVersion().equals("5") && Integer.parseInt(getUpgradeMinorVersion()) < 82) {
+            rebuildFolders = true;
+            logger.log(Level.FINER, "Version being upgraded to is < 5.82.0 omitting new legal directory from properties file");
+        }
+        if (rebuildFolders) {
+            List<String> foldersList = new ArrayList<>();
+            for (String folder : folders) {
+                if (!folder.equals(".." + File.separator + "legal")) {
+                    foldersList.add(folder);
+                }
+            }
+            folders = foldersList.toArray(new String[0]);
+        }
+        return folders;
     }
 
     @Override
@@ -639,51 +662,64 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                 if (isPayara6Upgrade) {
                     validateJavaVersion();
                 }
+
+                // Create property files (moved from validate to after version check so we now know the version)
+                createPropertiesFile();
+                createBatFile();
             } catch (CommandException commandException) {
                 logger.log(Level.SEVERE, commandException.toString());
                 return ERROR;
             }
 
         }
-
+        boolean localNode;
+        try {
+            localNode = isLocalNode();
+        } catch (CommandException e) {
+            logger.log(Level.SEVERE, "Error checking if local node is available: {0}", e.toString());
+            return ERROR;
+        }
         // Attempt to backup domains, exiting out if it fails
-        try {
-            backupDomains();
-        } catch (CommandException ce) {
-            logger.log(Level.SEVERE, "Error executing backup-domain command, aborting upgrade: {0}", ce.toString());
-            return ERROR;
-        }
-
-        try {
-            cleanupExisting();
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "Error cleaning up previous upgrades, aborting upgrade: {0}", ioe.toString());
-            return ERROR;
-        }
-
-        try {
-            moveFiles(unzippedDirectory);
-
-            if (!OS.isWindows()) {
-                fixPermissions();
+        if (localNode) {
+            try {
+                backupDomains();
+            } catch (CommandException ce) {
+                logger.log(Level.SEVERE, "Error executing backup-domain command, aborting upgrade: {0}", ce.toString());
+                return ERROR;
             }
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error upgrading Payara Server, rolling back upgrade: {0}", ex.toString());
 
             try {
-                if (stage) {
-                    deleteStagedInstall();
-                } else {
-                    undoMoveFiles();
-                }
-            } catch (IOException ex1) {
-                logger.log(Level.WARNING, "Failed to restore previous state: {0}", ex.toString());
+                cleanupExisting();
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Error cleaning up previous upgrades, aborting upgrade: {0}", ioe.toString());
+                return ERROR;
             }
-            return ERROR;
-        }
+
+            try {
+                moveFiles(unzippedDirectory);
+
+                if (!OS.isWindows()) {
+                    fixPermissions();
+                }
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, "Error upgrading Payara Server, rolling back upgrade: {0}", ex.toString());
+
+                try {
+                    if (stage) {
+                        deleteStagedInstall();
+                    } else {
+                        undoMoveFiles();
+                    }
+                } catch (IOException ex1) {
+                    logger.log(Level.WARNING, "Failed to restore previous state: {0}", ex.toString());
+                }
+                return ERROR;
+            }
+        } // end if localNode
 
         // Don't reinstall the nodes if we're staging, since we'll just be reinstalling them with the "current" version
-        if (!stage) {
+        // unless optionally included nodes as "current" version can be staged then we just want to zip it and stage it remotely
+        if (!stage || nodes != null) {
             try {
                 reinstallNodes();
             } catch (IOException | ConfigurationException ex) {
@@ -894,7 +930,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
             }
 
             // osgi-cache directory doesn't exist in a new Payara install so can't be copied and should be ignored.
-            if (!folder.contains("osgi-cache") && !folder.equals("../LICENSE.txt")) {
+            if (!folder.contains("osgi-cache")) {
                 CopyFileVisitor visitor = new CopyFileVisitor(sourcePath, targetPath);
                 Files.walkFileTree(sourcePath, visitor);
             }
@@ -1065,6 +1101,13 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
                 logger.log(Level.FINE,
                         "Ignoring NoSuchFileException for ../LICENSE.txt directory under assumption this is a " +
                                 "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
+            // ../legal
+            if (exc instanceof NoSuchFileException && exc.getMessage().contains("../legal")) {
+                logger.log(Level.FINE,
+                        "Ignoring NoSuchFileException for ../legal directory under assumption this is a " +
+                                "version before 6.33.0 / 5.83.0. Continuing fixing of permissions...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
 

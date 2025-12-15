@@ -6,6 +6,7 @@ NAME
 SYNOPSIS
            rollback-server [--help]
            [--domaindir domain-dir]
+           [--nodes nodes]
 
 DESCRIPTION
        The rollback-server subcommand rolls back an upgrade of Payara Server.
@@ -25,6 +26,12 @@ OPTIONS
            domain upon which the command will operate.
 
            The default value is as-install/domains.
+
+       --nodes
+           Specifies the nodes to rollback if you want to selectively
+           rollback certain nodes.
+
+           The default value is all nodes in the cluster.
 
 EXAMPLES
        Example 1, Rolling back Payara Server

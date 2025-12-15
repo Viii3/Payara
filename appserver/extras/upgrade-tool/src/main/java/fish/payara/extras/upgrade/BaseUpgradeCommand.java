@@ -44,6 +44,7 @@ import com.sun.appserv.server.util.Version;
 import com.sun.enterprise.admin.servermgmt.cli.LocalDomainCommand;
 import com.sun.enterprise.config.serverbeans.Domain;
 import com.sun.enterprise.config.serverbeans.Node;
+import com.sun.enterprise.config.serverbeans.Nodes;
 import com.sun.enterprise.config.serverbeans.SshAuth;
 import com.sun.enterprise.config.serverbeans.SshConnector;
 import com.sun.enterprise.module.ModulesRegistry;
@@ -51,6 +52,7 @@ import com.sun.enterprise.module.single.StaticModulesRegistry;
 import com.sun.enterprise.universal.process.ProcessManager;
 import com.sun.enterprise.universal.process.ProcessManagerException;
 import com.sun.enterprise.util.SystemPropertyConstants;
+import org.glassfish.api.Param;
 import org.glassfish.api.admin.CommandException;
 import org.glassfish.api.admin.CommandValidationException;
 import org.glassfish.hk2.api.MultiException;
@@ -122,6 +124,9 @@ public abstract class BaseUpgradeCommand extends LocalDomainCommand {
     protected static String[] moveFolders;
 
     protected boolean isWebDistributionUpgrade = false;
+
+    @Param(name = "nodes", optional = true)
+    protected List<String> nodes;
 
     @Override
     protected void validate() throws CommandException {
@@ -247,29 +252,22 @@ public abstract class BaseUpgradeCommand extends LocalDomainCommand {
     }
 
     protected void reinstallNodes() throws IOException, CommandException, ConfigurationException {
+        reinstallNodes(nodes);
+    }
+
+    protected void reinstallNodes(List<String> nodes) throws IOException, CommandException, ConfigurationException {
         File[] domaindirs = getDomainsDir().listFiles(File::isDirectory);
         for (File domaindir : domaindirs) {
-            File domainXMLFile = Paths.get(domaindir.getAbsolutePath(), "config", "domain.xml").toFile();
-
-            // Don't use default habitat - since we're a CLI command it doesn't have a view of all the services
-            // added via the modules directory
-            ServiceLocator serviceLocator = createServiceLocator();
-            ConfigParser parser = new ConfigParser(serviceLocator);
-            try {
-                parser.logUnrecognisedElements(false);
-            } catch (NoSuchMethodError noSuchMethodError) {
-                logger.log(Level.FINE,
-                        "Using a version of ConfigParser that does not support disabling log messages via method",
-                        noSuchMethodError);
-            }
-
-            URL domainURL = domainXMLFile.toURI().toURL();
-            DomDocument doc = parser.parse(domainURL);
+            Nodes domainNodes = getNodes(domaindir);
             logger.log(Level.INFO, "Reinstalling nodes for domain " + domaindir.getName());
             boolean throwException = false;
             List<String> failingNodes = new ArrayList<>();
             boolean foundNode = false;
-            for (Node node : doc.getRoot().createProxy(Domain.class).getNodes().getNode()) {
+            for (Node node : domainNodes.getNode()) {
+                if (nodes != null && !nodes.contains(node.getName())) {
+                    logger.log(Level.FINE, "Skipping {0} domain node {1} due to not matching supplied nodes: {2}", new Object[] { domaindir.getName(), node.getName(), nodes });
+                    continue;
+                }
                 if (node.getType().equals("SSH")) {
                     foundNode = true;
                     boolean commandSuccess = reinstallSSHNode(node);
@@ -500,6 +498,12 @@ public abstract class BaseUpgradeCommand extends LocalDomainCommand {
                         "this is a payara-web distribution. Continuing copy...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
+            // likewise for new legal directory if they are upgrading older distributions....
+            if (arg1 instanceof NoSuchFileException && arg1.getMessage().contains(".." + File.separator + "legal")) {
+                logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under assumption " +
+                        "this is a version before 6.33.0 / 5.83.0. Continuing copy...");
+                return FileVisitResult.SKIP_SUBTREE;
+            }
 
             logger.log(Level.SEVERE, "File could not visited: {0}", arg0.toString());
             throw arg1;
@@ -548,5 +552,58 @@ public abstract class BaseUpgradeCommand extends LocalDomainCommand {
             return FileVisitResult.CONTINUE;
         }
 
+    }
+
+    /**
+     * Checks is optional nodes is supplied, if so then checks if the name matches and is a local node
+     * @return true by default and true if nodes supplied and name matches a local node
+     */
+    protected boolean isLocalNode() throws CommandException {
+        // If optional nodes are supplied, check if the supplied optional node is local
+        boolean localNode = true;
+        if (nodes != null) {
+            File[] domaindirs = getDomainsDir().listFiles(File::isDirectory);
+            boolean localNodeFound = false;
+            for (File domaindir : domaindirs) {
+                try {
+                    Nodes domainNodes = getNodes(domaindir);
+                    for (Node node : domainNodes.getNode()) {
+                        logger.log(Level.FINEST, "Checking if node {0} matches supplied nodes {1} and is local {2}", new Object[] { node.getName(), nodes, node.isLocal() });
+                        if (nodes.contains(node.getName()) && node.isLocal()) {
+                            logger.log(Level.FINE, "Local node found as {0}", node.getName());
+                            localNodeFound = true;
+                        }
+                    }
+                } catch (IOException | CommandException e) {
+                    logger.log(Level.SEVERE, "Exception getting nodes: " + e.getMessage());
+                    throw new CommandException(e);
+                }
+            }
+            if (!localNodeFound) {
+                logger.log(Level.FINE, "No local nodes found, skipping local changes");
+                localNode = false;
+            }
+        }
+        return localNode;
+    }
+
+    private Nodes getNodes(File domaindir) throws CommandException, MalformedURLException {
+        File domainXMLFile = Paths.get(domaindir.getAbsolutePath(), "config", "domain.xml").toFile();
+
+        // Don't use default habitat - since we're a CLI command it doesn't have a view of all the services
+        // added via the modules directory
+        ServiceLocator serviceLocator = createServiceLocator();
+        ConfigParser parser = new ConfigParser(serviceLocator);
+        try {
+            parser.logUnrecognisedElements(false);
+        } catch (NoSuchMethodError noSuchMethodError) {
+            logger.log(Level.FINE,
+                    "Using a version of ConfigParser that does not support disabling log messages via method",
+                    noSuchMethodError);
+        }
+
+        URL domainURL = domainXMLFile.toURI().toURL();
+        DomDocument doc = parser.parse(domainURL);
+        return doc.getRoot().createProxy(Domain.class).getNodes();
     }
 }
