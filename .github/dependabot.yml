@@ -108,6 +108,8 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "org.glassfish.ha:ha-api"
         update-types: ["version-update:semver-major"]
+      - dependency-name: "org.glassfish.jaxb:codemodel"
+        update-types: ["version-update:semver-major"]
 
       # New ignore rule
       - dependency-name: "org.glassfish.build:command-security-maven-plugin"
