@@ -872,7 +872,7 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
 
                 if (sourcePath.endsWith("glassfish" + File.separator + "legal") || sourcePath.endsWith("glassfish" + File.separator + ".." + File.separator + "LICENSE.txt")) {
                     logger.log(Level.FINER,
-                            "Source path {0} doesn't exist, skipping under assumption this is a version from 6.32.0 / 5.82.0",
+                            "Source path {0} doesn't exist, skipping under assumption this is a version from 6.32.0 / 5.82.0 and above",
                             sourcePath.toString());
                     continue;
                 }
@@ -1057,14 +1057,14 @@ public class UpgradeServerCommand extends BaseUpgradeCommand {
             if (exc instanceof NoSuchFileException && exc.getMessage().contains("glassfish/legal")) {
                 logger.log(Level.FINE,
                         "Ignoring NoSuchFileException for glassfish/legal directory under assumption this is a " +
-                                "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
+                                "version from 6.32.0 / 5.82.0 and above. Continuing fixing of permissions...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
             // ../LICENSE.txt doesn't exist from 6.32.0 / 5.82.0 ref FISH-12137
             if (exc instanceof NoSuchFileException && exc.getMessage().contains("../LICENSE.txt")) {
                 logger.log(Level.FINE,
                         "Ignoring NoSuchFileException for ../LICENSE.txt directory under assumption this is a " +
-                                "version from 6.32.0 / 5.82.0. Continuing fixing of permissions...");
+                                "version from 6.32.0 / 5.82.0 and above. Continuing fixing of permissions...");
                 return FileVisitResult.SKIP_SUBTREE;
             }
             // ../legal
