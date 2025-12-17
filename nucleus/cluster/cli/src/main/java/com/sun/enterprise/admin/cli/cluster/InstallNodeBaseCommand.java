@@ -53,7 +53,11 @@ import org.glassfish.internal.api.Globals;
 import org.jvnet.hk2.annotations.Service;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -208,9 +212,9 @@ abstract class InstallNodeBaseCommand extends NativeRemoteCommandsBase {
     }
 
     /**
-     * Determines if a file is under "bin" directory
+     * Determines if a file is under "bin" or "bin.new" directory
      * @param file path to the file
-     * @return true if file is under "bin" dir, false otherwise
+     * @return true if file is under "bin" or "bin.new" dir, false otherwise
      */
     private static boolean isFileWithinBinDirectory(String file) {
         String parent = null;
@@ -219,7 +223,7 @@ abstract class InstallNodeBaseCommand extends NativeRemoteCommandsBase {
         if (pFile != null) {
             parent = new File(pFile).getName();
         }
-        return parent != null && parent.equals("bin");
+        return parent != null && (parent.equals("bin") || parent.equals("bin.new"));
     }
 
     public static String toString(InputStream ins) throws IOException {
