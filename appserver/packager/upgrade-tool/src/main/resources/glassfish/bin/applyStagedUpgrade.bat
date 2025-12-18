@@ -97,15 +97,21 @@ if "%WARN%"=="true" (
     echo A command didn't complete successfully! Check the logs and run the rollbackUpgrade script if desired. Skipping reinstallation of nodes, please run the reinstall-nodes ASadmin command if this is incorrect.
     exit /B 1
 ) else (
-    call %~dp0..\bin\asadmin.bat reinstall-nodes %*
-    if ERRORLEVEL 1 (
-        set WARN=true
+    if exist %~dp0..\domains (
+        call %~dp0..\bin\asadmin.bat reinstall-nodes %*
+        if ERRORLEVEL 1 (
+            set WARN=true
+        )
+    ) else (
+        echo Skipping reinstall-nodes due to no domains detected
     )
 )
 
 if "%WARN%"=="true" (
     echo A command didn't complete successfully! Check the logs and run the rollbackUpgrade script if desired.
     exit /B 1
+) else (
+    echo The upgrade was applied successfully
 )
 
 goto :eof
@@ -115,7 +121,7 @@ setlocal EnableDelayedExpansion
 
 set "target_path=%~1"
 set "message=%~2"
-set "ignored_patterns=mq ..\mq h2db legal ..\legal ..\LICENSE.txt"
+set "ignored_patterns=mq ..\mq h2db legal ..\legal ..\LICENSE.txt osgi-cache"
 
 for %%P in (%ignored_patterns%) do (
     echo !target_path! | findstr /I /C:"%%P" >nul

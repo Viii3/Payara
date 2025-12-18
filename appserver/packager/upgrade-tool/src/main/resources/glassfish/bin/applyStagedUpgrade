@@ -45,7 +45,7 @@ check_move_error() {
     local message="$3"
 
     if [ "$exit_code" -ne 0 ]; then
-      local ignored_patterns=("mq" "h2db" "LICENSE.txt" "legal" "../legal")
+      local ignored_patterns=("mq" "h2db" "LICENSE.txt" "legal" "../legal" "osgi-cache")
 
       for pattern in "${ignored_patterns[@]}"; do
           if [[ "$path" == *"$pattern"* ]]; then
@@ -115,15 +115,19 @@ done
 if [ ! -z "$WARN" ]; then
     echo "A command didn't complete successfully! Check the logs and run the rollbackUpgrade script if desired. Skipping reinstallation of nodes, please run the reinstall-nodes ASadmin command if this is incorrect."
     exit 1
-else
+elif [ -d "${AS_INSTALL}/domains" ]; then
     exec ${AS_INSTALL}/bin/asadmin reinstall-nodes "$@"
     if [ ! $? -eq 0 ]; then
         WARN=true
     fi
+else
+    echo "Skipping reinstall-nodes due to no domains detected"
 fi
 
 if [ ! -z "$WARN" ]; then
     echo "A command didn't complete successfully! Check the logs and run the rollbackUpgrade script if desired."
     exit 1
+else
+    echo "The upgrade was applied successfully"
 fi
 
