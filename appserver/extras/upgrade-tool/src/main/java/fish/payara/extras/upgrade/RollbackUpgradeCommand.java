@@ -139,13 +139,13 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
 
                         if (nsfe.getMessage().contains("glassfish/legal")) {
                             logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/legal directory under the " +
-                                    "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
                             continue;
                         }
 
                         if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
                             logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt file under the " +
-                                    "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
                             continue;
                         }
 
@@ -215,7 +215,7 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
 
                         if (nsfe.getMessage().contains("legal")) {
                             logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under the " +
-                                    "assumption this is a version from 6.32.0 / 5.82.0. Continuing to move files...");
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
                             continue;
                         }
 
