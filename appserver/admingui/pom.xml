@@ -248,7 +248,7 @@
             </dependency>
             <dependency>
                 <groupId>org.glassfish.woodstock.external</groupId>
-                <artifactId>dojo-ajax-nodemo</artifactId>
+                <artifactId>dojo</artifactId>
                 <version>${woodstock-external.dojo.version}</version>
                 <scope>provided</scope>
             </dependency>
