@@ -460,8 +460,6 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
         // Initialise the instance descriptor and set all of its attributes
         try {
             InstanceDescriptorImpl instanceDescriptor = new InstanceDescriptorImpl(myCurrentID);
-            // If Hazelcast is being rebooted dynamically, we don't want to lose the already registered applications
-            Collection<ApplicationDescriptor> deployedApplications = instanceDescriptor.getDeployedApplications();
             instanceDescriptor.setInstanceName(instanceName);
             instanceDescriptor.setInstanceGroup(instanceGroup);
             for (int port : ports) {
@@ -479,14 +477,6 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
             if (hostname != null) {
                 instanceDescriptor.setHostName(hostname);
-            }
-
-            // If there were some deployed applications from the previous instance descriptor, register them with the new
-            // one
-            if (!deployedApplications.isEmpty()) {
-                for (ApplicationDescriptor application : deployedApplications) {
-                    instanceDescriptor.addApplication(application);
-                }
             }
 
             // Register the instance descriptor to the cluster if it's enabled
