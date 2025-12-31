@@ -400,24 +400,22 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
     @Override
     public List<URL> getApplicationURLS() {
         LinkedList<URL> result = new LinkedList<>();
-        if (applications != null) {
-            for (ApplicationDescriptor applicationDescriptor : applications.values()) {
-                for (ModuleDescriptor moduleDescriptor : applicationDescriptor.getModuleDescriptors()) {
-                    String contextRoot = moduleDescriptor.getContextRoot();
-                    if (contextRoot != null) {
-                        for (Integer httpPort : httpPorts) {
-                            try {
-                                result.add(new URL("http", hostName.getCanonicalHostName(), httpPort, contextRoot));
-                            } catch (MalformedURLException ex) {
-                                // ignore
-                            }
+        for (ApplicationDescriptor applicationDescriptor : applications.values()) {
+            for (ModuleDescriptor moduleDescriptor : applicationDescriptor.getModuleDescriptors()) {
+                String contextRoot = moduleDescriptor.getContextRoot();
+                if (contextRoot != null) {
+                    for (Integer httpPort : httpPorts) {
+                        try {
+                            result.add(new URL("http", hostName.getCanonicalHostName(), httpPort, contextRoot));
+                        } catch (MalformedURLException ex) {
+                            // ignore
                         }
-                        for (Integer httpsPort : httpsPorts) {
-                            try {
-                                result.add(new URL("https", hostName.getCanonicalHostName(), httpsPort, contextRoot));
-                            } catch (MalformedURLException ex) {
-                                // ignore
-                            }
+                    }
+                    for (Integer httpsPort : httpsPorts) {
+                        try {
+                            result.add(new URL("https", hostName.getCanonicalHostName(), httpsPort, contextRoot));
+                        } catch (MalformedURLException ex) {
+                            // ignore
                         }
                     }
                 }
