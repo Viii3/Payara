@@ -44,6 +44,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,8 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     private UUID myCurrentID;
 
     private LazyHolder<InstanceDescriptorImpl> descriptor = lazyHolder(this::initialiseInstanceDescriptor);
+
+    private final Map<String, ApplicationDescriptor> applications = new HashMap<>();
 
     @Inject
     private ServerEnvironment environment;
@@ -259,7 +262,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
         else if (event.is(Deployment.APPLICATION_STARTED)) {
             if (event.hook() != null && event.hook() instanceof ApplicationInfo) {
                 ApplicationInfo applicationInfo = (ApplicationInfo) event.hook();
-                descriptor.get().addApplication(new ApplicationDescriptorImpl(applicationInfo));
+                applications.put(applicationInfo.getName(), new ApplicationDescriptorImpl(applicationInfo));
                 logger.log(Level.FINE, "App Loaded: {2}, Enabled: {0}, my ID: {1}", new Object[] { hazelcast.isEnabled(),
                     myCurrentID, applicationInfo.getName() });
                 cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
@@ -287,7 +290,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
         else if (event.is(Deployment.APPLICATION_UNLOADED)) {
             if (event.hook() != null && event.hook() instanceof ApplicationInfo) {
                 ApplicationInfo applicationInfo = (ApplicationInfo) event.hook();
-                descriptor.get().removeApplication(new ApplicationDescriptorImpl(applicationInfo));
+                applications.remove(applicationInfo.getName());
                 cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
             }
         } else if (event.is(HazelcastEvents.HAZELCAST_SHUTDOWN_STARTED)) {
@@ -459,7 +462,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
         // Initialise the instance descriptor and set all of its attributes
         try {
-            InstanceDescriptorImpl instanceDescriptor = new InstanceDescriptorImpl(myCurrentID);
+            InstanceDescriptorImpl instanceDescriptor = new InstanceDescriptorImpl(myCurrentID, applications);
             instanceDescriptor.setInstanceName(instanceName);
             instanceDescriptor.setInstanceGroup(instanceGroup);
             for (int port : ports) {
