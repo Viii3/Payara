@@ -247,10 +247,6 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
             ClusterMessage<PayaraInternalEvent> message = new ClusterMessage<>(pie);
             this.cluster.getEventBus().publish(INTERNAL_EVENTS_NAME, message);
 
-            for (String appName : appRegistry.getAllApplicationNames()) {
-                descriptor.get().addApplication(new ApplicationDescriptorImpl(appRegistry.get(appName)));
-            }
-
             cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
             executor.scheduleAtFixedRate(() -> {
                 descriptor.get().setLastHeartBeat(System.currentTimeMillis());
