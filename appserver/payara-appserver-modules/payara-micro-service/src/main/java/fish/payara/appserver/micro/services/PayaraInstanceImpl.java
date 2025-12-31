@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -145,6 +146,8 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     private LazyHolder<InstanceDescriptorImpl> descriptor = lazyHolder(this::initialiseInstanceDescriptor);
 
     private final Map<String, ApplicationDescriptor> applications = new HashMap<>();
+
+    private ScheduledFuture<?> heartbeat;
 
     @Inject
     private ServerEnvironment environment;
@@ -248,12 +251,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
             this.cluster.getEventBus().publish(INTERNAL_EVENTS_NAME, message);
 
             cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-            executor.scheduleAtFixedRate(() -> {
-                descriptor.get().setLastHeartBeat(System.currentTimeMillis());
-                if (myCurrentID != null) {
-                    cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-                }
-            }, 0, 5, TimeUnit.SECONDS);
+            ensureHeartbeat();
         } // Adds the application to the clustered register of deployed applications
         else if (event.is(Deployment.APPLICATION_STARTED)) {
             if (event.hook() != null && event.hook() instanceof ApplicationInfo) {
@@ -306,13 +304,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
                 // Hazelcast has been shutdown / never started before.
                 descriptor = lazyHolder(this::initialiseInstanceDescriptor);
 
-                executor.scheduleAtFixedRate(() -> {
-                    descriptor.get().setLastHeartBeat(System.currentTimeMillis());
-                    if (myCurrentID != null) {
-                        cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-                    }
-                }, 0, 5, TimeUnit.SECONDS);
-
+                ensureHeartbeat();
             }
             descriptor.get();
             logger.log(Level.FINE, "Hz Bootstrap Complete, Enabled: {0}, my ID: {1}", new Object[] { hazelcast.isEnabled(), myCurrentID });
@@ -383,6 +375,19 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
             result = (InstanceDescriptorImpl) cluster.getClusteredStore().get(INSTANCE_STORE_NAME, member);
         }
         return result;
+    }
+
+    private void ensureHeartbeat() {
+        if (heartbeat != null) {
+            return;
+        }
+
+        heartbeat = executor.scheduleAtFixedRate(() -> {
+            descriptor.get().setLastHeartBeat(System.currentTimeMillis());
+            if (myCurrentID != null) {
+                cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
+            }
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     private InstanceDescriptorImpl initialiseInstanceDescriptor() {
