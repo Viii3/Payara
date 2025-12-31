@@ -306,10 +306,6 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
                 // Hazelcast has been shutdown / never started before.
                 descriptor = lazyHolder(this::initialiseInstanceDescriptor);
 
-                for (String appName : appRegistry.getAllApplicationNames()) {
-                    descriptor.get().addApplication(new ApplicationDescriptorImpl(appRegistry.get(appName)));
-                }
-
                 executor.scheduleAtFixedRate(() -> {
                     descriptor.get().setLastHeartBeat(System.currentTimeMillis());
                     if (myCurrentID != null) {
