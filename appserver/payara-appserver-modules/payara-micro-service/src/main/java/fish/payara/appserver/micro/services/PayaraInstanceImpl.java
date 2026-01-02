@@ -44,12 +44,14 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -142,6 +144,10 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
     private UUID myCurrentID;
 
     private LazyHolder<InstanceDescriptorImpl> descriptor = lazyHolder(this::initialiseInstanceDescriptor);
+
+    private final Map<String, ApplicationDescriptor> applications = new HashMap<>();
+
+    private ScheduledFuture<?> heartbeat;
 
     @Inject
     private ServerEnvironment environment;
@@ -244,22 +250,13 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
             ClusterMessage<PayaraInternalEvent> message = new ClusterMessage<>(pie);
             this.cluster.getEventBus().publish(INTERNAL_EVENTS_NAME, message);
 
-            for (String appName : appRegistry.getAllApplicationNames()) {
-                descriptor.get().addApplication(new ApplicationDescriptorImpl(appRegistry.get(appName)));
-            }
-
             cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-            executor.scheduleAtFixedRate(() -> {
-                descriptor.get().setLastHeartBeat(System.currentTimeMillis());
-                if (myCurrentID != null) {
-                    cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-                }
-            }, 0, 5, TimeUnit.SECONDS);
+            ensureHeartbeat();
         } // Adds the application to the clustered register of deployed applications
         else if (event.is(Deployment.APPLICATION_STARTED)) {
             if (event.hook() != null && event.hook() instanceof ApplicationInfo) {
                 ApplicationInfo applicationInfo = (ApplicationInfo) event.hook();
-                descriptor.get().addApplication(new ApplicationDescriptorImpl(applicationInfo));
+                applications.put(applicationInfo.getName(), new ApplicationDescriptorImpl(applicationInfo));
                 logger.log(Level.FINE, "App Loaded: {2}, Enabled: {0}, my ID: {1}", new Object[] { hazelcast.isEnabled(),
                     myCurrentID, applicationInfo.getName() });
                 cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
@@ -287,7 +284,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
         else if (event.is(Deployment.APPLICATION_UNLOADED)) {
             if (event.hook() != null && event.hook() instanceof ApplicationInfo) {
                 ApplicationInfo applicationInfo = (ApplicationInfo) event.hook();
-                descriptor.get().removeApplication(new ApplicationDescriptorImpl(applicationInfo));
+                applications.remove(applicationInfo.getName());
                 cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
             }
         } else if (event.is(HazelcastEvents.HAZELCAST_SHUTDOWN_STARTED)) {
@@ -307,17 +304,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
                 // Hazelcast has been shutdown / never started before.
                 descriptor = lazyHolder(this::initialiseInstanceDescriptor);
 
-                for (String appName : appRegistry.getAllApplicationNames()) {
-                    descriptor.get().addApplication(new ApplicationDescriptorImpl(appRegistry.get(appName)));
-                }
-
-                executor.scheduleAtFixedRate(() -> {
-                    descriptor.get().setLastHeartBeat(System.currentTimeMillis());
-                    if (myCurrentID != null) {
-                        cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
-                    }
-                }, 0, 5, TimeUnit.SECONDS);
-
+                ensureHeartbeat();
             }
             descriptor.get();
             logger.log(Level.FINE, "Hz Bootstrap Complete, Enabled: {0}, my ID: {1}", new Object[] { hazelcast.isEnabled(), myCurrentID });
@@ -390,6 +377,19 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
         return result;
     }
 
+    private void ensureHeartbeat() {
+        if (heartbeat != null) {
+            return;
+        }
+
+        heartbeat = executor.scheduleAtFixedRate(() -> {
+            descriptor.get().setLastHeartBeat(System.currentTimeMillis());
+            if (myCurrentID != null) {
+                cluster.getClusteredStore().set(INSTANCE_STORE_NAME, myCurrentID, descriptor.get());
+            }
+        }, 0, 5, TimeUnit.SECONDS);
+    }
+
     private InstanceDescriptorImpl initialiseInstanceDescriptor() {
         String instanceName = "payara-micro";
         String instanceGroup = "no-cluster";
@@ -459,9 +459,7 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
         // Initialise the instance descriptor and set all of its attributes
         try {
-            InstanceDescriptorImpl instanceDescriptor = new InstanceDescriptorImpl(myCurrentID);
-            // If Hazelcast is being rebooted dynamically, we don't want to lose the already registered applications
-            Collection<ApplicationDescriptor> deployedApplications = instanceDescriptor.getDeployedApplications();
+            InstanceDescriptorImpl instanceDescriptor = new InstanceDescriptorImpl(myCurrentID, applications);
             instanceDescriptor.setInstanceName(instanceName);
             instanceDescriptor.setInstanceGroup(instanceGroup);
             for (int port : ports) {
@@ -479,14 +477,6 @@ public class PayaraInstanceImpl implements EventListener, MessageReceiver, Payar
 
             if (hostname != null) {
                 instanceDescriptor.setHostName(hostname);
-            }
-
-            // If there were some deployed applications from the previous instance descriptor, register them with the new
-            // one
-            if (!deployedApplications.isEmpty()) {
-                for (ApplicationDescriptor application : deployedApplications) {
-                    instanceDescriptor.addApplication(application);
-                }
             }
 
             // Register the instance descriptor to the cluster if it's enabled
