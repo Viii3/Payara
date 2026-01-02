@@ -25,7 +25,6 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonWriter;
-import org.glassfish.internal.data.ApplicationInfo;
 
 import java.io.StringWriter;
 import java.net.InetAddress;
@@ -37,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +60,7 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
     private final Set<Integer> httpPorts;
     private final Set<Integer> httpsPorts;
     private InetAddress hostName;
-    private Map<String, ApplicationDescriptor> deployedApplications;
+    private final Map<String, ApplicationDescriptor> applications;
     private boolean liteMember;
     private String instanceType;
     private int hazelcastPort;
@@ -70,29 +68,13 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
     private String instanceGroup;
     private long heartBeatTS;
 
-    public InstanceDescriptorImpl(UUID uuid) throws UnknownHostException {
+    public InstanceDescriptorImpl(UUID uuid, Map<String, ApplicationDescriptor> applications) throws UnknownHostException {
         hostName = InetAddress.getLocalHost();
         memberUUID = uuid;
         httpPorts = new LinkedHashSet<>();
         httpsPorts = new LinkedHashSet<>();
         heartBeatTS = System.currentTimeMillis();
-    }
-
-    public void addApplication(ApplicationInfo info) {
-        if (deployedApplications == null) {
-            deployedApplications = new LinkedHashMap<>();
-        }
-
-        ApplicationDescriptorImpl ad = new ApplicationDescriptorImpl(info);
-        deployedApplications.put(ad.getName(), ad);
-    }
-
-    public void addApplication(ApplicationDescriptor descriptor) {
-        if (deployedApplications == null) {
-            deployedApplications = new LinkedHashMap<>();
-        }
-
-        deployedApplications.put(descriptor.getName(), descriptor);
+        this.applications = applications;
     }
 
     @Override
@@ -147,10 +129,7 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
      */
     @Override
     public Collection<ApplicationDescriptor> getDeployedApplications() {
-        if (deployedApplications == null) {
-            return new LinkedHashSet<>();
-        }
-        return deployedApplications.values();
+        return Collections.unmodifiableCollection(applications.values());
     }
 
     /**
@@ -166,14 +145,6 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
      */
     public void addHttpsPort(int httpsPort) {
         httpsPorts.add(httpsPort);
-    }
-
-    public void removeApplication(ApplicationDescriptor applicationInfo) {
-        if (deployedApplications == null) {
-            deployedApplications = new LinkedHashMap<>();
-        }
-
-        deployedApplications.remove(applicationInfo.getName());
     }
 
     /**
@@ -429,24 +400,22 @@ public class InstanceDescriptorImpl implements InstanceDescriptor {
     @Override
     public List<URL> getApplicationURLS() {
         LinkedList<URL> result = new LinkedList<>();
-        if (deployedApplications != null) {
-            for (Map.Entry<String, ApplicationDescriptor> ai : deployedApplications.entrySet()) {
-                for (ModuleDescriptor moduleDescriptor : ai.getValue().getModuleDescriptors()) {
-                    String contextRoot = moduleDescriptor.getContextRoot();
-                    if (contextRoot != null) {
-                        for (Integer httpPort : httpPorts) {
-                            try {
-                                result.add(new URL("http", hostName.getCanonicalHostName(), httpPort, contextRoot));
-                            } catch (MalformedURLException ex) {
-                                // ignore
-                            }
+        for (ApplicationDescriptor applicationDescriptor : applications.values()) {
+            for (ModuleDescriptor moduleDescriptor : applicationDescriptor.getModuleDescriptors()) {
+                String contextRoot = moduleDescriptor.getContextRoot();
+                if (contextRoot != null) {
+                    for (Integer httpPort : httpPorts) {
+                        try {
+                            result.add(new URL("http", hostName.getCanonicalHostName(), httpPort, contextRoot));
+                        } catch (MalformedURLException ex) {
+                            // ignore
                         }
-                        for (Integer httpsPort : httpsPorts) {
-                            try {
-                                result.add(new URL("https", hostName.getCanonicalHostName(), httpsPort, contextRoot));
-                            } catch (MalformedURLException ex) {
-                                // ignore
-                            }
+                    }
+                    for (Integer httpsPort : httpsPorts) {
+                        try {
+                            result.add(new URL("https", hostName.getCanonicalHostName(), httpsPort, contextRoot));
+                        } catch (MalformedURLException ex) {
+                            // ignore
                         }
                     }
                 }
