@@ -77,7 +77,7 @@
                             <outputDirectory>${dependencies.extra.directory}</outputDirectory>
                             <includeArtifactIds>
                                 commons-fileupload,commons-io,
-                                dojo-ajax-nodemo,json,prototype,
+                                dojo,json,prototype,
                                 woodstock-webui-jsf,woodstock-webui-jsf-suntheme
                             </includeArtifactIds>
                             <includeScope>provided</includeScope>
@@ -136,8 +136,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.sun.woodstock.dependlibs</groupId>
-            <artifactId>dojo-ajax-nodemo</artifactId>
+            <groupId>org.glassfish.woodstock.external</groupId>
+            <version>${woodstock-external.dojo.version}</version>
+            <artifactId>dojo</artifactId>
         </dependency>
         <dependency>
             <groupId>com.sun.woodstock.dependlibs</groupId>
