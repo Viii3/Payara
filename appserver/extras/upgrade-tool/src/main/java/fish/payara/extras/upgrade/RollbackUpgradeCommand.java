@@ -77,165 +77,175 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
 
     @Override
     protected int executeCommand() {
-        if (!Paths.get(glassfishDir, "modules.old").toFile().exists()) {
+        boolean localNode;
+        try {
+            localNode = isLocalNode();
+        } catch (CommandException e) {
+            logger.log(Level.SEVERE, "Error checking if local node is available: {0}", e.toString());
+            return ERROR;
+        }
+
+        if (localNode && !Paths.get(glassfishDir, "modules.old").toFile().exists()) {
             logger.log(Level.SEVERE, "No old version found to rollback");
             return ERROR;
         }
 
-        logger.log(Level.INFO, "Rolling back server...");
+        if (localNode) {
+            logger.log(Level.INFO, "Rolling back local server...");
 
-        // First up, remove any "staged" install
-        try {
-            deleteStagedInstall();
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "Error cleaning up previous staged upgrade, aborting rollback: {0}",
-                    ioe.toString());
-            return ERROR;
-        }
-
-        // Second step, move "current" into "staged"
-        try {
-            logger.log(Level.FINE, "Moving current install into a staged rollback directory");
-            for (String file : moveFolders) {
-                try {
-                    Path currentDirectory = Paths.get(glassfishDir, file);
-                    Path newDirectory = Paths.get(glassfishDir, file + ".new");
-                    logger.log(Level.FINER, "Moving {0} into staged rollback directory {1}",
-                            new Object[]{currentDirectory.toString(), newDirectory.toString()});
-                    Files.move(currentDirectory, newDirectory,
-                            StandardCopyOption.REPLACE_EXISTING);
-                    logger.log(Level.FINEST, "Moved {0} into staged rollback directory {1}",
-                            new Object[]{currentDirectory.toString(), newDirectory.toString()});
-                } catch (NoSuchFileException nsfe) {
-                    if (nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "mq")
-                            && isWebDistributionUpgrade) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for mq directory under assumption " +
-                                "this is a payara-web distribution. Continuing to move files...");
-                        continue;
-                    }
-
-                    // osgi-cache directory is created when the domain is started, if it was never started the
-                    // directory will not exist so it's safe to ignore the NSFE
-                    if (nsfe.getMessage().contains("osgi-cache")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for osgi-cache directory under the " +
-                                "assumption the upgraded domain was never started. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/h2db")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/h2db directory under the " +
-                                "assumption this is a distribution without the duplicate directory. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/legal")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/legal directory under the " +
-                                "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt file under the " +
-                                "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/../legal")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../legal directory under the " +
-                                "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt directory under the " +
-                                "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
-                        continue;
-                    }
-
-                    throw nsfe;
-                }
-            }
-            logger.log(Level.FINE, "Moved current install into a staged rollback directory");
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "Error rolling back current install: {0}", ioe.toString());
-
-            // Attempt to undo the rollback
-            logger.log(Level.INFO, "Attempting to undo rollback");
+            // First up, remove any "staged" install
             try {
-                moveStagedToCurrent();
-            } catch (IOException ioe1) {
-                logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
-            }
-
-            return ERROR;
-        }
-
-        // Third step, move "old" into "current"
-        try {
-            logger.log(Level.FINE, "Moving old install back into current install");
-            for (String file : moveFolders) {
-                try {
-                    Path oldDirectory = Paths.get(glassfishDir, file + ".old");
-                    Path currentDirectory = Paths.get(glassfishDir, file);
-                    logger.log(Level.FINER, "Moving old directory {0} into current install directory {1}",
-                            new Object[]{oldDirectory.toString(), currentDirectory.toString()});
-                    Files.move(oldDirectory, currentDirectory, StandardCopyOption.REPLACE_EXISTING);
-                    logger.log(Level.FINEST, "Moved old directory {0} into current install directory {1}",
-                            new Object[]{oldDirectory.toString(), currentDirectory.toString()});
-                } catch (NoSuchFileException nsfe) {
-                    if (nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "mq")
-                            && isWebDistributionUpgrade) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for mq directory under assumption " +
-                                "this is a payara-web distribution. Continuing to move files...");
-                        continue;
-                    }
-
-                    // osgi-cache directory is created when the domain is started, if it was never started before the
-                    // upgrade the directory will not exist so it's safe to ignore the NSFE
-                    if (nsfe.getMessage().contains("osgi-cache")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for osgi-cache directory under the " +
-                            "assumption the upgraded domain was never started. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("glassfish/h2db")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/h2db directory under the " +
-                                "assumption this is a distribution without the duplicate directory. Continuing to move files...");
-                        continue;
-                    }
-
-                    if (nsfe.getMessage().contains("legal")) {
-                        logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under the " +
-                                "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
-                        continue;
-                    }
-
-                    throw nsfe;
-                }
-            }
-        } catch (IOException ioe) {
-            logger.log(Level.SEVERE, "Error rolling back current install: {0}", ioe.toString());
-
-            // Attempt to undo the rollback
-            logger.log(Level.INFO, "Attempting to undo rollback");
-
-            // First up, move "current" back to "old"
-            try {
-                moveCurrentToOld();
-            } catch (IOException ioe1) {
-                logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
+                deleteStagedInstall();
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Error cleaning up previous staged upgrade, aborting rollback: {0}",
+                        ioe.toString());
                 return ERROR;
             }
 
-            // After moving "current" back to "old", move "staged" back to "current"
+            // Second step, move "current" into "staged"
             try {
-                moveStagedToCurrent();
-            } catch (IOException ioe1) {
-                logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
+                logger.log(Level.FINE, "Moving current install into a staged rollback directory");
+                for (String file : moveFolders) {
+                    try {
+                        Path currentDirectory = Paths.get(glassfishDir, file);
+                        Path newDirectory = Paths.get(glassfishDir, file + ".new");
+                        logger.log(Level.FINER, "Moving {0} into staged rollback directory {1}",
+                                new Object[]{currentDirectory.toString(), newDirectory.toString()});
+                        Files.move(currentDirectory, newDirectory,
+                                StandardCopyOption.REPLACE_EXISTING);
+                        logger.log(Level.FINEST, "Moved {0} into staged rollback directory {1}",
+                                new Object[]{currentDirectory.toString(), newDirectory.toString()});
+                    } catch (NoSuchFileException nsfe) {
+                        if (nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "mq")
+                                && isWebDistributionUpgrade) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for mq directory under assumption " +
+                                    "this is a payara-web distribution. Continuing to move files...");
+                            continue;
+                        }
+
+                        // osgi-cache directory is created when the domain is started, if it was never started the
+                        // directory will not exist so it's safe to ignore the NSFE
+                        if (nsfe.getMessage().contains("osgi-cache")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for osgi-cache directory under the " +
+                                    "assumption the upgraded domain was never started. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/h2db")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/h2db directory under the " +
+                                    "assumption this is a distribution without the duplicate directory. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/legal")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/legal directory under the " +
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt file under the " +
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/../legal")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../legal directory under the " +
+                                    "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/../LICENSE.txt")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/../LICENSE.txt directory under the " +
+                                    "assumption this is a version before 6.33.0 / 5.83.0. Continuing to move files...");
+                            continue;
+                        }
+
+                        throw nsfe;
+                    }
+                }
+                logger.log(Level.FINE, "Moved current install into a staged rollback directory");
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Error rolling back current install: {0}", ioe.toString());
+
+                // Attempt to undo the rollback
+                logger.log(Level.INFO, "Attempting to undo rollback");
+                try {
+                    moveStagedToCurrent();
+                } catch (IOException ioe1) {
+                    logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
+                }
+
+                return ERROR;
             }
 
-            return ERROR;
-        }
+            // Third step, move "old" into "current"
+            try {
+                logger.log(Level.FINE, "Moving old install back into current install");
+                for (String file : moveFolders) {
+                    try {
+                        Path oldDirectory = Paths.get(glassfishDir, file + ".old");
+                        Path currentDirectory = Paths.get(glassfishDir, file);
+                        logger.log(Level.FINER, "Moving old directory {0} into current install directory {1}",
+                                new Object[]{oldDirectory.toString(), currentDirectory.toString()});
+                        Files.move(oldDirectory, currentDirectory, StandardCopyOption.REPLACE_EXISTING);
+                        logger.log(Level.FINEST, "Moved old directory {0} into current install directory {1}",
+                                new Object[]{oldDirectory.toString(), currentDirectory.toString()});
+                    } catch (NoSuchFileException nsfe) {
+                        if (nsfe.getMessage().contains("glassfish" + File.separator + ".." + File.separator + "mq")
+                                && isWebDistributionUpgrade) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for mq directory under assumption " +
+                                    "this is a payara-web distribution. Continuing to move files...");
+                            continue;
+                        }
+
+                        // osgi-cache directory is created when the domain is started, if it was never started before the
+                        // upgrade the directory will not exist so it's safe to ignore the NSFE
+                        if (nsfe.getMessage().contains("osgi-cache")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for osgi-cache directory under the " +
+                                    "assumption the upgraded domain was never started. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("glassfish/h2db")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for glassfish/h2db directory under the " +
+                                    "assumption this is a distribution without the duplicate directory. Continuing to move files...");
+                            continue;
+                        }
+
+                        if (nsfe.getMessage().contains("legal")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for legal directory under the " +
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
+                            continue;
+                        }
+
+                        throw nsfe;
+                    }
+                }
+            } catch (IOException ioe) {
+                logger.log(Level.SEVERE, "Error rolling back current install: {0}", ioe.toString());
+
+                // Attempt to undo the rollback
+                logger.log(Level.INFO, "Attempting to undo rollback");
+
+                // First up, move "current" back to "old"
+                try {
+                    moveCurrentToOld();
+                } catch (IOException ioe1) {
+                    logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
+                    return ERROR;
+                }
+
+                // After moving "current" back to "old", move "staged" back to "current"
+                try {
+                    moveStagedToCurrent();
+                } catch (IOException ioe1) {
+                    logger.log(Level.SEVERE, "Error undoing rollback: {0}", ioe1.toString());
+                }
+
+                return ERROR;
+            }
+        } // end if localNode
 
         // Fourth step, roll back the nodes for all domains
         try {
@@ -278,35 +288,35 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
                             "reinstall-nodes command. \n{0}",
                     ce.getMessage());
             return WARNING;
-
-
         }
 
-        // Fifth step, remove "staged" again - if we've reached this point the install should have been successfully
-        // rolled back so we don't need it anymore
-        boolean logWarning = false;
-        try {
-            deleteStagedInstall();
-        } catch (IOException ioe) {
-            // Log the error, but we don't need to fail the command and exit out at this point
-            logger.log(Level.WARNING, "Error cleaning up rolled back upgrade: {0}", ioe.toString());
-            logWarning = true;
-        }
+        if (localNode) {
+            // Fifth step, remove "staged" again - if we've reached this point the install should have been successfully
+            // rolled back so we don't need it anymore
+            boolean logWarning = false;
+            try {
+                deleteStagedInstall();
+            } catch (IOException ioe) {
+                // Log the error, but we don't need to fail the command and exit out at this point
+                logger.log(Level.WARNING, "Error cleaning up rolled back upgrade: {0}", ioe.toString());
+                logWarning = true;
+            }
 
-        // Final step, restore the original domain configs
-        // The osgi-caches must be stored in a temp directory while the domain is restored so they are not overwritten
-        try {
-            Map<String, Path> tempOsgiCacheDirs = storeOsgiCache();
-            restoreDomains();
-            restoreOsgiCache(tempOsgiCacheDirs);
-        } catch (CommandException | IOException ce) {
-            logger.log(Level.WARNING, "Error restore-domain command! " +
-                    "Please restore your domain config manually. \n{0}", ce.toString());
-            logWarning = true;
-        }
+            // Final step, restore the original domain configs
+            // The osgi-caches must be stored in a temp directory while the domain is restored so they are not overwritten
+            try {
+                Map<String, Path> tempOsgiCacheDirs = storeOsgiCache();
+                restoreDomains();
+                restoreOsgiCache(tempOsgiCacheDirs);
+            } catch (CommandException | IOException ce) {
+                logger.log(Level.WARNING, "Error restore-domain command! " +
+                        "Please restore your domain config manually. \n{0}", ce.toString());
+                logWarning = true;
+            }
 
-        if (logWarning) {
-            return WARNING;
+            if (logWarning) {
+                return WARNING;
+            }
         }
 
         return SUCCESS;
