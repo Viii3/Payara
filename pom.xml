@@ -288,6 +288,7 @@
         <woodstox.version>6.6.2</woodstox.version>
         <woodstock-jsf.version>5.0.0</woodstock-jsf.version>
         <woodstock-jsf-suntheme.version>5.0.0.payara-p2</woodstock-jsf-suntheme.version>
+        <woodstock-external.prototype.version>6.0.3</woodstock-external.prototype.version>
         <woodstock-external.dojo.version>6.0.2</woodstock-external.dojo.version>
         <angus-activation.version>1.1.0</angus-activation.version>
         <istack-commons-runtime.version>4.2.0</istack-commons-runtime.version>

@@ -158,7 +158,6 @@
 
     <properties>
         <woodstock-json.version>2.0</woodstock-json.version>
-        <woodstock-prototype.version>1.7.3</woodstock-prototype.version>
     </properties>
 
     <build>
@@ -253,9 +252,9 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.sun.woodstock.dependlibs</groupId>
+                <groupId>org.glassfish.woodstock.external</groupId>
                 <artifactId>prototype</artifactId>
-                <version>${woodstock-prototype.version}</version>
+                <version>6.0.3</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>
