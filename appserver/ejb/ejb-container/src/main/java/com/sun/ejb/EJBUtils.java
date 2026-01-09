@@ -475,8 +475,8 @@ public class EJBUtils {
 
     public static void loadGeneratedRemoteBusinessClasses(ClassLoader appClassLoader, String businessInterfaceName)
         throws Exception {
-        
-        if (appClassLoader == null && appClassLoader.getClass().getName().contains("CurrentBeforeParentClassLoader")) {
+
+        if (appClassLoader != null && appClassLoader.getClass().getName().contains("CurrentBeforeParentClassLoader")) {
             appClassLoader = Thread.currentThread().getContextClassLoader();
         }
         
