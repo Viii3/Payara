@@ -294,6 +294,7 @@
         <woodstox.version>6.5.1</woodstox.version>
         <woodstock-jsf.version>4.0.2.10.payara-p17</woodstock-jsf.version>
         <woodstock-jsf-suntheme.version>4.0.2.10.payara-p21</woodstock-jsf-suntheme.version>
+        <woodstock-external.prototype.version>6.0.3</woodstock-external.prototype.version>
         <jakarta.activation-impl.version>1.2.2</jakarta.activation-impl.version>
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
         <jline.version>3.30.6</jline.version>
