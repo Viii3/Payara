@@ -53,6 +53,7 @@ import com.sun.ejb.containers.GenericEJBLocalHome;
 import com.sun.enterprise.deployment.EjbDescriptor;
 import com.sun.enterprise.deployment.EjbReferenceDescriptor;
 
+import com.sun.enterprise.loader.CurrentBeforeParentClassLoader;
 import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 import java.io.*;
@@ -476,7 +477,7 @@ public class EJBUtils {
     public static void loadGeneratedRemoteBusinessClasses(ClassLoader appClassLoader, String businessInterfaceName)
         throws Exception {
 
-        if (appClassLoader != null && appClassLoader.getClass().getName().contains("CurrentBeforeParentClassLoader")) {
+        if (appClassLoader != null && appClassLoader.getClass().isAssignableFrom(CurrentBeforeParentClassLoader.class)) {
             appClassLoader = Thread.currentThread().getContextClassLoader();
         }
         
