@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2016-2022] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2016-2026 Payara Foundation and/or its affiliates
 
 package com.sun.ejb;
 
@@ -53,6 +53,7 @@ import com.sun.ejb.containers.GenericEJBLocalHome;
 import com.sun.enterprise.deployment.EjbDescriptor;
 import com.sun.enterprise.deployment.EjbReferenceDescriptor;
 
+import com.sun.enterprise.loader.CurrentBeforeParentClassLoader;
 import javax.naming.NamingException;
 import javax.rmi.PortableRemoteObject;
 import java.io.*;
@@ -476,6 +477,10 @@ public class EJBUtils {
     public static void loadGeneratedRemoteBusinessClasses(ClassLoader appClassLoader, String businessInterfaceName)
         throws Exception {
 
+        if (appClassLoader != null && appClassLoader.getClass().isAssignableFrom(CurrentBeforeParentClassLoader.class)) {
+            appClassLoader = Thread.currentThread().getContextClassLoader();
+        }
+        
         String generatedRemoteIntfName = EJBUtils.
             getGeneratedRemoteIntfName(businessInterfaceName);
 
