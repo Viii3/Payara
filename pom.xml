@@ -282,7 +282,7 @@
         <snakeyaml.version>2.5</snakeyaml.version>
         <jakarta.servlet.jsp.jstl-api.version>1.2.7</jakarta.servlet.jsp.jstl-api.version>
         <javax.servlet.jsp.jstl.version>1.2.5</javax.servlet.jsp.jstl.version>
-        <mojarra.version>2.3.21.payara-p2-SNAPSHOT</mojarra.version>
+        <mojarra.version>2.3.21.payara-p2</mojarra.version>
         <jaxb-extra-osgi.version>2.3.0</jaxb-extra-osgi.version>
         <yasson.version>1.0.11</yasson.version>
         <eclipselink.version>2.7.16.payara-p1</eclipselink.version>
