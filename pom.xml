@@ -353,7 +353,7 @@
         <weld.version>5.1.6.Final</weld.version>
         <tyrus.version>2.1.5.payara-p2</tyrus.version>
         <jsp-impl.version>3.2.2</jsp-impl.version>
-        <asm.version>9.9</asm.version>
+        <asm.version>9.9.1</asm.version>
         <monitoring-console-api.version>2.0.2</monitoring-console-api.version>
         <monitoring-console-process.version>2.0.2</monitoring-console-process.version>
         <monitoring-console-webapp.version>2.0.2</monitoring-console-webapp.version>
