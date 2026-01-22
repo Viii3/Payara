@@ -427,7 +427,7 @@ updates:
       # New ignore rule
       - dependency-name: "org.glassfish.build:command-security-maven-plugin"
         versions:
-          - ">= 1.0.19"      
+          - ">=1.0.19"
 
       # Ignore major version updates for org.eclipse and related dependencies
       - dependency-name: "org.eclipse:yasson"
