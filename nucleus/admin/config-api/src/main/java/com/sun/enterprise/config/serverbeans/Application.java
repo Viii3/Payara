@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2017-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2017-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.config.serverbeans;
 
@@ -318,6 +318,7 @@ public interface Application extends ApplicationName, ApplicationDeploymentTime,
     boolean containsSnifferType(String snifferType);
 
     @DuckTyped
+    @Deprecated
     boolean isLifecycleModule();
 
     @DuckTyped
@@ -452,6 +453,7 @@ public interface Application extends ApplicationName, ApplicationDeploymentTime,
             return !(Boolean.valueOf(me.getDeployProperties().getProperty(ServerTags.IS_COMPOSITE)));
         }
 
+        @Deprecated
         public static boolean isLifecycleModule(Application me) {
             return Boolean.valueOf(me.getDeployProperties().getProperty(ServerTags.IS_LIFECYCLE));
         }
