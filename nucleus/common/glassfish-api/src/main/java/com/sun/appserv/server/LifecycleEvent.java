@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package com.sun.appserv.server;
 
@@ -46,6 +47,7 @@ package com.sun.appserv.server;
  * It also contains a LifecycleEventContext that can be used by the 
  * lifecycle modules.
  */
+@Deprecated
 public class LifecycleEvent extends java.util.EventObject {
     
     private int eventType;

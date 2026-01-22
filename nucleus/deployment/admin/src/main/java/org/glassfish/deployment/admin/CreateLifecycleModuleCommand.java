@@ -38,7 +38,7 @@
  * holder.
  */
 
-// Portions Copyright [2017-2021] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2017-2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.deployment.admin;
 
@@ -104,6 +104,7 @@ import org.glassfish.deployment.common.DeploymentUtils;
             @RestParam(name="target", value="$parent")
         })
 })
+@Deprecated
 public class CreateLifecycleModuleCommand implements AdminCommand, AdminCommandSecurity.AccessCheckProvider {
 
     @Param(primary=true)

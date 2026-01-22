@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] Payara Foundation and/or affiliates
+// Portions Copyright 2019-2026 Payara Foundation and/or affiliates
 
 package com.sun.enterprise.v3.server;
 
@@ -62,6 +62,7 @@ import java.util.logging.Logger;
  * @author Sridatta Viswanath
  */
 
+@Deprecated
 public final class ServerLifecycleModule {
 
     private LifecycleListener slcl;
