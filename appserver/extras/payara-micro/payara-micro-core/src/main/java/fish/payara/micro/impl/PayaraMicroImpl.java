@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2016-2025 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2016-2026 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -86,12 +86,10 @@ import com.sun.enterprise.glassfish.bootstrap.Constants;
 import com.sun.enterprise.glassfish.bootstrap.GlassFishImpl;
 import com.sun.enterprise.server.logging.ODLLogFormatter;
 
+import fish.payara.crac.CheckpointedTimer;
 import fish.payara.crac.CracUtil;
 import fish.payara.deployment.util.JavaArchiveUtils;
 import fish.payara.deployment.util.URIUtils;
-import org.crac.Context;
-import org.crac.Core;
-import org.crac.Resource;
 import org.glassfish.embeddable.BootstrapProperties;
 import org.glassfish.embeddable.CommandRunner;
 import org.glassfish.embeddable.Deployer;
@@ -1024,10 +1022,6 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         
         CheckpointedTimer timer = new CheckpointedTimer();
         timer.startTimer();
-        
-        if (JDK.isCRaCJDK()) {
-            Core.getGlobalContext().register(timer);
-        }
 
         // Build the runtime directory
         try {
@@ -2880,47 +2874,5 @@ public class PayaraMicroImpl implements PayaraMicroBoot {
         checkNotRunning();
         postBootHandler = handler;
         return this;
-    }
-    
-    private static class CheckpointedTimer implements Resource {
-        private static final long SECOND = 1000000000;
-        
-        private long preCheckpointStart;
-        private long preCheckpointEnd;
-        private long postCheckpointStart;
-        private long postCheckpointEnd;
-        
-        private void startTimer() {
-            this.preCheckpointStart = System.nanoTime();
-        }
-        
-        private void stopTimer() {
-            if (this.preCheckpointEnd == 0) {
-                this.preCheckpointEnd = System.nanoTime();
-            } else {
-                this.postCheckpointEnd = System.nanoTime();
-            }
-        }
-        
-        private long getDurationMillis() {
-            return (this.preCheckpointEnd - this.preCheckpointStart +
-                this.postCheckpointEnd - this.postCheckpointStart) / 1000000;
-        }
-
-        @Override
-        public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
-            this.preCheckpointEnd = System.nanoTime();
-        }
-
-        @Override
-        public void afterRestore(Context<? extends Resource> context) throws Exception {
-            this.postCheckpointStart = System.nanoTime();
-            
-            // Both callbacks trigger in the first run when the checkpoint is set.
-            if (this.postCheckpointStart - this.preCheckpointEnd > SECOND) {
-                this.preCheckpointStart = 0;
-                this.preCheckpointEnd = 0;
-            }
-        }
     }
 }

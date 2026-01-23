@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2025-2026 Payara Foundation and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Payara Foundation and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,39 +39,52 @@
  */
 package fish.payara.crac;
 
-import com.sun.enterprise.util.JDK;
-import org.crac.CheckpointException;
+import org.crac.Context;
 import org.crac.Core;
-import org.crac.RestoreException;
+import org.crac.Resource;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+public class CheckpointedTimer implements Resource {
+    private static final long SECOND = 1000000000;
 
-public class CracUtil {
+    private long preCheckpointStart;
+    private long preCheckpointEnd;
+    private long postCheckpointStart;
+    private long postCheckpointEnd;
 
-    public static final String CHECKPOINT_AFTER_DEPLOYMENT_PROPERTY = "fish.payara.crac.checkpointAfterDeployment";
+    public CheckpointedTimer() {
+        Core.getGlobalContext().register(this);
+    }
 
-    private static final Logger logger = Logger.getLogger(CracUtil.class.getName());
+    public void startTimer() {
+        this.preCheckpointStart = System.nanoTime();
+    }
 
-    public static boolean checkpointRestore(boolean warmup) {
-        CheckpointedTimer timer = new CheckpointedTimer();
-        timer.startTimer();
-        if (!warmup) {
-            return true;
+    public void stopTimer() {
+        if (this.preCheckpointEnd == 0) {
+            this.preCheckpointEnd = System.nanoTime();
+        } else {
+            this.postCheckpointEnd = System.nanoTime();
         }
-        if (JDK.isCRaCJDK()) {
-            try {
-                Core.checkpointRestore();
-                timer.stopTimer();
-                logger.log(Level.INFO, "CRaC Restoration took {0}ms", timer.getDurationMillis());
-            } catch (CheckpointException e) {
-                logger.log(Level.SEVERE, "An error occurred during the checkpointing process and will exit", e);
-                return false;
-            } catch (RestoreException e) {
-                logger.log(Level.SEVERE, "An error occurred during the restoration process", e.getCause());
-                return false;
-            }
+    }
+
+    public long getDurationMillis() {
+        return (this.preCheckpointEnd - this.preCheckpointStart +
+                this.postCheckpointEnd - this.postCheckpointStart) / 1000000;
+    }
+
+    @Override
+    public void beforeCheckpoint(Context<? extends Resource> context) throws Exception {
+        this.preCheckpointEnd = System.nanoTime();
+    }
+
+    @Override
+    public void afterRestore(Context<? extends Resource> context) throws Exception {
+        this.postCheckpointStart = System.nanoTime();
+
+        // Both callbacks trigger in the first run when the checkpoint is set.
+        if (this.postCheckpointStart - this.preCheckpointEnd > SECOND) {
+            this.preCheckpointStart = 0;
+            this.preCheckpointEnd = 0;
         }
-        return true;
     }
 }
