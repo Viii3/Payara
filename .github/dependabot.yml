@@ -482,5 +482,4 @@ updates:
 
       # Ignore upgrades from Payara Enterprise to Payara Community
       - dependency-name: "fish.payara"
-        versions:
-          - "5.2020.*"  # This ignores any upgrades to Payara Community versions (5.2020.x)
+        versions: ["[5.2020.1,)"]  # This ignores any upgrades to Payara Community versions (5.2020.x)
