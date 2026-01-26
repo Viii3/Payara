@@ -219,6 +219,12 @@ public class RollbackUpgradeCommand extends BaseUpgradeCommand {
                             continue;
                         }
 
+                        if (nsfe.getMessage().contains("LICENSE.txt")) {
+                            logger.log(Level.FINE, "Ignoring NoSuchFileException for LICENSE.txt file under the " +
+                                    "assumption this is a version from 6.32.0 / 5.82.0 and above. Continuing to move files...");
+                            continue;
+                        }
+
                         throw nsfe;
                     }
                 }
