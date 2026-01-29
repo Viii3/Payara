@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or affiliates
 package org.glassfish.cluster.ssh.util;
 
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import org.glassfish.internal.api.RelativePathResolver;
  * Hence this class!
  * @author Byron Nevins
  */
+@Deprecated
 public final class DcomUtils {
     private DcomUtils() {
         // no instances allowed!

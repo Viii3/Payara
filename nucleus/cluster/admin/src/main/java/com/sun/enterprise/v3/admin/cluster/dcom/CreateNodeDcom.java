@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] Payara Foundation and/or affiliates
+// Portions Copyright [2018-2026] Payara Foundation and/or affiliates
 
 package com.sun.enterprise.v3.admin.cluster.dcom;
 
@@ -69,6 +69,7 @@ import static com.sun.enterprise.util.StringUtils.ok;
         path="create-node-dcom",
         description="Create Node DCOM")
 })
+@Deprecated
 public class CreateNodeDcom extends CreateRemoteNodeCommand {
     @Param(name = "windowsuser", shortName = "w", optional = true, defaultValue = NodeUtils.NODE_DEFAULT_REMOTE_USER)
     private String windowsuser;
