@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or affiliates
 package org.glassfish.cluster.ssh.util;
 
 import com.sun.enterprise.config.serverbeans.Node;
@@ -56,6 +57,7 @@ import static com.sun.enterprise.util.StringUtils.ok;
  * This class is guaranteed thread-safe and immutable
  * @author Byron Nevins
  */
+@Deprecated
 public final class DcomInfo {
     private final WindowsCredentials credentials;
     private final Node node;

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2020] Payara Foundation and/or affiliates
+// Portions Copyright [2018-2026] Payara Foundation and/or affiliates
 
 package com.sun.enterprise.v3.admin.cluster;
 
@@ -367,6 +367,7 @@ public class NodeUtils {
      * @param node  Node to connect to
      * @throws CommandValidationException
      */
+    @Deprecated
     private void pingDcomConnection(Node node) throws CommandValidationException {
         try {
             SshConnector connector = node.getSshConnector();
@@ -414,6 +415,7 @@ public class NodeUtils {
      *
      * @throws CommandValidationException
      */
+    @Deprecated
     void pingDcomConnection(String host, String domain, String username,
             String password, String installRoot) throws CommandValidationException {
         // don't bother trying to connect if we have no password!
@@ -466,6 +468,7 @@ public class NodeUtils {
         }
     }
 
+    @Deprecated
     private void validateDcomConnection(ParameterMap map) throws CommandValidationException {
         if (Boolean.parseBoolean(map.getOne(PARAM_INSTALL))) {
             // we don't want to insist that there is an installation - there isn't one probably!!
