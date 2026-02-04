@@ -126,6 +126,8 @@ public class InstanceLifecycleModuleCommand implements AdminCommand, AdminComman
     public void execute(AdminCommandContext context) {
         final ActionReport report = context.getActionReport();
         final Logger logger = context.getLogger();
+        logger.warning("The `_lifecycle` command is deprecated and will be removed in Payara 7.");
+
 
         try {
             Application application = applications.getApplication(name);
