@@ -154,8 +154,8 @@ public class DeleteLifecycleModuleCommand implements AdminCommand, AdminCommandS
         
         ActionReport report = context.getActionReport();
         final Logger logger = context.getLogger();
-        logger.warning("The `delete-lifecycle-module` command is deprecated and will be removed in Payara 7.");
-
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `delete-lifecycle-module` command is deprecated and will be removed in Payara 7.");
 
         if (!deployment.isRegistered(name)) {
             report.setMessage(localStrings.getLocalString("lifecycle.notreg","Lifecycle module {0} not registered", name)); 

@@ -115,6 +115,9 @@ public class ListLifecycleModulesCommand implements AdminCommand {
     public void execute(AdminCommandContext context) {
         
         ActionReport report = context.getActionReport();
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `list-lifecycle-module` command is deprecated and will be removed in Payara 7.");
+
         ActionReport.MessagePart part = report.getTopMessagePart();
 
         boolean found = false;
