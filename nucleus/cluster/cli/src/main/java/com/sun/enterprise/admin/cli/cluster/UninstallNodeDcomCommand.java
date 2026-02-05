@@ -94,6 +94,8 @@ public class UninstallNodeDcomCommand extends UninstallNodeBaseCommand {
 
     @Override
     final void deleteFromHosts() throws CommandException {
+        logger.warning("The 'uninstall-node-dcom' command is deprecated and will be removed in future.");
+        
         for (String host : hosts) {
             try {
                 String pw = getWindowsPassword(host);

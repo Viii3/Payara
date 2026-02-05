@@ -111,6 +111,9 @@ public class ValidateDcom implements AdminCommand {
 
     @Override
     public final void execute(AdminCommandContext context) {
+        report.setMessage("The 'validate-dcom' command is deprecated and will be removed in future.");
+        context.getLogger().warning("The 'validate-dcom' command is deprecated and will be removed in future.");
+        
         debug = Boolean.parseBoolean(System.getenv("AS_DEBUG")) && verbose;
         try {
             // try/finally is least messy way of making sure partial success news
@@ -142,7 +145,7 @@ public class ValidateDcom implements AdminCommand {
         }
         finally {
             if (report.getActionExitCode() != ActionReport.ExitCode.SUCCESS || verbose)
-                report.setMessage(out.toString());
+                report.appendMessage(out.toString());
         }
     }
 
