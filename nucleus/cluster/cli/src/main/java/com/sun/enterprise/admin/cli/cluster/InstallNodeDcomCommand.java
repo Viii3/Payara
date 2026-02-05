@@ -69,6 +69,12 @@ public class InstallNodeDcomCommand extends InstallNodeBaseCommand {
     private String windowsDomain;
     private final List<HostAndPassword> passwords = new ArrayList<HostAndPassword>();
     private String remoteInstallDirString;
+    
+    @Override
+    protected int executeCommand() throws CommandException {
+        logger.warning("The 'install-node-dcom' command is deprecated and will be removed in future.");
+        return super.executeCommand();
+    }
 
     /**
      * DCOM won't work right on localhost.  Luckily it makes no sense to do that in

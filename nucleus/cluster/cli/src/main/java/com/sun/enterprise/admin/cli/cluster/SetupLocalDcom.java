@@ -108,6 +108,8 @@ public final class SetupLocalDcom extends CLICommand {
 
     @Override
     protected int executeCommand() throws CommandException, CommandValidationException {
+        logger.warning("The 'setup-local-dcom' command is deprecated and will be removed in future.");
+        
         try {
             List<String> cmds = new ArrayList<String>();
             cmds.add(CPP_APP.getAbsolutePath());
