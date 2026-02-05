@@ -163,10 +163,10 @@ public class CreateLifecycleModuleCommand implements AdminCommand, AdminCommandS
    
     
     public void execute(AdminCommandContext context) {
-        context.getLogger().warning("The `create-lifecycle-module` command is deprecated and will be removed in Payara 7.");
-        
-        ActionReport report = context.getActionReport();
 
+        ActionReport report = context.getActionReport();
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `create-lifecycle-module` command is deprecated and will be removed in Payara 7.");
         try {
             validateTarget(target, name);
         } catch (IllegalArgumentException ie) {
