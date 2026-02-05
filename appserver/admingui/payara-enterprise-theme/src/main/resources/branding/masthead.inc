@@ -38,7 +38,7 @@
     only if the new code is made subject to such option by the copyright
     holder.
 
-   Portions Copyright 2020-2025 Payara Foundation and/or its affiliates
+   Portions Copyright 2020-2026 Payara Foundation and/or its affiliates
 -->
 
 <!initPage
@@ -86,6 +86,24 @@
                         redirect("#{request.contextPath}/common/index.jsf");
                     />
             </sun:button>
+            <sun:button id="enableAsadminRecorderLink" rendered="#{showEnableAsadminRecorderButton}" toolTip="$resource{i18n.enableAsadminRecorderToolTip}" target="_top" text="$resource{i18n.masthead.enableAsadminRecorder}"
+                        onClick="if (!confirm('$resource{i18n.msg.JS.confirmEnableAsadminRecorder}')) {return false;} else {this.value='$resource{i18n.button.Processing}';}" onKeyPress="javascript: return true;">
+                <!command
+                setSessionAttribute(key="showEnableAsadminRecorderButton", value="false");
+                setSessionAttribute(key="showDisableAsadminRecorderButton", value="true");
+                gf.restRequest(endpoint="#{sessionScope.REST_URL}/enable-asadmin-recorder" method="POST");
+                redirect("#{request.contextPath}/common/index.jsf");
+                />
+            </sun:button>
+            <sun:button id="disableAsadminRecorderLink" rendered="#{showDisableAsadminRecorderButton}" toolTip="$resource{i18n.disableAsadminRecorderToolTip}" target="_top" text="$resource{i18n.masthead.disableAsadminRecorder}"
+                        onClick="if (!confirm('$resource{i18n.msg.JS.confirmDisableAsadminRecorder}')) {return false;} else {this.value='$resource{i18n.button.Processing}';}" onKeyPress="javascript: return true;">
+                <!command
+                setSessionAttribute(key="showEnableAsadminRecorderButton", value="true");
+                setSessionAttribute(key="showDisableAsadminRecorderButton", value="false");
+                gf.restRequest(endpoint="#{sessionScope.REST_URL}/disable-asadmin-recorder" method="POST");
+                redirect("#{request.contextPath}/common/index.jsf");
+                />
+            </sun:button>
         </sun:panelGroup>
     </facet>
     <!facet statusArea>
@@ -106,28 +124,6 @@
             <!afterCreate
                 includeIntegrations(type="org.glassfish.admingui:mastheadStatusArea" root="$this{component}");
             />
-        </sun:panelGroup>
-    </facet>
-    <!facet userInfoExtras>
-        <sun:panelGroup id="asadminRecorderPanel">
-            <sun:button id="enableAsadminRecorderLink" rendered="#{showEnableAsadminRecorderButton}" toolTip="$resource{i18n.enableAsadminRecorderToolTip}" target="_top" text="$resource{i18n.masthead.enableAsadminRecorder}"
-                onClick="if (!confirm('$resource{i18n.msg.JS.confirmEnableAsadminRecorder}')) {return false;} else {this.value='$resource{i18n.button.Processing}';}" onKeyPress="javascript: return true;">
-                    <!command
-                        setSessionAttribute(key="showEnableAsadminRecorderButton", value="false");
-                        setSessionAttribute(key="showDisableAsadminRecorderButton", value="true");
-                        gf.restRequest(endpoint="#{sessionScope.REST_URL}/enable-asadmin-recorder" method="POST");
-                        redirect("#{request.contextPath}/common/index.jsf");
-                    />
-            </sun:button>
-            <sun:button id="disableAsadminRecorderLink" rendered="#{showDisableAsadminRecorderButton}" toolTip="$resource{i18n.disableAsadminRecorderToolTip}" target="_top" text="$resource{i18n.masthead.disableAsadminRecorder}"
-                onClick="if (!confirm('$resource{i18n.msg.JS.confirmDisableAsadminRecorder}')) {return false;} else {this.value='$resource{i18n.button.Processing}';}" onKeyPress="javascript: return true;">
-                    <!command
-                        setSessionAttribute(key="showEnableAsadminRecorderButton", value="true");
-                        setSessionAttribute(key="showDisableAsadminRecorderButton", value="false");
-                        gf.restRequest(endpoint="#{sessionScope.REST_URL}/disable-asadmin-recorder" method="POST");
-                        redirect("#{request.contextPath}/common/index.jsf");
-                    />
-            </sun:button>
         </sun:panelGroup>
     </facet>
 </sun:masthead>
