@@ -84,9 +84,7 @@ public class UpdateNodeDcomCommand extends UpdateNodeRemoteCommand  {
         executeInternal(context);
 
         context.getLogger().warning("The 'update-node-dcom' command is deprecated and will be removed in future.");
-        String report = context.getActionReport().getMessage();
-        context.getActionReport().setMessage("The 'update-node-dcom' command is deprecated and will be removed in future.");
-        context.getActionReport().appendMessage(report);
+        context.getActionReport().appendMessage("\nThe 'update-node-dcom' command is deprecated and will be removed in future.");
     }
 
     @Override

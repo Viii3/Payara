@@ -79,7 +79,7 @@ public class ListNodesDcomCommand implements AdminCommand {
         context.getLogger().warning("The 'list-nodes-dcom' command is deprecated and will be removed in future.");
         
         ActionReport report = context.getActionReport();
-        report.setMessage("The 'list-nodes-dcom' command is deprecated and will be removed in future.");
+        report.setMessage("The 'list-nodes-dcom' command is deprecated and will be removed in future.\n");
         
         ListNodesHelper lnh = new ListNodesHelper(context.getLogger(), servers,
                 nodes, "DCOM", longOpt, terse);

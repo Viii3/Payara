@@ -112,7 +112,7 @@ public class ValidateDcom implements AdminCommand {
     @Override
     public final void execute(AdminCommandContext context) {
         report.setMessage("The 'validate-dcom' command is deprecated and will be removed in future.");
-        context.getLogger().warning("The 'validate-dcom' command is deprecated and will be removed in future.");
+        context.getLogger().warning("The 'validate-dcom' command is deprecated and will be removed in future.\n");
         
         debug = Boolean.parseBoolean(System.getenv("AS_DEBUG")) && verbose;
         try {

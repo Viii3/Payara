@@ -76,9 +76,7 @@ public class PingNodeDcomCommand extends PingNodeRemoteCommand {
         executeInternal(context);
 
         context.getLogger().warning("The 'ping-node-dcom' command is deprecated and will be removed in future.");
-        String report = context.getActionReport().getMessage();
-        context.getActionReport().setMessage("The 'ping-node-dcom' command is deprecated and will be removed in future.");
-        context.getActionReport().appendMessage(report);
+        context.getActionReport().appendMessage("\nThe 'ping-node-dcom' command is deprecated and will be removed in future.");
     }
         /**
      *

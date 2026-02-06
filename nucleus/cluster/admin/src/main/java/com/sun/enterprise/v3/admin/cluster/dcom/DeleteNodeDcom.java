@@ -74,9 +74,7 @@ public class DeleteNodeDcom extends DeleteNodeRemoteCommand {
         executeInternal(context);
 
         context.getLogger().warning("The 'delete-node-dcom' command is deprecated and will be removed in future.");
-        String report = context.getActionReport().getMessage();
-        context.getActionReport().setMessage("The 'delete-node-dcom' command is deprecated and will be removed in future.");
-        context.getActionReport().appendMessage(report);
+        context.getActionReport().appendMessage("\nThe 'delete-node-dcom' command is deprecated and will be removed in future.");
     }
 
     @Override
