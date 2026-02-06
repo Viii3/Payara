@@ -90,9 +90,7 @@ public class CreateNodeDcom extends CreateRemoteNodeCommand {
         executeInternal(context);
         
         context.getLogger().warning("The 'create-node-dcom' command is deprecated and will be removed in future.");
-        String report = context.getActionReport().getMessage();
-        context.getActionReport().setMessage("The 'create-node-dcom' command is deprecated and will be removed in future.");
-        context.getActionReport().appendMessage(report);
+        context.getActionReport().appendMessage("\nThe 'create-node-dcom' command is deprecated and will be removed in future.");
     }
 
     @Override
