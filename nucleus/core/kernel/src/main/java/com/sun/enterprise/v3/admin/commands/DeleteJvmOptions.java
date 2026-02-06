@@ -88,6 +88,7 @@ public final class DeleteJvmOptions implements AdminCommand, AdminCommandSecurit
     @Param(name="target", optional=true, defaultValue = SystemPropertyConstants.DEFAULT_SERVER_INSTANCE_NAME)
     String target;
 
+    @Deprecated
     @Param(name="profiler", optional=true)
     Boolean fromProfiler = false;
         
@@ -115,7 +116,11 @@ public final class DeleteJvmOptions implements AdminCommand, AdminCommandSecurit
     public void execute(AdminCommandContext context) {
         //validate the target first
         final ActionReport report = context.getActionReport();
+        if (fromProfiler) {
+            ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+            subActionsReport.setMessage("WARNING: The `profiler` option is deprecated and will be removed in Payara 7.");
 
+        }
         try {
             JvmOptionBag bag;
             if (fromProfiler) {
