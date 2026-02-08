@@ -185,14 +185,8 @@ public class JaspicRealm {
     public boolean validateRequest(HttpRequest request, HttpResponse response, Context context, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
         try {
             context.fireContainerEvent(BEFORE_AUTHENTICATION, null);
-
-            // Get the WebPrincipal principal and add to the security context principals
-            RequestFacade requestFacade = (RequestFacade) request.getRequest();
-            setAdditionalPrincipalInContext(requestFacade);
-
-            return validateRequest(getServerAuthConfig(), context, requestFacade, request, response, context.getLoginConfig(), authenticator, calledFromAuthenticate, isMandatoryFn);
+            return validateRequest(getServerAuthConfig(), context, request, response, context.getLoginConfig(), authenticator, calledFromAuthenticate, isMandatoryFn);
         } finally {
-            resetAdditionalPrincipalInContext();
             context.fireContainerEvent(AFTER_AUTHENTICATION, null);
         }
     }
@@ -348,22 +342,9 @@ public class JaspicRealm {
         return p;
     }
 
-    private void setAdditionalPrincipalInContext(RequestFacade requestFacade) {
-        if (requestFacade != null) {
-            Principal wrapped = requestFacade.getPrincipal();
-            if (wrapped != null) {
-                SecurityContext.getCurrent().setAdditionalPrincipal(wrapped);
-            }
-        }
-    }
-
-    private void resetAdditionalPrincipalInContext() {
-        SecurityContext.getCurrent().setAdditionalPrincipal(null);
-    }
-
-    private boolean validateRequest(ServerAuthConfig serverAuthConfig, Context context, RequestFacade requestFacade, HttpRequest request, HttpResponse response, LoginConfig loginConfig, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
+    private boolean validateRequest(ServerAuthConfig serverAuthConfig, Context context, HttpRequest request, HttpResponse response, LoginConfig loginConfig, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
         if (isRequestTracingEnabled()) {
-            return doTraced(serverAuthConfig, context, requestFacade,
+            return doTraced(serverAuthConfig, context, (RequestFacade) request.getRequest(),
                     () -> validateRequest(request, response, loginConfig, authenticator, calledFromAuthenticate, isMandatoryFn));
         }
 
@@ -551,14 +532,15 @@ public class JaspicRealm {
 
     private void handleSamAuthenticated(Subject subject, Caller caller, MessageInfo messageInfo, HttpRequest request, HttpResponse response, LoginConfig config, Authenticator authenticator) throws IOException {
         Principal principal = caller.getCallerPrincipal();
+        RequestFacade servletRequest = (RequestFacade) request.getRequest();
 
         // PAYARA-755 If the SAM has set a custom principal then we check that the original WebPrincipal has
         // the same custom principal within it
         if (principal != null && !(principal instanceof WebPrincipal)) {
-            Principal additional = SecurityContext.getCurrent().getAdditionalPrincipal();
-            if ((additional != null) && (additional instanceof WebPrincipal)
-                    && ((WebPrincipal) additional).getCustomPrincipal() == principal) {
-                principal = additional;
+            Principal requestPrincipal = servletRequest.getRequestPrincipal();
+            if (requestPrincipal instanceof WebPrincipal
+                    && ((WebPrincipal) requestPrincipal).getCustomPrincipal() == principal) {
+                principal = requestPrincipal;
             }
         }
 
