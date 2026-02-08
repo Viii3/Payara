@@ -50,15 +50,11 @@ package com.sun.enterprise.security.jaspic.callback;
 import com.sun.enterprise.security.SecurityContext;
 import com.sun.enterprise.security.SecurityServicesUtil;
 import com.sun.enterprise.security.auth.JaspicToJaasBridge;
-import com.sun.enterprise.security.auth.login.DistinguishedPrincipalCredential;
 import com.sun.enterprise.security.auth.login.common.LoginException;
-import com.sun.enterprise.security.auth.realm.certificate.CertificateRealm;
-import com.sun.enterprise.security.common.AppservAccessController;
 import com.sun.enterprise.security.jaspic.config.CallbackHandlerConfig;
 import com.sun.enterprise.security.jaspic.config.HandlerContext;
 import com.sun.enterprise.security.ssl.SSLUtils;
 import com.sun.enterprise.security.store.PasswordAdapter;
-import com.sun.enterprise.security.web.integration.WebPrincipal;
 import com.sun.enterprise.server.pluggable.SecuritySupport;
 import com.sun.logging.LogDomains;
 import jakarta.security.auth.message.callback.CallerPrincipalCallback;
@@ -68,10 +64,10 @@ import jakarta.security.auth.message.callback.PasswordValidationCallback;
 import jakarta.security.auth.message.callback.PrivateKeyCallback;
 import jakarta.security.auth.message.callback.SecretKeyCallback;
 import jakarta.security.auth.message.callback.TrustStoreCallback;
+import jakarta.security.enterprise.CallerPrincipal;
 import org.glassfish.internal.api.Globals;
 import org.glassfish.security.common.Group;
 import org.glassfish.security.common.MasterPassword;
-import org.glassfish.security.common.PrincipalImpl;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -89,7 +85,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.PrivateKey;
-import java.security.PrivilegedAction;
 import java.security.cert.CertStore;
 import java.security.cert.Certificate;
 import java.security.cert.CollectionCertStoreParameters;
@@ -98,13 +93,10 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.sun.enterprise.security.SecurityContext.getDefaultCallerPrincipal;
 import static com.sun.enterprise.security.common.AppservAccessController.privileged;
 import static java.util.Arrays.stream;
 
@@ -207,225 +199,33 @@ abstract class BaseContainerCallbackHandler implements CallbackHandler, Callback
         }
     }
 
-    /**
-     * This method will distinguish the initiator principal (of the SecurityContext obtained from the WebPrincipal) as the
-     * caller principal, and copy all the other principals into the subject....
-     *
-     * It is assumed that the input WebPrincipal is coming from a SAM, and that it was created either by the SAM (as
-     * described below) or by calls to the LoginContextDriver made by an Authenticator.
-     *
-     * A WebPrincipal constructed by the RealmAdapter will include a DPC; other constructions may not; this method
-     * interprets the absence of a DPC as evidence that the resulting WebPrincipal was not constructed by the RealmAdapter
-     * as described below. Note that presence of a DPC does not necessarily mean that the resulting WebPrincipal was
-     * constructed by the RealmAdapter... since some authenticators also add the credential).
-     *
-     * A. handling of CPCB by CBH:
-     *
-     * 1. handling of CPC by CBH modifies subject a. constructs principalImpl if called by name b. uses LoginContextDriver
-     * to add group principals for name c. puts principal in principal set, and DPC in public credentials
-     *
-     * B. construction of WebPrincipal by RealmAdapter (occurs after SAM uses CBH to set other than an unauthenticated
-     * result in the subject:
-     *
-     * a. SecurityContext construction done with subject (returned by SAM). Construction sets initiator/caller principal
-     * within SC from DPC set by CBH in public credentials of subject
-     *
-     * b WebPrincipal is constructed with initiator principal and SecurityContext
-     *
-     * @param fs receiving Subject
-     * @param wp WebPrincipal
-     *
-     * @return true when Security Context has been obtained from webPrincipal, and CB is finished. returns false when more
-     * CB processing is required.
-     */
-    private boolean reuseWebPrincipal(final Subject fs, final WebPrincipal wp) {
-
-        SecurityContext sc = wp.getSecurityContext();
-        final Subject wps = sc != null ? sc.getSubject() : null;
-        final Principal callerPrincipal = sc != null ? sc.getCallerPrincipal() : null;
-        final Principal defaultPrincipal = SecurityContext.getDefaultCallerPrincipal();
-
-        return ((Boolean) AppservAccessController.doPrivileged(new PrivilegedAction() {
-
-            /**
-             * this method uses 4 (numbered) criteria to determine if the argument WebPrincipal can be reused
-             */
-            @Override
-            public Boolean run() {
-
-                /*
-                 * 1. WebPrincipal must contain a SecurityContext and SC must have a non-null, non-default callerPrincipal and a Subject
-                 */
-                if (callerPrincipal == null || callerPrincipal.equals(defaultPrincipal) || wps == null) {
-                    return Boolean.FALSE;
-                }
-
-                boolean hasObject = false;
-                Set<DistinguishedPrincipalCredential> distinguishedCreds = wps.getPublicCredentials(DistinguishedPrincipalCredential.class);
-                if (distinguishedCreds.size() == 1) {
-                    for (DistinguishedPrincipalCredential cred : distinguishedCreds) {
-                        if (cred.getPrincipal().equals(callerPrincipal)) {
-                            hasObject = true;
-                        }
-                    }
-                }
-
-                /**
-                 * 2. Subject within SecurityContext must contain a single DPC that identifies the Caller Principal
-                 */
-                if (!hasObject) {
-                    return Boolean.FALSE;
-                }
-
-                hasObject = wps.getPrincipals().contains(callerPrincipal);
-
-                /**
-                 * 3. Subject within SecurityContext must contain the caller principal
-                 */
-                if (!hasObject) {
-                    return Boolean.FALSE;
-                }
-
-                /**
-                 * 4. The webPrincipal must have a non null name that equals the name of the callerPrincipal.
-                 */
-                if (wp.getName() == null || !wp.getName().equals(callerPrincipal.getName())) {
-                    return Boolean.FALSE;
-                }
-
-                /*
-                 * remove any existing DistinguishedPrincipalCredentials from receiving Subject
-                 *
-                 */
-                Iterator iter = fs.getPublicCredentials().iterator();
-                while (iter.hasNext()) {
-                    Object obj = iter.next();
-                    if (obj instanceof DistinguishedPrincipalCredential) {
-                        iter.remove();
-                    }
-                }
-
-                /**
-                 * Copy principals from Subject within SecurityContext to receiving Subject
-                 */
-
-                for (Principal p : wps.getPrincipals()) {
-                    fs.getPrincipals().add(p);
-                }
-
-                /**
-                 * Copy public credentials from Subject within SecurityContext to receiving Subject
-                 */
-                for (Object publicCred : wps.getPublicCredentials()) {
-                    fs.getPublicCredentials().add(publicCred);
-                }
-
-                /**
-                 * Copy private credentials from Subject within SecurityContext to receiving Subject
-                 */
-                for (Object privateCred : wps.getPrivateCredentials()) {
-                    fs.getPrivateCredentials().add(privateCred);
-                }
-
-                return Boolean.TRUE;
-            }
-        })).booleanValue();
-    }
-
     private void processCallerPrincipal(CallerPrincipalCallback callerPrincipalCallback) {
         Subject subject = callerPrincipalCallback.getSubject();
         Principal principal = callerPrincipalCallback.getPrincipal();
-
-        // PAYARA-755 If the SAM has set a custom principal then we check that the original WebPrincipal has
-        // the same custom principal within it
-        if (principal != null && !(principal instanceof WebPrincipal)) {
-            Principal additional = SecurityContext.getCurrent().getAdditionalPrincipal();
-            if ((additional != null) && (additional instanceof WebPrincipal)
-                    && ((WebPrincipal) additional).getCustomPrincipal() == principal) {
-                principal = additional;
-            }
-        }
-
-        if (principal instanceof WebPrincipal) {
-            WebPrincipal webPrincipal = (WebPrincipal) principal;
-
-            /**
-             * Check if the WebPrincipal satisfies the criteria for reuse. If it does, the CBH will have already
-             * copied its contents into the Subject, and established the caller principal.
-             */
-            if (reuseWebPrincipal(subject, webPrincipal)) {
-                return;
-            }
-
-            /**
-             * Otherwise the webPrincipal must be distinguished as the callerPrincipal, but the contents of its
-             * internal SecurityContext will not be copied. For the special case where the WebPrincipal
-             * represents the defaultCallerPrincipal, the argument principal is set to null to cause the handler
-             * to assign its representation of the unauthenticated caller in the Subject.
-             */
-            Principal defaultCallerPrincipal = SecurityContext.getDefaultCallerPrincipal();
-            SecurityContext securityContext = webPrincipal.getSecurityContext();
-            Principal callerPrincipal = securityContext != null ? securityContext.getCallerPrincipal() : null;
-
-            if (webPrincipal.getName() == null || webPrincipal.equals(defaultCallerPrincipal) || callerPrincipal == null || callerPrincipal.equals(defaultCallerPrincipal)) {
-                principal = null;
-            }
-        }
-
-        String realmName = null;
-        if (handlerContext != null) {
-            realmName = handlerContext.getRealmName();
-        }
-
-        boolean isCertRealm = CertificateRealm.AUTH_TYPE.equals(realmName);
         if (principal == null) {
-            if (callerPrincipalCallback.getName() != null) {
-                if (isCertRealm) {
-                    principal = new X500Principal(callerPrincipalCallback.getName());
-                } else {
-                    principal = new PrincipalImpl(callerPrincipalCallback.getName());
-                }
-            } else {
-                // Jakarta Authentication unauthenticated caller principal
-                principal = SecurityContext.getDefaultCallerPrincipal();
-            }
+            principal = new CallerPrincipal(callerPrincipalCallback.getName());
         }
 
-        if (isCertRealm) {
-            if (principal instanceof X500Principal) {
-                JaspicToJaasBridge.jaasX500Login(subject, (X500Principal) principal);
-            }
+        Caller caller = Caller.fromSubject(subject);
+        if (caller == null) {
+            Caller.toSubject(subject, new Caller(principal));
         } else {
-            if (!principal.equals(getDefaultCallerPrincipal())) {
-                JaspicToJaasBridge.addRealmGroupsToSubject(subject, principal.getName(), realmName);
-            }
+            caller.setCallerPrincipal(principal);
         }
-
-        final Principal finalPrincipal = principal;
-        DistinguishedPrincipalCredential distinguishedPrincipalCredential = new DistinguishedPrincipalCredential(principal);
-
-        privileged(() -> {
-            subject.getPrincipals().add(finalPrincipal);
-
-            Iterator<Object> publicCredentials = subject.getPublicCredentials().iterator();
-            while (publicCredentials.hasNext()) {
-                if (publicCredentials.next() instanceof DistinguishedPrincipalCredential) {
-                    publicCredentials.remove();
-                }
-            }
-
-            subject.getPublicCredentials().add(distinguishedPrincipalCredential);
-        });
     }
 
     private void processGroupPrincipal(GroupPrincipalCallback groupCallback) {
         Subject subject = groupCallback.getSubject();
         String[] groups = groupCallback.getGroups();
-
+        Caller caller = Caller.fromSubject(subject);
         if (groups != null && groups.length > 0) {
-            privileged(() -> stream(groups).forEach(group -> subject.getPrincipals().add(new Group(group))));
-        } else if (groups == null) {
-            privileged(() -> subject.getPrincipals().removeAll(subject.getPrincipals(Group.class)));
+            if (caller == null) {
+                Caller.toSubject(subject, new Caller(groups));
+            } else {
+                caller.addGroups(groups);
+            }
+        } else if (groups == null && caller != null) {
+            caller.getGroups().clear();
         }
     }
 
