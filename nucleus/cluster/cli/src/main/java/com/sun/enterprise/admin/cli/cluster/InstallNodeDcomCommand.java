@@ -37,6 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
+
 package com.sun.enterprise.admin.cli.cluster;
 
 import java.util.logging.Level;
@@ -60,6 +62,7 @@ import org.jvnet.hk2.annotations.Service;
  */
 @Service(name = "install-node-dcom")
 @PerLookup
+@Deprecated
 public class InstallNodeDcomCommand extends InstallNodeBaseCommand {
     @Param(name = "windowsuser", shortName = "w", optional = true, defaultValue = "${user.name}")
     private String user;
@@ -67,6 +70,12 @@ public class InstallNodeDcomCommand extends InstallNodeBaseCommand {
     private String windowsDomain;
     private final List<HostAndPassword> passwords = new ArrayList<HostAndPassword>();
     private String remoteInstallDirString;
+    
+    @Override
+    protected int executeCommand() throws CommandException {
+        logger.warning("The 'install-node-dcom' command is deprecated and will be removed in future.");
+        return super.executeCommand();
+    }
 
     /**
      * DCOM won't work right on localhost.  Luckily it makes no sense to do that in

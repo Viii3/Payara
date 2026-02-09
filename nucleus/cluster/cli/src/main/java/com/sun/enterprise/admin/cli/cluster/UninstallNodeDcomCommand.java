@@ -37,6 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
+
 package com.sun.enterprise.admin.cli.cluster;
 
 import com.sun.enterprise.util.cluster.windows.io.WindowsRemoteFile;
@@ -54,6 +56,7 @@ import org.glassfish.hk2.api.PerLookup;
  */
 @Service(name = "uninstall-node-dcom")
 @PerLookup
+@Deprecated
 public class UninstallNodeDcomCommand extends UninstallNodeBaseCommand {
     @Param(name = "windowsuser", shortName = "w", optional = true, defaultValue = "${user.name}")
     private String user;
@@ -92,6 +95,8 @@ public class UninstallNodeDcomCommand extends UninstallNodeBaseCommand {
 
     @Override
     final void deleteFromHosts() throws CommandException {
+        logger.warning("The 'uninstall-node-dcom' command is deprecated and will be removed in future.");
+        
         for (String host : hosts) {
             try {
                 String pw = getWindowsPassword(host);

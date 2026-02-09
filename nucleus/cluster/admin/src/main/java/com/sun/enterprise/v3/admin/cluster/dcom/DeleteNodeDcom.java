@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] Payara Foundation and/or affiliates
+// Portions Copyright 2018-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.v3.admin.cluster.dcom;
 
@@ -67,11 +67,14 @@ import org.glassfish.hk2.api.PerLookup;
         path="delete-node-dcom",
         description="Delete Node DCOM")
 })
-
+@Deprecated
 public class DeleteNodeDcom extends DeleteNodeRemoteCommand {
     @Override
     public void execute(AdminCommandContext context) {
         executeInternal(context);
+
+        context.getLogger().warning("The 'delete-node-dcom' command is deprecated and will be removed in future.");
+        context.getActionReport().appendMessage("\nThe 'delete-node-dcom' command is deprecated and will be removed in future.");
     }
 
     @Override

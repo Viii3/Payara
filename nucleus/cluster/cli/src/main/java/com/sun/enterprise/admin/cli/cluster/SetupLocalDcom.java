@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2019] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2019-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.cli.cluster;
 
@@ -66,6 +66,7 @@ import org.jline.reader.UserInterruptException;
  */
 @Service(name = "setup-local-dcom")
 @PerLookup
+@Deprecated
 public final class SetupLocalDcom extends CLICommand {
     @Param(name = "verbose", shortName = "v", primary = false, optional = true)
     boolean verbose;
@@ -107,6 +108,8 @@ public final class SetupLocalDcom extends CLICommand {
 
     @Override
     protected int executeCommand() throws CommandException, CommandValidationException {
+        logger.warning("The 'setup-local-dcom' command is deprecated and will be removed in future.");
+        
         try {
             List<String> cmds = new ArrayList<String>();
             cmds.add(CPP_APP.getAbsolutePath());
