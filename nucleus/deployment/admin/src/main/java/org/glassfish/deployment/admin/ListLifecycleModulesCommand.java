@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.deployment.admin;
 
@@ -45,9 +46,7 @@ import com.sun.enterprise.config.serverbeans.Application;
 import com.sun.enterprise.config.serverbeans.Cluster;
 import com.sun.enterprise.config.serverbeans.Domain;
 import com.sun.enterprise.config.serverbeans.Server;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+
 import org.glassfish.api.ActionReport;
 import org.glassfish.api.Param;
 import org.glassfish.api.I18n;
@@ -99,6 +98,7 @@ import org.glassfish.hk2.api.PerLookup;
         })
 })
 @AccessRequired(resource=DeploymentCommandUtils.APPLICATION_RESOURCE_NAME, action="read")
+@Deprecated
 public class ListLifecycleModulesCommand implements AdminCommand {
 
     @Param(primary=true, optional=true)
@@ -115,6 +115,9 @@ public class ListLifecycleModulesCommand implements AdminCommand {
     public void execute(AdminCommandContext context) {
         
         ActionReport report = context.getActionReport();
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `list-lifecycle-module` command is deprecated and will be removed in Payara 7.");
+
         ActionReport.MessagePart part = report.getTopMessagePart();
 
         boolean found = false;

@@ -38,7 +38,7 @@
  * holder.
  */
 
-// Portions Copyright [2017] [Payara Foundation and/or its affiliates] 
+// Portions Copyright 2017-2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.deployment.admin;
 
@@ -105,6 +105,7 @@ import org.glassfish.api.admin.ServerEnvironment;
             @RestParam(name="target", value="$parent")
         })
 })
+@Deprecated
 public class DeleteLifecycleModuleCommand implements AdminCommand, AdminCommandSecurity.AccessCheckProvider {
 
     @Param(primary=true)
@@ -153,6 +154,8 @@ public class DeleteLifecycleModuleCommand implements AdminCommand, AdminCommandS
         
         ActionReport report = context.getActionReport();
         final Logger logger = context.getLogger();
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `delete-lifecycle-module` command is deprecated and will be removed in Payara 7.");
 
         if (!deployment.isRegistered(name)) {
             report.setMessage(localStrings.getLocalString("lifecycle.notreg","Lifecycle module {0} not registered", name)); 
