@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.deployment.admin;
 
@@ -83,6 +84,7 @@ import org.glassfish.api.admin.RestEndpoints;
         path="_lifecycle", 
         description="_lifecycle")
 })
+@Deprecated
 public class InstanceLifecycleModuleCommand implements AdminCommand, AdminCommandSecurity.AccessCheckProvider {
 
     final private static LocalStringManagerImpl localStrings = new LocalStringManagerImpl(InstanceLifecycleModuleCommand.class);
@@ -124,6 +126,8 @@ public class InstanceLifecycleModuleCommand implements AdminCommand, AdminComman
     public void execute(AdminCommandContext context) {
         final ActionReport report = context.getActionReport();
         final Logger logger = context.getLogger();
+        logger.warning("The `_lifecycle` command is deprecated and will be removed in Payara 7.");
+
 
         try {
             Application application = applications.getApplication(name);

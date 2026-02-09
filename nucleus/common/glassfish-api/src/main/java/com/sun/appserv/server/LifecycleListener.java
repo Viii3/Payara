@@ -37,10 +37,10 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package com.sun.appserv.server;
 
-import java.util.Properties;
 
 /**
  * lifecycle modules implement <code>com.sun.appserv.server.LifecycleListener</code> interface. 
@@ -63,6 +63,7 @@ import java.util.Properties;
  *  When <code>is-failure-fatal</code> in server.xml is set to <code>true</code>, all exceptions from the
  *  lifecycle modules are treated as fatal conditions.
  */
+@Deprecated
 public interface LifecycleListener {
 
     /** receive a server lifecycle event 

@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package com.sun.appserv.server;
 
@@ -47,6 +48,7 @@ import javax.naming.InitialContext;
  * that is created by ApplicationServer. This context has only accessors and 
  * is a subset of ServerContext used by the server runtime. 
  */
+@Deprecated
 public interface LifecycleEventContext {
     /** 
      * Get the server command-line arguments
