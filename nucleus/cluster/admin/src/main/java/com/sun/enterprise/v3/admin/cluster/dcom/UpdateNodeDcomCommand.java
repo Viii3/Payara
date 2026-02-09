@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018] Payara Foundation and/or affiliates
+// Portions Copyright 2018-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.v3.admin.cluster.dcom;
 
@@ -70,7 +70,7 @@ import org.jvnet.hk2.annotations.Service;
             @RestParam(name="id", value="$parent")
         })
 })
-
+@Deprecated
 public class UpdateNodeDcomCommand extends UpdateNodeRemoteCommand  {
     @Param(name = "windowsuser", shortName = "w", optional = true, defaultValue = "${user.name}")
     private String windowsuser;
@@ -82,6 +82,9 @@ public class UpdateNodeDcomCommand extends UpdateNodeRemoteCommand  {
     @Override
     public void execute(AdminCommandContext context) {
         executeInternal(context);
+
+        context.getLogger().warning("The 'update-node-dcom' command is deprecated and will be removed in future.");
+        context.getActionReport().appendMessage("\nThe 'update-node-dcom' command is deprecated and will be removed in future.");
     }
 
     @Override

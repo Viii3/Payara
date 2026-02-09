@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2018-2021] Payara Foundation and/or affiliates
+// Portions Copyright 2018-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.v3.admin.cluster.dcom;
 
@@ -63,6 +63,7 @@ import org.glassfish.hk2.api.PerLookup;
 @PerLookup
 @CommandLock(CommandLock.LockType.NONE)
 @ExecuteOn({RuntimeType.DAS})
+@Deprecated
 public class ListNodesDcomCommand implements AdminCommand {
     @Inject
     Servers servers;
@@ -75,11 +76,15 @@ public class ListNodesDcomCommand implements AdminCommand {
 
     @Override
     public void execute(AdminCommandContext context) {
+        context.getLogger().warning("The 'list-nodes-dcom' command is deprecated and will be removed in future.");
+        
         ActionReport report = context.getActionReport();
+        report.setMessage("The 'list-nodes-dcom' command is deprecated and will be removed in future.\n");
+        
         ListNodesHelper lnh = new ListNodesHelper(context.getLogger(), servers,
                 nodes, "DCOM", longOpt, terse);
         String nodeList = lnh.getNodeList();
-        report.setMessage(nodeList);
+        report.appendMessage(nodeList);
         report.setActionExitCode(ExitCode.SUCCESS);
     }
 }

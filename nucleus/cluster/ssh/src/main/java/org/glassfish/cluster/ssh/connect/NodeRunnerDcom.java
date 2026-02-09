@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright [2017] [Payara Foundation and/or its affiliates]
+// Portions Copyright 2017-2026 Payara Foundation and/or its affiliates
 package org.glassfish.cluster.ssh.connect;
 
 import com.sun.enterprise.util.cluster.Paths;
@@ -55,6 +55,7 @@ import org.glassfish.common.util.admin.AsadminInput;
 import static com.sun.enterprise.util.StringUtils.ok;
 import java.security.SecureRandom;
 
+@Deprecated
 public class NodeRunnerDcom {
     private final Logger logger;
     private Node node;

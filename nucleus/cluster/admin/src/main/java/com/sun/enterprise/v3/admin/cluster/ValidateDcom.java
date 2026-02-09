@@ -37,7 +37,7 @@
  *  only if the new code is made subject to such option by the copyright
  *  holder.
  */
-// Portions Copyright [2018] Payara Foundation and/or affiliates
+// Portions Copyright 2018-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.v3.admin.cluster;
 
@@ -84,6 +84,7 @@ import org.glassfish.cluster.ssh.util.DcomUtils;
     path = "validate-dcom",
     description = "Validate DCOM")
 })
+@Deprecated
 public class ValidateDcom implements AdminCommand {
     @Param(name = "windowsuser", shortName = "w", optional = true, defaultValue = "${user.name}")
     private String user;
@@ -110,6 +111,9 @@ public class ValidateDcom implements AdminCommand {
 
     @Override
     public final void execute(AdminCommandContext context) {
+        report.setMessage("The 'validate-dcom' command is deprecated and will be removed in future.");
+        context.getLogger().warning("The 'validate-dcom' command is deprecated and will be removed in future.\n");
+        
         debug = Boolean.parseBoolean(System.getenv("AS_DEBUG")) && verbose;
         try {
             // try/finally is least messy way of making sure partial success news
@@ -141,7 +145,7 @@ public class ValidateDcom implements AdminCommand {
         }
         finally {
             if (report.getActionExitCode() != ActionReport.ExitCode.SUCCESS || verbose)
-                report.setMessage(out.toString());
+                report.appendMessage(out.toString());
         }
     }
 
