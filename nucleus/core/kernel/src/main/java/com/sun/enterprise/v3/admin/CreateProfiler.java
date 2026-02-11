@@ -84,6 +84,7 @@ import org.jvnet.hk2.config.TransactionFailure;
         path="create-profiler", 
         description="Create Profiler")
 })
+@Deprecated
 public class CreateProfiler implements AdminCommand, AdminCommandSecurity.Preauthorization {
 
     final private static LocalStringManagerImpl localStrings = new LocalStringManagerImpl(CreateProfiler.class);
@@ -132,6 +133,8 @@ public class CreateProfiler implements AdminCommand, AdminCommandSecurity.Preaut
      */
     public void execute(AdminCommandContext context) {
         final ActionReport report = context.getActionReport();
+        ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+        subActionsReport.setMessage("WARNING: The `create-profiler` command is deprecated and will be removed in Payara 7.");
 
         if (javaConfig.getProfiler() != null) {
             System.out.println("profiler exists. Please delete it first");

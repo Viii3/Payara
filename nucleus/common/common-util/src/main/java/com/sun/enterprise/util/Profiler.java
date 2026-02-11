@@ -56,6 +56,7 @@ package com.sun.enterprise.util;
  * @author  bnevins
  * @version 
  */
+@Deprecated
 public class Profiler {
 
     private Profiler() {

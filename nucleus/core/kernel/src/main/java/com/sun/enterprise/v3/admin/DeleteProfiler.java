@@ -88,6 +88,7 @@ import org.glassfish.api.admin.*;
         path="delete-profiler", 
         description="Delete Profiler")
 })
+@Deprecated
 public class DeleteProfiler implements AdminCommand, AdminCommandSecurity.Preauthorization {
 
    final private static LocalStringManagerImpl localStrings = new LocalStringManagerImpl(DeleteProfiler.class);
@@ -120,8 +121,11 @@ public class DeleteProfiler implements AdminCommand, AdminCommandSecurity.Preaut
     */
    public void execute(AdminCommandContext context) {
 
-        final ActionReport report = context.getActionReport();
-        try {
+       final ActionReport report = context.getActionReport();
+       ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+       subActionsReport.setMessage("WARNING: The `delete-profiler` command is deprecated and will be removed in Payara 7.");
+
+       try {
            ConfigSupport.apply(new SingleConfigCode<JavaConfig>() {
                public Object run(JavaConfig param) throws PropertyVetoException, TransactionFailure {
                    if (param.getProfiler() != null) {
