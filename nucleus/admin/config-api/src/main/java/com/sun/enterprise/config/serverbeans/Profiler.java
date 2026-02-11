@@ -73,6 +73,7 @@ import jakarta.validation.constraints.Pattern;
  *
  */
 @Configured
+@Deprecated
 public interface Profiler extends ConfigBeanProxy, PropertyBag, JvmOptionBag {
 
     /**

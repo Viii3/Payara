@@ -86,6 +86,7 @@ public final class ListJvmOptions implements AdminCommand, AdminCommandSecurity.
     String target;
 
     @Param(name="profiler", optional=true)
+    @Deprecated
     Boolean profiler=false;
     
     @Inject
@@ -108,6 +109,11 @@ public final class ListJvmOptions implements AdminCommand, AdminCommandSecurity.
     
     public void execute(AdminCommandContext context) {
         final ActionReport report = context.getActionReport();
+        if (profiler) {
+            ActionReport subActionsReport = context.getActionReport().addSubActionsReport();
+            subActionsReport.setMessage("WARNING: The `profiler` option is deprecated and will be removed in Payara 7.");
+
+        }
         List<JvmOption> opts;
         if (profiler) {
                 if (jc.getProfiler() == null) {

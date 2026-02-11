@@ -51,6 +51,7 @@ import java.util.*;
  *
  * @author  bnevins
  */
+@Deprecated
 public class ProfilerImpl {
 
     /** Create an empty object

@@ -128,6 +128,7 @@ public class MiniXmlParser {
         return jvmOptions;
     }
 
+    @Deprecated
     public Map<String, String> getProfilerConfig() throws MiniXmlParserException {
         if (!valid) {
             throw new MiniXmlParserException(strings.get(INVALID));
@@ -135,6 +136,7 @@ public class MiniXmlParser {
         return profilerConfig;
     }
 
+    @Deprecated
     public List<String> getProfilerJvmOptions() throws MiniXmlParserException {
         if (!valid) {
             throw new MiniXmlParserException(strings.get(INVALID));
@@ -142,6 +144,7 @@ public class MiniXmlParser {
         return profilerJvmOptions;
     }
 
+    @Deprecated
     public Map<String, String> getProfilerSystemProperties() throws MiniXmlParserException {
         if (!valid) {
             throw new MiniXmlParserException(strings.get(INVALID));
@@ -702,6 +705,7 @@ public class MiniXmlParser {
         }
     }
 
+    @Deprecated
     private void parseProfiler() throws XMLStreamException, EndDocumentException {
         // cursor --> START_ELEMENT of profiler
         // it has attributes and <jvm-options>'s and <property>'s

@@ -342,6 +342,7 @@ public interface JavaConfig extends ConfigBeanProxy, PropertyBag, JvmOptionBag {
      *         {@link Profiler }
      */
     @Element
+    @Deprecated
     Profiler getProfiler();
 
     /**
@@ -350,6 +351,7 @@ public interface JavaConfig extends ConfigBeanProxy, PropertyBag, JvmOptionBag {
      * @param value allowed object is {@link Profiler }
      * @throws PropertyVetoException
      */
+    @Deprecated
     void setProfiler(Profiler value) throws PropertyVetoException;
     
     /**

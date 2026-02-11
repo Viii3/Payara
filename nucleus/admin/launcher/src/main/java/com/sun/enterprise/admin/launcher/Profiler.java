@@ -52,6 +52,7 @@ import java.util.*;
  * turn it into a "-D" System Property
  * @author Byron Nevins
  */
+@Deprecated
 public class Profiler {
     
     Map<String, String> config;
