@@ -47,6 +47,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.sun.enterprise.security.common.AppservAccessController.privileged;
+
 public class Caller implements Principal, Serializable {
     private static final long serialVersionUID = 1L;
     private Principal callerPrincipal;
@@ -58,7 +60,7 @@ public class Caller implements Principal, Serializable {
     }
 
     public static void toSubject(Subject subject, Caller caller) {
-        subject.getPrincipals().add(caller);
+        privileged(() -> subject.getPrincipals().add(caller));
     }
 
     public Caller() {
