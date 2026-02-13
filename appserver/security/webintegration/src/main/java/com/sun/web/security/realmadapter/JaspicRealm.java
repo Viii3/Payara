@@ -40,6 +40,8 @@
 // Portions Copyright [2016-2021] [Payara Foundation and/or its affiliates]
 package com.sun.web.security.realmadapter;
 
+import static com.sun.enterprise.security.SecurityContext.getDefaultCallerPrincipal;
+import static com.sun.enterprise.security.common.AppservAccessController.privileged;
 import static com.sun.enterprise.security.jaspic.config.HttpServletConstants.AUTH_TYPE;
 import static com.sun.enterprise.security.jaspic.config.HttpServletConstants.IS_MANDATORY;
 import static com.sun.enterprise.security.jaspic.config.HttpServletConstants.REGISTER_SESSION;
@@ -63,6 +65,7 @@ import static org.apache.catalina.Globals.WRAPPED_RESPONSE;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.security.PrivilegedAction;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,6 +77,13 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import javax.security.auth.Subject;
+import javax.security.auth.x500.X500Principal;
+
+import com.sun.enterprise.security.auth.JaspicToJaasBridge;
+import com.sun.enterprise.security.auth.login.DistinguishedPrincipalCredential;
+import com.sun.enterprise.security.auth.realm.certificate.CertificateRealm;
+import com.sun.enterprise.security.common.AppservAccessController;
+import com.sun.enterprise.security.jaspic.callback.Caller;
 import jakarta.security.auth.message.AuthException;
 import jakarta.security.auth.message.MessageInfo;
 import jakarta.security.auth.message.config.ServerAuthConfig;
@@ -104,6 +114,8 @@ import com.sun.web.security.RealmAdapter.IOSupplier;
 
 import fish.payara.notification.requesttracing.RequestTraceSpan;
 import fish.payara.nucleus.requesttracing.RequestTracingService;
+import org.glassfish.security.common.Group;
+import org.glassfish.security.common.PrincipalImpl;
 
 public class JaspicRealm {
 
@@ -173,14 +185,8 @@ public class JaspicRealm {
     public boolean validateRequest(HttpRequest request, HttpResponse response, Context context, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
         try {
             context.fireContainerEvent(BEFORE_AUTHENTICATION, null);
-
-            // Get the WebPrincipal principal and add to the security context principals
-            RequestFacade requestFacade = (RequestFacade) request.getRequest();
-            setAdditionalPrincipalInContext(requestFacade);
-
-            return validateRequest(getServerAuthConfig(), context, requestFacade, request, response, context.getLoginConfig(), authenticator, calledFromAuthenticate, isMandatoryFn);
+            return validateRequest(getServerAuthConfig(), context, request, response, context.getLoginConfig(), authenticator, calledFromAuthenticate, isMandatoryFn);
         } finally {
-            resetAdditionalPrincipalInContext();
             context.fireContainerEvent(AFTER_AUTHENTICATION, null);
         }
     }
@@ -336,22 +342,9 @@ public class JaspicRealm {
         return p;
     }
 
-    private void setAdditionalPrincipalInContext(RequestFacade requestFacade) {
-        if (requestFacade != null) {
-            Principal wrapped = requestFacade.getPrincipal();
-            if (wrapped != null) {
-                SecurityContext.getCurrent().setAdditionalPrincipal(wrapped);
-            }
-        }
-    }
-
-    private void resetAdditionalPrincipalInContext() {
-        SecurityContext.getCurrent().setAdditionalPrincipal(null);
-    }
-
-    private boolean validateRequest(ServerAuthConfig serverAuthConfig, Context context, RequestFacade requestFacade, HttpRequest request, HttpResponse response, LoginConfig loginConfig, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
+    private boolean validateRequest(ServerAuthConfig serverAuthConfig, Context context, HttpRequest request, HttpResponse response, LoginConfig loginConfig, Authenticator authenticator, boolean calledFromAuthenticate, Function<HttpServletRequest, Boolean> isMandatoryFn) throws IOException {
         if (isRequestTracingEnabled()) {
-            return doTraced(serverAuthConfig, context, requestFacade,
+            return doTraced(serverAuthConfig, context, (RequestFacade) request.getRequest(),
                     () -> validateRequest(request, response, loginConfig, authenticator, calledFromAuthenticate, isMandatoryFn));
         }
 
@@ -409,12 +402,14 @@ public class JaspicRealm {
         // needs to be called again later in this request (for example, when secureResponse is called).
         storeMessageInfoInRequest(servletRequest, messageInfo, authContext);
 
+        Caller caller = removeCaller(subject);
+
         // There must be at least one new principal to count as SAM having authenticated
-        if (hasNewPrincipal(subject.getPrincipals())) {
+        if (caller != null && hasNewPrincipal(caller)) {
 
             // Handle case 1: The SAM authenticated the caller and a new Principal has been set
 
-            handleSamAuthenticated(subject, messageInfo, request, response, config, authenticator);
+            handleSamAuthenticated(subject, caller, messageInfo, request, response, config, authenticator);
         } else {
 
             // Handle case 2: The SAM "did nothing" and a NULL has been set.
@@ -430,7 +425,198 @@ public class JaspicRealm {
         return isValidateSuccess;
     }
 
-    private void handleSamAuthenticated(Subject subject, MessageInfo messageInfo, HttpRequest request, HttpResponse response, LoginConfig config, Authenticator authenticator) throws IOException {
+    private Caller removeCaller(Subject subject) {
+        Set<Caller> callers = subject.getPrincipals(Caller.class);
+        if (callers.isEmpty()) {
+            return null;
+        }
+
+        subject.getPrincipals().removeAll(callers);
+
+        return callers.iterator().next();
+    }
+
+    private boolean reuseWebPrincipal(final Subject fs, final WebPrincipal wp) {
+
+        SecurityContext sc = wp.getSecurityContext();
+        final Subject wps = sc != null ? sc.getSubject() : null;
+        final Principal callerPrincipal = sc != null ? sc.getCallerPrincipal() : null;
+        final Principal defaultPrincipal = SecurityContext.getDefaultCallerPrincipal();
+
+        return ((Boolean) AppservAccessController.doPrivileged(new PrivilegedAction() {
+
+            /**
+             * this method uses 4 (numbered) criteria to determine if the argument WebPrincipal can be reused
+             */
+            @Override
+            public Boolean run() {
+
+                /*
+                 * 1. WebPrincipal must contain a SecurityContext and SC must have a non-null, non-default callerPrincipal and a Subject
+                 */
+                if (callerPrincipal == null || callerPrincipal.equals(defaultPrincipal) || wps == null) {
+                    return Boolean.FALSE;
+                }
+
+                boolean hasObject = false;
+                Set<DistinguishedPrincipalCredential> distinguishedCreds = wps.getPublicCredentials(DistinguishedPrincipalCredential.class);
+                if (distinguishedCreds.size() == 1) {
+                    for (DistinguishedPrincipalCredential cred : distinguishedCreds) {
+                        if (cred.getPrincipal().equals(callerPrincipal)) {
+                            hasObject = true;
+                        }
+                    }
+                }
+
+                /**
+                 * 2. Subject within SecurityContext must contain a single DPC that identifies the Caller Principal
+                 */
+                if (!hasObject) {
+                    return Boolean.FALSE;
+                }
+
+                hasObject = wps.getPrincipals().contains(callerPrincipal);
+
+                /**
+                 * 3. Subject within SecurityContext must contain the caller principal
+                 */
+                if (!hasObject) {
+                    return Boolean.FALSE;
+                }
+
+                /**
+                 * 4. The webPrincipal must have a non null name that equals the name of the callerPrincipal.
+                 */
+                if (wp.getName() == null || !wp.getName().equals(callerPrincipal.getName())) {
+                    return Boolean.FALSE;
+                }
+
+                /*
+                 * remove any existing DistinguishedPrincipalCredentials from receiving Subject
+                 *
+                 */
+                Iterator iter = fs.getPublicCredentials().iterator();
+                while (iter.hasNext()) {
+                    Object obj = iter.next();
+                    if (obj instanceof DistinguishedPrincipalCredential) {
+                        iter.remove();
+                    }
+                }
+
+                /**
+                 * Copy principals from Subject within SecurityContext to receiving Subject
+                 */
+
+                for (Principal p : wps.getPrincipals()) {
+                    fs.getPrincipals().add(p);
+                }
+
+                /**
+                 * Copy public credentials from Subject within SecurityContext to receiving Subject
+                 */
+                for (Object publicCred : wps.getPublicCredentials()) {
+                    fs.getPublicCredentials().add(publicCred);
+                }
+
+                /**
+                 * Copy private credentials from Subject within SecurityContext to receiving Subject
+                 */
+                for (Object privateCred : wps.getPrivateCredentials()) {
+                    fs.getPrivateCredentials().add(privateCred);
+                }
+
+                return Boolean.TRUE;
+            }
+        })).booleanValue();
+    }
+
+    private void handleSamAuthenticated(Subject subject, Caller caller, MessageInfo messageInfo, HttpRequest request, HttpResponse response, LoginConfig config, Authenticator authenticator) throws IOException {
+        Principal principal = caller.getCallerPrincipal();
+        RequestFacade servletRequest = (RequestFacade) request.getRequest();
+
+        // PAYARA-755 If the SAM has set a custom principal then we check that the original WebPrincipal has
+        // the same custom principal within it
+        if (principal != null && !(principal instanceof WebPrincipal)) {
+            Principal requestPrincipal = servletRequest.getRequestPrincipal();
+            if (requestPrincipal instanceof WebPrincipal
+                    && ((WebPrincipal) requestPrincipal).getCustomPrincipal() == principal) {
+                principal = requestPrincipal;
+            }
+        }
+
+        if (principal instanceof WebPrincipal) {
+            WebPrincipal webPrincipal = (WebPrincipal) principal;
+
+            /**
+             * Check if the WebPrincipal satisfies the criteria for reuse. If it does, the CBH will have already
+             * copied its contents into the Subject, and established the caller principal.
+             */
+            if (reuseWebPrincipal(subject, webPrincipal)) {
+                return;
+            }
+
+            /**
+             * Otherwise the webPrincipal must be distinguished as the callerPrincipal, but the contents of its
+             * internal SecurityContext will not be copied. For the special case where the WebPrincipal
+             * represents the defaultCallerPrincipal, the argument principal is set to null to cause the handler
+             * to assign its representation of the unauthenticated caller in the Subject.
+             */
+            Principal defaultCallerPrincipal = SecurityContext.getDefaultCallerPrincipal();
+            SecurityContext securityContext = webPrincipal.getSecurityContext();
+            Principal callerPrincipal = securityContext != null ? securityContext.getCallerPrincipal() : null;
+
+            if (webPrincipal.getName() == null || webPrincipal.equals(defaultCallerPrincipal) || callerPrincipal == null || callerPrincipal.equals(defaultCallerPrincipal)) {
+                principal = null;
+            }
+        }
+
+        subject = new Subject();
+
+        boolean isCertRealm = CertificateRealm.AUTH_TYPE.equals(realmName);
+        if (principal == null) {
+            if (caller.getName() != null) {
+                if (isCertRealm) {
+                    principal = new X500Principal(caller.getName());
+                } else {
+                    principal = new PrincipalImpl(caller.getName());
+                }
+            } else {
+                // Jakarta Authentication unauthenticated caller principal
+                principal = SecurityContext.getDefaultCallerPrincipal();
+            }
+        }
+
+        if (isCertRealm) {
+            if (principal instanceof X500Principal) {
+                JaspicToJaasBridge.jaasX500Login(subject, (X500Principal) principal);
+            }
+        } else {
+            if (!principal.equals(getDefaultCallerPrincipal())) {
+                JaspicToJaasBridge.addRealmGroupsToSubject(subject, principal.getName(), realmName);
+            }
+        }
+
+        final Principal finalPrincipal = principal;
+        final Subject finalSubject = subject;
+        DistinguishedPrincipalCredential distinguishedPrincipalCredential = new DistinguishedPrincipalCredential(principal);
+
+        privileged(() -> {
+            finalSubject.getPrincipals().add(finalPrincipal);
+
+            for (String group : caller.getGroups()) {
+                finalSubject.getPrincipals().add(new Group(group));
+            }
+
+            Iterator<Object> publicCredentials = finalSubject.getPublicCredentials().iterator();
+            while (publicCredentials.hasNext()) {
+                if (publicCredentials.next() instanceof DistinguishedPrincipalCredential) {
+                    publicCredentials.remove();
+                }
+            }
+
+            finalSubject.getPublicCredentials().add(distinguishedPrincipalCredential);
+        });
+
         SecurityContext securityContext = new SecurityContext(subject);
 
         // Assuming no null principal here
@@ -532,35 +718,19 @@ public class JaspicRealm {
         return ((HttpServletRequest) messageInfo.getRequestMessage()).getUserPrincipal() != null;
     }
 
-    private boolean hasNewPrincipal(Set<Principal> principalSet) {
-        return principalSet != null && !principalSet.isEmpty() && !principalSetContainsOnlyAnonymousPrincipal(principalSet);
-    }
-
     /**
-     * Used to detect when the principals in the subject correspond to the default or "ANONYMOUS" principal, and therefore a
+     * Used to detect when the Caller principal correspond to the default or "ANONYMOUS" principal, and therefore a
      * null principal should be set in the HttpServletRequest.
      *
-     * @param principalSet
+     * @param caller
      * @return true whe a null principal is to be set.
      */
-    private boolean principalSetContainsOnlyAnonymousPrincipal(Set<Principal> principalSet) {
-        boolean containsOnlyAnonymousPrincipal = false;
-
-        Principal defaultPrincipal = SecurityContext.getDefaultCallerPrincipal();
-        if (defaultPrincipal != null && principalSet != null) {
-            containsOnlyAnonymousPrincipal = principalSet.contains(defaultPrincipal);
-        }
-
-        if (containsOnlyAnonymousPrincipal) {
-            Iterator<Principal> it = principalSet.iterator();
-            while (it.hasNext()) {
-                if (!it.next().equals(defaultPrincipal)) {
-                    return false;
-                }
-            }
-        }
-
-        return containsOnlyAnonymousPrincipal;
+    private boolean hasNewPrincipal(Caller caller) {
+        Principal callerPrincipal = caller.getCallerPrincipal();
+        return callerPrincipal != null
+                && callerPrincipal.getName() != null
+                && !"".equals(callerPrincipal.getName())
+                && !callerPrincipal.equals(SecurityContext.getDefaultCallerPrincipal());
     }
 
     @SuppressWarnings("unchecked")
