@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-/*Portions Copyright [2016-2019] [Payara Foundation and/or its affiliates]
+/*Portions Copyright 2016-2026 Payara Foundation and/or its affiliates
 /*
  * Common utility
  */
@@ -1977,7 +1977,7 @@ admingui.deploy = {
             var component = obj.document.getElementById(contextRootId);
             if (component != null) {
                 // context root can handle null as default
-                component.placeholder = appName + ' (or as per glassfish-web.xml)';
+                component.placeholder = appName + ' (or as per payara-web.xml)';
             }
         }
     },
