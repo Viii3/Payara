@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-// Portions Copyright 2016-2025 Payara Foundation and/or its affiliates
+// Portions Copyright 2016-2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.glassfish.web;
 
@@ -107,6 +107,7 @@ public class WarHandler extends AbstractArchiveHandler {
 
     private static final String GLASSFISH_WEB_XML = "WEB-INF/glassfish-web.xml";
     private static final String PAYARA_WEB_XML = "WEB-INF/payara-web.xml";
+    @Deprecated
     private static final String SUN_WEB_XML = "WEB-INF/sun-web.xml";
     private static final String WEBLOGIC_XML = "WEB-INF/weblogic.xml";
     private static final String WAR_CONTEXT_XML = "META-INF/context.xml";
@@ -224,16 +225,26 @@ public class WarHandler extends AbstractArchiveHandler {
         File runtimeAltDDFile = archive.getArchiveMetaData(DeploymentProperties.RUNTIME_ALT_DD, File.class);
         if (runtimeAltDDFile != null && "glassfish-web.xml".equals(runtimeAltDDFile.getPath()) && runtimeAltDDFile.isFile()) {
             webXmlParser = new GlassFishWebXmlParser(archive, application);
+            logger.warning("The glassfish-web.xml file is deprecated and support will be removed in a future release."
+                + " It is recommended to use payara-web.xml instead.");
         } else if (!gfDDOverWLSDD && !ignoreWLSDD && hasWSLDD) {
             webXmlParser = new WeblogicXmlParser(archive);
+            logger.warning("The weblogic.xml file is deprecated and support will be removed in a future release."
+                + " It is recommended to use payara-web.xml instead.");
         } else if (archive.exists(PAYARA_WEB_XML)){
             webXmlParser = new PayaraWebXmlParser(archive, application);
         } else if (archive.exists(GLASSFISH_WEB_XML)) {
             webXmlParser = new GlassFishWebXmlParser(archive, application);
+            logger.warning("The glassfish-web.xml file is deprecated and support will be removed in a future release."
+                + " It is recommended to use payara-web.xml instead.");
         } else if (archive.exists(SUN_WEB_XML)) {
             webXmlParser = new SunWebXmlParser(archive, application);
+            logger.warning("The sun-web.xml file is deprecated and support will be removed in a future release."
+                + " It is recommended to use payara-web.xml instead.");
         } else if (gfDDOverWLSDD && !ignoreWLSDD && hasWSLDD) {
             webXmlParser = new WeblogicXmlParser(archive);
+            logger.warning("The weblogic.xml file is deprecated and support will be removed in a future release."
+                + " It is recommended to use payara-web.xml instead.");
         } else { // default
             if (gfDDOverWLSDD || ignoreWLSDD) {
                 webXmlParser = new GlassFishWebXmlParser(archive, application);
@@ -517,6 +528,7 @@ public class WarHandler extends AbstractArchiveHandler {
         public abstract String getCookieSameSiteValue();
     }
 
+    @Deprecated
     protected class SunWebXmlParser extends WebXmlParser {
         //XXX need to compute the default delegate depending on the version of dtd
         /*
@@ -646,6 +658,7 @@ public class WarHandler extends AbstractArchiveHandler {
         protected void readCookieConfig() throws XMLStreamException {}
     }
 
+    @Deprecated
     protected class GlassFishWebXmlParser extends SunWebXmlParser {
         GlassFishWebXmlParser(ReadableArchive archive, Application application)
                 throws XMLStreamException, IOException {
@@ -706,6 +719,7 @@ public class WarHandler extends AbstractArchiveHandler {
         }
     }
 
+    @Deprecated
     protected class WeblogicXmlParser extends WebXmlParser {
         WeblogicXmlParser(ReadableArchive archive)
                 throws XMLStreamException, IOException {
