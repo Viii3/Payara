@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.config;
 
@@ -62,6 +63,7 @@ import com.sun.enterprise.config.serverbeans.DomainExtension;
 
 // general solution needed; this is intermediate solution
 @Configured
+@Deprecated
 public interface LoadBalancers extends ConfigBeanProxy, DomainExtension {
 
     /**

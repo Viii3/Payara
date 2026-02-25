@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.config.customvalidators;
 
@@ -53,6 +54,7 @@ import javax.validation.Payload;
  * A simple constraint that validates lb-config children.
  * @author yamini
  */
+@Deprecated
 public class RefValidator
     implements ConstraintValidator<RefConstraint, LbConfig>, Payload {
 
