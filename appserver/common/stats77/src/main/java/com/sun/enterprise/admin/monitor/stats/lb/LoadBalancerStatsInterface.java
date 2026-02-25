@@ -37,13 +37,14 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.monitor.stats.lb;
 
 // 
 // This interface has all of the bean info accessor methods.
 // 
-
+@Deprecated
 public interface LoadBalancerStatsInterface {
 	public void setClusterStats(com.sun.enterprise.admin.monitor.stats.lb.ClusterStats[] value);
 
