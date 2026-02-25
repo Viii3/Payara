@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -77,6 +78,7 @@ import jakarta.inject.Inject;
             @RestParam(name="name", value="$parent")
         })
 })
+@Deprecated
 public final class EnableHTTPLBApplicationCommand implements AdminCommand {
 
     @Param(primary=true)
@@ -94,6 +96,8 @@ public final class EnableHTTPLBApplicationCommand implements AdminCommand {
     @Override
     public void execute(AdminCommandContext context) {
         ActionReport report = context.getActionReport();
+        context.getLogger().warning("The enable-http-lb-application command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The enable-http-lb-application command is deprecated and will be removed in Payara 7 onwards.");
 
         Logger logger = context.getLogger();
         
@@ -105,7 +109,7 @@ public final class EnableHTTPLBApplicationCommand implements AdminCommand {
             String msg = localStrings.getLocalString("AppRefNotDefined",
                     "Application ref [{0}] does not exist in server [{1}]", name, target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -116,7 +120,7 @@ public final class EnableHTTPLBApplicationCommand implements AdminCommand {
                 String msg = localStrings.getLocalString("AppEnabled",
                         "Application [{0}] is already enabled for [{1}].", name, target);
                 logger.warning(msg);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
             } else {
                 try {
                     updateLbEnabledForApp(name, target);
@@ -125,7 +129,7 @@ public final class EnableHTTPLBApplicationCommand implements AdminCommand {
                             "Failed to update lb-enabled attribute for {0}", name);
                     logger.warning(msg);
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     report.setFailureCause(e);
                 }
             }

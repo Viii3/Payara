@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -99,6 +100,7 @@ import jakarta.inject.Inject;
             @RestParam(name="lbname", value="$parent")
         })
 })
+@Deprecated
 public class ExportHttpLbConfig implements AdminCommand {
 
     @Param(name = "lbtargets", separator = ',', optional = true)
@@ -126,10 +128,13 @@ public class ExportHttpLbConfig implements AdminCommand {
     @Override
     public void execute(AdminCommandContext context) {
         ActionReport report = context.getActionReport();
+        context.getLogger().warning("The export-http-lb-config command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The export-http-lb-config command is deprecated and will be removed in Payara 7 onwards.");
+        
         try {
             String msg = process(context);
             report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
         } catch (Throwable t) {
             String msg = LbLogUtil.getStringManager().getString("ExportHttpLbConfigFailed", t.getMessage());
             LbLogUtil.getLogger().log(Level.WARNING, msg);
@@ -137,7 +142,7 @@ public class ExportHttpLbConfig implements AdminCommand {
                 LbLogUtil.getLogger().log(Level.FINE, "Exception when exporting http lb config", t);
             }
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(t.getMessage());
+            report.appendMessage("\n" + t.getMessage());
             report.setFailureCause(t);
         }
     }

@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -87,6 +88,7 @@ import jakarta.inject.Inject;
         path="list-http-lb-configs", 
         description="list-http-lb-configs")
 })
+@Deprecated
 public final class ListLBConfigsCommand implements AdminCommand {
 
     @Param(primary=true, optional=true)
@@ -108,8 +110,9 @@ public final class ListLBConfigsCommand implements AdminCommand {
     
     @Override
     public void execute(AdminCommandContext context) {
-
         report = context.getActionReport();
+        context.getLogger().warning("The list-http-lb-configs command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The list-http-lb-configs command is deprecated and will be removed in Payara 7 onwards.");
 
         ActionReport.MessagePart part = report.getTopMessagePart();
 
@@ -134,7 +137,7 @@ public final class ListLBConfigsCommand implements AdminCommand {
         if (list_target == null) {
             for (LbConfig lbc: lbconfigsList) {
                 ActionReport.MessagePart childPart = part.addChild();
-                childPart.setMessage(lbc.getName());
+                childPart.appendMessage("\n" + lbc.getName());
             }
         } else {
             // target is a cluster
@@ -145,7 +148,7 @@ public final class ListLBConfigsCommand implements AdminCommand {
                     for (ClusterRef cRef:refs) {
                        if (cRef.getRef().equals(list_target) ) {
                             ActionReport.MessagePart childPart = part.addChild();
-                            childPart.setMessage(lbc.getName());
+                            childPart.appendMessage("\n" + lbc.getName());
                        }
                     }
                 }
@@ -159,7 +162,7 @@ public final class ListLBConfigsCommand implements AdminCommand {
                     for (ServerRef sRef:refs) {
                        if (sRef.getRef().equals(list_target) ) {
                             ActionReport.MessagePart childPart = part.addChild();
-                            childPart.setMessage(lbc.getName());
+                            childPart.appendMessage("\n" + lbc.getName());
                        }
                     }
                 }
@@ -176,14 +179,14 @@ public final class ListLBConfigsCommand implements AdminCommand {
                     for (ClusterRef ref: cRefs) {
                         String s = localStrings.getLocalString("ClusterPrefix", "Cluster:");
                         ActionReport.MessagePart childPart = part.addChild();
-                        childPart.setMessage(s + ref.getRef());
+                        childPart.appendMessage("\n" + s + ref.getRef());
                     }
 
                     List<ServerRef> sRefs = lbConfig.getRefs(ServerRef.class);
                     for (ServerRef ref: sRefs) {
                         String s = localStrings.getLocalString("ServerPrefix", "Server:");
                         ActionReport.MessagePart childPart = part.addChild();
-                        childPart.setMessage(s + ref.getRef());
+                        childPart.appendMessage("\n" + s + ref.getRef());
                     }                    
                 }
             } 

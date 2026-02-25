@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -97,6 +98,7 @@ import jakarta.inject.Inject;
 @I18n("create.http.lb")
 @TargetType(value={CommandTarget.STANDALONE_INSTANCE, CommandTarget.CLUSTER})
 @org.glassfish.api.admin.ExecuteOn({RuntimeType.DAS})
+@Deprecated
 public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
         implements AdminCommand {
 
@@ -186,20 +188,22 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
         //final Logger logger = context.getLogger();
 
         report = context.getActionReport();
+        context.getLogger().warning("The create-http-lb command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The create-http-lb command is deprecated and will be removed in Payara 7 onwards.");
 
         report.setActionExitCode(ActionReport.ExitCode.SUCCESS);        
 
         if (load_balancer_name == null) {
             String msg = localStrings.getLocalString("NullLBName", "Load balancer name cannot be null");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
         if(!Pattern.matches(NAME_REGEX, load_balancer_name)){
             String msg = localStrings.getLocalString("loadbalancer.invalid.name", "Invalid load-balancer name");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -207,14 +211,14 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
         if (loadBalancers != null && loadBalancers.getLoadBalancer(load_balancer_name) != null) {
             String msg = localStrings.getLocalString("LBExists", "Load balancer {0} already exists", load_balancer_name);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
         if (target != null && !tgt.isValid(target)) {
             String msg = localStrings.getLocalString("InvalidTarget", "Invalid target", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -226,7 +230,7 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("NotCluster",
                         "{0} not a cluster", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -255,7 +259,7 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
             String msg = e.getLocalizedMessage();
             logger.warning(msg);
 //                    report.setActionExitCode(ExitCode.FAILURE);
-//                    report.setMessage(msg);
+//                    report.appendMessage("\n" + msg);
 //                    return;
         }
         addLoadBalancer(lbConfigName);
@@ -272,7 +276,7 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
                 String msg = e.getLocalizedMessage();
                 logger.warning(msg);
     //                    report.setActionExitCode(ExitCode.FAILURE);
-    //                    report.setMessage(msg);
+    //                    report.appendMessage("\n" + msg);
     //                    return;
             }
         }
@@ -307,14 +311,14 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
                String msg = localStrings.getLocalString("FailedToUpdateLB",
                        "Failed to update load-balancers");
                report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-               report.setMessage(msg);
+               report.appendMessage("\n" + msg);
                return;
            } catch (RetryableException ex) {
                transaction.rollback();
                String msg = localStrings.getLocalString("FailedToUpdateLB",
                        "Failed to update load-balancers");
                report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-               report.setMessage(msg);
+               report.appendMessage("\n" + msg);
                return;
            }
        }
@@ -360,7 +364,7 @@ public final class CreateHTTPLoadBalancerCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("FailedToUpdateLB",
                     "Failed to update load-balancers");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
     }
