@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.config.customvalidators;
 
@@ -55,6 +56,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({METHOD, FIELD, TYPE})
 @Documented
 @Constraint(validatedBy = RefValidator.class)
+@Deprecated
 public @interface RefConstraint {
     String message() default "{ref.invalid}";
     Class<?>[] groups() default {};

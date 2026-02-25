@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 /*
  * LBConfigContentSource.java
@@ -66,6 +67,7 @@ import jakarta.servlet.http.HttpServletRequest;
  *
  * @author anilam
  */
+@Deprecated
 public class LBConfigContentSource  implements DownloadServlet.ContentSource {
     
      /**
