@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -48,6 +49,7 @@ import java.util.logging.Logger;
  *
  * @author Kshitiz Saxena
  */
+@Deprecated
 public class LbLogUtil {
 
     private static final StringManager _strMgr =

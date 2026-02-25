@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli.transform;
 
@@ -49,6 +50,7 @@ import org.glassfish.loadbalancer.admin.cli.beans.Cluster;
  *
  * @author Satish Viswanatham
  */
+@Deprecated
 public class HealthCheckerVisitor implements Visitor {
 
     // ------ CTOR ------

@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli.reader.impl;
 
@@ -58,6 +59,7 @@ import org.jvnet.hk2.config.types.Property;
  *
  * @author Kshitiz Saxena
  */
+@Deprecated
 public class PropertyReaderImpl implements PropertyReader {
 
     public static PropertyReader[] getPropertyReaders(Properties properties) {

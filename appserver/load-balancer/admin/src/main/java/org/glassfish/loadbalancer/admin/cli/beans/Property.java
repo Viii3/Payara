@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 /**
  *	This generated bean class Property matches the schema element property
@@ -49,6 +50,7 @@ import org.netbeans.modules.schema2beans.*;
 import java.util.*;
 
 // BEGIN_NOI18N
+@Deprecated
 public class Property extends org.netbeans.modules.schema2beans.BaseBean {
 
     static Vector comparators = new Vector();
