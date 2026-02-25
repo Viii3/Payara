@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli.connection;
 
@@ -60,6 +61,7 @@ import org.glassfish.loadbalancer.admin.cli.LbLogUtil;
  *
  * @author hr124446
  */
+@Deprecated
 public class ConnectionManager {
 
     public static final String HTTPS_PROTOCOL = "https";

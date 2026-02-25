@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli.reader.api;
 
@@ -45,6 +46,7 @@ package org.glassfish.loadbalancer.admin.cli.reader.api;
  *
  * @author Satish Viswanatham
  */
+@Deprecated
 public interface IdempotentUrlPatternReader extends BaseReader {
 
     /**

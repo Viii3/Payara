@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 /**
  *	This generated bean class Loadbalancer matches the schema element loadbalancer
@@ -86,6 +87,7 @@ import java.util.*;
 import java.io.*;
 
 // BEGIN_NOI18N
+@Deprecated
 public class Loadbalancer extends org.netbeans.modules.schema2beans.BaseBean {
 
     static Vector comparators = new Vector();
