@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 /**
  *	This generated bean class InstanceStats
@@ -47,6 +48,7 @@
 
 package com.sun.enterprise.admin.monitor.stats.lb;
 
+@Deprecated
 public class InstanceStats implements InstanceStatsInterface, CommonBean {
 	private String _Id;
 	private String _Health;

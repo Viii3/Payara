@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 /**
  *	This generated bean class LoadBalancerStats
@@ -71,6 +72,7 @@
 
 package com.sun.enterprise.admin.monitor.stats.lb;
 
+@Deprecated
 public class LoadBalancerStats implements LoadBalancerStatsInterface, CommonBean {
 	private java.util.List _ClusterStats = new java.util.ArrayList();	// List<ClusterStats>
 

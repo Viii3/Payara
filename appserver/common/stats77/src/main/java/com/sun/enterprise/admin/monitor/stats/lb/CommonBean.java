@@ -37,13 +37,14 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package com.sun.enterprise.admin.monitor.stats.lb;
 
 // 
 // This interface is the intersection of all generated methods.
 // 
-
+@Deprecated
 public interface CommonBean {
 	public void changePropertyByName(String name, Object value);
 
