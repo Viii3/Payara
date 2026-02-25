@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -89,6 +90,7 @@ import javax.inject.Inject;
             @RestParam(name="id", value="$parent")
         })
 })
+@Deprecated
 public final class DisableHTTPLBServerCommand extends LBCommandsBase
                                               implements AdminCommand {
 
@@ -107,6 +109,8 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
     @Override
     public void execute(AdminCommandContext context) {
         ActionReport report = context.getActionReport();
+        context.getLogger().warning("The disable-http-lb-server command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The disable-http-lb-server command is deprecated and will be removed in Payara 7 onwards.");
         
         Logger logger = context.getLogger();
 
@@ -117,7 +121,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("NoLbConfigsElement",
                     "Empty lb-configs");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -126,7 +130,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("InvalidTimeout", "Invalid timeout {0}",
                     timeout);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -149,7 +153,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
                     if ((enabled == false) && (curTout == t)) {
                         String msg = localStrings.getLocalString("ServerDisabled",
                                 "Server [{0}] is already disabled.", sRef.getRef());
-                        report.setMessage(msg);
+                        report.appendMessage("\n" + msg);
                         return;
                     }
                     try {
@@ -157,7 +161,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
                     } catch (TransactionFailure ex) {
                         String msg = localStrings.getLocalString("FailedToUpdateAttr",
                             "Failed to update lb-enabled attribute for {0}", target);
-                        report.setMessage(msg);
+                        report.appendMessage("\n" + msg);
                         report.setActionExitCode(ActionReport.ExitCode.FAILURE);
                         report.setFailureCause(ex);
                         return;
@@ -173,7 +177,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
                     String msg = localStrings.getLocalString("InvalidServer",
                             "Server {0} does not exist", target);
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     return;
                 } else {
                     int curTout = Integer.parseInt(sRef.getDisableTimeoutInMinutes());
@@ -183,7 +187,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
                         String msg = localStrings.getLocalString("ServerDisabled",
                                 "Server [{0}] is already disabled.", sRef.getRef());
                         report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                        report.setMessage(msg);
+                        report.appendMessage("\n" + msg);
                         return;
                     }
                     try {
@@ -191,7 +195,7 @@ public final class DisableHTTPLBServerCommand extends LBCommandsBase
                     } catch (TransactionFailure ex) {
                         String msg = localStrings.getLocalString("FailedToUpdateAttr",
                             "Failed to update lb-enabled attribute for {0}", target);
-                        report.setMessage(msg);
+                        report.appendMessage("\n" + msg);
                         report.setActionExitCode(ActionReport.ExitCode.FAILURE);
                         report.setFailureCause(ex);
                         return;

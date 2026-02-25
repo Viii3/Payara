@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -99,6 +100,7 @@ import javax.inject.Inject;
             @RestParam(name="target", value="$parent")
         })
 })
+@Deprecated
 public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
 
     @Param(optional=true, defaultValue="10")
@@ -132,8 +134,9 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
 
     @Override
     public void execute(AdminCommandContext context) {
-
         report = context.getActionReport();
+        context.getLogger().warning("The create-http-health-checker command is deprecated and will be removed in Payara 7 onwards.");
+        report.appendMessage("\n" + "The create-http-health-checker command is deprecated and will be removed in Payara 7 onwards.");
 
         report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
 
@@ -142,7 +145,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
             String msg = localStrings.getLocalString("NoLbConfigsElement",
                     "Empty lb-configs");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
          
@@ -156,7 +159,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 String msg = localStrings.getLocalString("NoLbConfigsElement", "No LB configs defined");
                 logger.warning(msg);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -168,7 +171,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 String msg = localStrings.getLocalString("UnassociatedTarget", "No LB config references target {0}", target);
                 logger.warning(msg);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -212,7 +215,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
         if (lbConfigName == null) {
             String msg = localStrings.getLocalString("InvalidLbConfigName", "Invalid LB configuration.");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -229,7 +232,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
         if (target == null) {
             String msg = localStrings.getLocalString("Nulltarget", "Null target");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -243,7 +246,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                         "Load balancer configuration [{0}] does not have a reference to the given cluster [{1}].",
                         lbConfigName, target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -253,7 +256,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 } catch (TransactionFailure ex) {
                     String msg = localStrings.getLocalString("FailedToAddHC", "Failed to add health checker");
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     report.setFailureCause(ex);
                     return;
                 }
@@ -263,7 +266,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 String msg = localStrings.getLocalString("HealthCheckerExists",
                         "Health checker server/cluster [{0}] already exists.", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         // target is a server
@@ -276,7 +279,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                         "Load balancer configuration [{0}] does not have a reference to the given server [{1}].",
                         lbConfigName, target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -286,7 +289,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 } catch (TransactionFailure ex) {
                     String msg = localStrings.getLocalString("FailedToAddHC", "Failed to add health checker");
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     report.setFailureCause(ex);
                     return;
                 }
@@ -296,7 +299,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
                 String msg = localStrings.getLocalString("HealthCheckerExists",
                         "Health checker server/cluster [{0}] already exists.", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -304,7 +307,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
         } else {
             String msg = localStrings.getLocalString("InvalidTarget", "Invalid target", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }        
     }
@@ -362,7 +365,7 @@ public final class CreateHTTPHealthCheckerCommand implements AdminCommand {
             String msg = localStrings.getLocalString("Nulltarget", "Null target");
             logger.warning(msg);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return null;
         }
 

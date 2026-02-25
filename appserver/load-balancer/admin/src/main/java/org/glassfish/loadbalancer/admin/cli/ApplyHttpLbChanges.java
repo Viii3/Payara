@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -85,6 +86,7 @@ import javax.inject.Inject;
             @RestParam(name="id", value="$parent")
         })
 })
+@Deprecated
 public class ApplyHttpLbChanges implements AdminCommand {
 
     @Inject
@@ -100,6 +102,8 @@ public class ApplyHttpLbChanges implements AdminCommand {
     @Override
     public void execute(AdminCommandContext context) {
         ActionReport report = context.getActionReport();
+        context.getLogger().warning("The apply-http-lb-changes command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The apply-http-lb-changes command is deprecated and will be removed in Payara 7 onwards.");
         try {
             process();
             report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
@@ -110,7 +114,7 @@ public class ApplyHttpLbChanges implements AdminCommand {
                 LbLogUtil.getLogger().log(Level.FINE, "Exception when applying http lb changes", t);
             }
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(t.getMessage());
+            report.appendMessage("\n" + t.getMessage());
             report.setFailureCause(t);
         }
     }

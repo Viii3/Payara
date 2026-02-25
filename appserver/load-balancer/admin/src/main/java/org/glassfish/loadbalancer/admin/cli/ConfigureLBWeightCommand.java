@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -85,6 +86,7 @@ import org.glassfish.hk2.api.PerLookup;
             @RestParam(name="target", value="$parent")
         })
 })
+@Deprecated
 public final class ConfigureLBWeightCommand extends LBCommandsBase
                                             implements AdminCommand {
 
@@ -103,6 +105,8 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
         final ActionReport report = context.getActionReport();
 
         final Logger logger = context.getLogger();
+        logger.warning("The configure-lb-weight command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The configure-lb-weight command is deprecated and will be removed in Payara 7 onwards.");
         
         report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
 
@@ -110,7 +114,7 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
         try {
             instanceWeights = getInstanceWeightsMap(weights);
         } catch (CommandException ce) {
-            report.setMessage(localStrings.getLocalString("InvalidWeightValue", "Invalid weight value"));
+            report.appendMessage("\n" + localStrings.getLocalString("InvalidWeightValue", "Invalid weight value"));
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
             report.setFailureCause(ce);
             return;
@@ -121,7 +125,7 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("NoSuchCluster", "No such cluster {0}", cluster);
             logger.warning(msg);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -135,7 +139,7 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
                     String msg = localStrings.getLocalString("NoSuchInstance", "No such instance {0}", instance);
                     logger.warning(msg);
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     return;
                 }
 
@@ -146,7 +150,7 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
                             "Instance {0} does not belong to cluster {1}.", instance,cluster);
                     logger.warning(msg);
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     return;
                 }
 
@@ -155,12 +159,12 @@ public final class ConfigureLBWeightCommand extends LBCommandsBase
                             "Instance {0} does not belong to cluster {1}.", instance,cluster);
                     logger.warning(msg);
                     report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                    report.setMessage(msg);
+                    report.appendMessage("\n" + msg);
                     return;
                 }
                 updateLBWeight(s, entry.getValue().toString());                
             } catch (TransactionFailure ex) {
-                report.setMessage(ex.getMessage());
+                report.appendMessage("\n" + ex.getMessage());
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
                 report.setFailureCause(ex);
                 return;

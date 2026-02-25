@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -91,6 +92,7 @@ import javax.inject.Inject;
         path="delete-http-lb-ref", 
         description="delete-http-lb-ref")
 })
+@Deprecated
 public final class DeleteHTTPLBRefCommand extends LBCommandsBase
         implements AdminCommand {
 
@@ -121,6 +123,8 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
     public void execute(AdminCommandContext context) {
 
         report = context.getActionReport();
+        context.getLogger().warning("The delete-http-lb-ref command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The delete-http-lb-ref command is deprecated and will be removed in Payara 7 onwards.");
 
         report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
 
@@ -134,7 +138,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("EitherConfigOrLBName",
                     "Either LB name or LB config name, not both");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -142,7 +146,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("SpecifyConfigOrLBName",
                     "Please specify either LB name or LB config name.");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -151,7 +155,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("NoLbConfigsElement",
                     "Empty lb-configs");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
         
@@ -160,7 +164,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("LbConfigDoesNotExist",
                         "Specified LB config {0} does not exist", config);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         } else if (lbname != null) {
@@ -169,7 +173,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("NoLoadBalancersElement",
                         "No Load balancers defined.");
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             LoadBalancer lb = lbs.getLoadBalancer(lbname);
@@ -177,7 +181,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("LoadBalancerNotDefined",
                         "Load balancer [{0}] not found.", lbname);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             config = lb.getLbConfigName();
@@ -199,7 +203,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
         } else {
             String msg = localStrings.getLocalString("InvalidTarget", "Invalid target", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
     }
@@ -217,7 +221,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                         " does not exist in any cluster in the domain");
             }
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
         if (!Boolean.parseBoolean(force)) {
@@ -226,7 +230,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                         "Server [{0}] needs to be disabled before it can be removed from the load balancer.",
                         serverName);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             // check if its applications are LB disabled.
@@ -236,7 +240,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("ServerNotDefined",
                             "Server {0} cannot be used as target", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             List<ApplicationRef> appRefs = domain.getApplicationRefsInTarget(target);
@@ -245,7 +249,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("AppRefsNotDefined",
                         "Application refs does not exist in server {0}", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             boolean appLbEnabled = false;
@@ -260,7 +264,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("AppsNotDisabled",
                         "All referenced applications must be disabled in LB");
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -280,7 +284,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 logger.finest("Cluster " + clusterName + " does not exist.");
             }
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -290,7 +294,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("ClusterNotDefined",
                             "Cluster {0} cannot be used as target", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
 
@@ -306,7 +310,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("ServerNeedsToBeDisabled",
                         "Server [{0}] needs to be disabled before it can be removed from the load balancer.", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -325,7 +329,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
         } catch (TransactionFailure ex) {
             String msg = localStrings.getLocalString("FailedToRemoveServerRef", "Failed to remove server-ref");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             report.setFailureCause(ex);
             return;
         }
@@ -343,7 +347,7 @@ public final class DeleteHTTPLBRefCommand extends LBCommandsBase
         } catch (TransactionFailure ex) {
             String msg = localStrings.getLocalString("FailedToRemoveClusterRef", "Failed to remove cluster-ref");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             report.setFailureCause(ex);
             return;
         }

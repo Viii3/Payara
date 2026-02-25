@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+// Portions Copyright 2026 Payara Foundation and/or its affiliates
 
 package org.glassfish.loadbalancer.admin.cli;
 
@@ -102,6 +103,7 @@ import javax.inject.Inject;
             @RestParam(name="config", value="$parent")
         })
 })
+@Deprecated
 public final class CreateHTTPLBRefCommand extends LBCommandsBase
         implements AdminCommand {
 
@@ -159,6 +161,8 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
     public void execute(AdminCommandContext context) {
 
         report = context.getActionReport();
+        context.getLogger().warning("The create-http-lb-ref command is deprecated and will be removed in Payara 7 onwards.");
+        report.setMessage("The create-http-lb-ref command is deprecated and will be removed in Payara 7 onwards.");
 
         report.setActionExitCode(ActionReport.ExitCode.SUCCESS);
 
@@ -168,7 +172,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("EitherConfigOrLBName",
                     "Either LB name or LB config name, not both");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -176,7 +180,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("SpecifyConfigOrLBName",
                     "Please specify either LB name or LB config name.");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -185,7 +189,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("NoLbConfigsElement",
                     "Empty lb-configs");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -194,7 +198,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("LbConfigDoesNotExist",
                         "Specified LB config {0} does not exist", config);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         } else if (lbname != null) {
@@ -203,7 +207,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("NoLoadBalancersElement",
                         "No Load balancers defined.");
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             LoadBalancer lb = lbs.getLoadBalancer(lbname);
@@ -211,7 +215,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("LoadBalancerNotDefined",
                         "Load balancer [{0}] not found.", lbname);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
             config = lb.getLbConfigName();
@@ -222,7 +226,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("NotCluster",
                         "{0} not a cluster", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -235,7 +239,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("ClusterNotDefined",
                         "Cluster {0} cannot be used as target", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         } else {
@@ -244,7 +248,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = localStrings.getLocalString("ServerNotDefined",
                         "Server {0} cannot be used as target", target);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -271,7 +275,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = e.getLocalizedMessage();
                 logger.warning(msg);
                 report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-                report.setMessage(msg);
+                report.appendMessage("\n" + msg);
                 return;
             }
         }
@@ -287,7 +291,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                 String msg = e.getLocalizedMessage();
                 logger.warning(msg);
 //                    report.setActionExitCode(ExitCode.FAILURE);
-//                    report.setMessage(msg);
+//                    report.appendMessage("\n" + msg);
 //                    return;
             }
 
@@ -327,7 +331,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
         } else {
             String msg = localStrings.getLocalString("InvalidTarget", "Invalid target", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
     }
@@ -340,7 +344,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("LBServerRefExists",
                    "LB config already contains a server-ref for target {0}", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -351,7 +355,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
                     "[{0}] is not a stand alone instance. Only stand alone instance can be added to a load balancer.",
                     serverName);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -369,7 +373,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("FailedToAddServerRef",
                     "Failed to add server-ref");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             report.setFailureCause(ex);
         }
     }
@@ -382,7 +386,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("LBClusterRefExists",
                    "LB config already contains a cluster-ref for target {0}", target);
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             return;
         }
 
@@ -406,7 +410,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = localStrings.getLocalString("FailedToAddClusterRef",
                     "Failed to add cluster-ref");
             report.setActionExitCode(ActionReport.ExitCode.FAILURE);
-            report.setMessage(msg);
+            report.appendMessage("\n" + msg);
             report.setFailureCause(ex);
         }
     }
@@ -424,7 +428,7 @@ public final class CreateHTTPLBRefCommand extends LBCommandsBase
             String msg = e.getLocalizedMessage();
             logger.warning(msg);
 //            report.setActionExitCode(ExitCode.FAILURE);
-//            report.setMessage(msg);
+//            report.appendMessage("\n" + msg);
 //            return;
         }
     }
